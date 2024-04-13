@@ -69,7 +69,7 @@ function printReceipt(content) {
   });
 
   printer.alignCenter();
-  printer.println('Sample Receipt');
+  printer.println(content);
   printer.drawLine();
   printer.alignLeft();
   printer.table(["Item", "Qty", "Price"]);
