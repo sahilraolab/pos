@@ -61,7 +61,7 @@ app.on('activate', function () {
 function printReceipt(content) {
   const printer = new Printer({
       type: PrinterTypes.EPSON,
-      interface: 'printer-name', // Replace 'printer-name' with the name of your printer
+      interface: 'Everycom-80-Series', // Replace 'printer-name' with the name of your printer
       characterSet: 'SLOVENIA',
       removeSpecialCharacters: false,
       replaceSpecialCharacters: true,
