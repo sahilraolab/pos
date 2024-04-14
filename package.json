@@ -2,7 +2,7 @@
   "name": "windowapp",
   "version": "1.0.0",
   "description": "Electron application for printing receipts",
-  "main": "main.js",
+  "main": "index.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
@@ -10,11 +10,6 @@
   "keywords": [],
   "author": "Your Name",
   "license": "ISC",
-  "dependencies": {
-    "electron-pos-printer": "^1.3.7",
-    "electron-print-window": "^1.0.0",
-    "node-thermal-printer": "^4.4.2"
-  },
   "devDependencies": {
     "electron": "^29.3.0",
     "electron-builder": "^24.13.3"
@@ -29,5 +24,8 @@
       "target": "dmg"
     },
     "asar": true
+  },
+  "dependencies": {
+    "serialport": "^12.0.0"
   }
 }

@@ -1,6 +1,6 @@
 function printReceipt() {
-    // Receipt content
-    const receiptContent = `
+  // Receipt content
+  const receiptContent = `
     <div style="text-align: center; font-weight: bold;">Sample Receipt</div>
     <div style="text-align: center;">--------------------------</div>
     <div>Item             Qty   Price</div>
@@ -10,17 +10,13 @@ function printReceipt() {
     <div>--------------------------</div>
     <div style="text-align: right;">Total:           $30.00</div>
     <div style="text-align: center;">--------------------------</div>
-    `;
-    
-    // Send a message to the main process to print the receipt
-    window.api.send('print-receipt', receiptContent);
-    
-    // Listen for response from the main process (if needed)
-    window.api.receive('print-receipt-response', (event, success) => {
-        if (success) {
-            console.log('Receipt printed successfully');
-        } else {
-            console.error('Failed to print receipt');
-        }
-    });
+  `;
+  
+  // Send a message to the main process to print the receipt
+  window.api.send('print-receipt', receiptContent);
+  
+  // Listen for response from the main process (if needed)
+  window.api.receive('print-receipt-response', (event, message) => {
+    console.log(message);
+  });
 }
