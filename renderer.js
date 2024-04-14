@@ -1,5 +1,3 @@
-const { ipcRenderer } = require('electron');
-
 function printReceipt() {
     // Receipt content
     const receiptContent = `
@@ -13,17 +11,16 @@ function printReceipt() {
     <div style="text-align: right;">Total:           $30.00</div>
     <div style="text-align: center;">--------------------------</div>
     `;
-
+    
     // Send a message to the main process to print the receipt
-    ipcRenderer.send('print-receipt', receiptContent);
-
+    window.api.send('print-receipt', receiptContent);
+    
     // Listen for response from the main process (if needed)
-    ipcRenderer.on('print-receipt-response', (event, success) => {
+    window.api.receive('print-receipt-response', (event, success) => {
         if (success) {
             console.log('Receipt printed successfully');
         } else {
             console.error('Failed to print receipt');
         }
     });
-
 }

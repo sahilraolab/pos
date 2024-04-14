@@ -1,11 +1,19 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const Printer = require('node-thermal-printer').printer;
 const PrinterTypes = require('node-thermal-printer').types;
+const path = require('path'); // Import the path module
 
 let mainWindow;
 
 function createWindow() {
-  mainWindow = new BrowserWindow({ width: 800, height: 600 });
+  mainWindow = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    webPreferences: {
+      // preload: path.join(app.getAppPath(), 'preload.js')
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
 
   // Load your HTML file that contains the print functionality
   mainWindow.loadFile('index.html');
@@ -41,31 +49,16 @@ app.on('activate', function () {
   }
 });
 
-// // Handle printing request from the renderer process
-// ipcMain.on('print', (event, receiptContent, printerOptions) => {
-//   const printer = new ElectronPrinter();
-
-//   // Print the receipt content
-//   printer.print(receiptContent, printerOptions)
-//     .then(() => {
-//       // Printing successful
-//       event.reply('print-success');
-//     })
-//     .catch((error) => {
-//       // Printing failed
-//       event.reply('print-error', error);
-//     });
-// });
-
 // Function to print the receipt
 function printReceipt(content) {
+  console.log('ok')
   const printer = new Printer({
-      type: PrinterTypes.EPSON,
-      interface: 'Everycom-80-Series', // Replace 'printer-name' with the name of your printer
-      characterSet: 'SLOVENIA',
-      removeSpecialCharacters: false,
-      replaceSpecialCharacters: true,
-      lineCharacter: '-'
+    type: PrinterTypes.EPSON,
+    interface: 'Everycom-80-Series', // Replace 'printer-name' with the name of your printer
+    characterSet: 'SLOVENIA',
+    removeSpecialCharacters: false,
+    replaceSpecialCharacters: true,
+    lineCharacter: '-'
   });
 
   printer.alignCenter();
@@ -75,14 +68,14 @@ function printReceipt(content) {
   printer.table(["Item", "Qty", "Price"]);
   printer.drawLine();
   printer.tableCustom([
-      { text: "Product 1", align: "LEFT", width: 0.5 },
-      { text: "x1", align: "CENTER", width: 0.25 },
-      { text: "$10.00", align: "RIGHT", width: 0.25 }
+    { text: "Product 1", align: "LEFT", width: 0.5 },
+    { text: "x1", align: "CENTER", width: 0.25 },
+    { text: "$10.00", align: "RIGHT", width: 0.25 }
   ]);
   printer.tableCustom([
-      { text: "Product 2", align: "LEFT", width: 0.5 },
-      { text: "x2", align: "CENTER", width: 0.25 },
-      { text: "$20.00", align: "RIGHT", width: 0.25 }
+    { text: "Product 2", align: "LEFT", width: 0.5 },
+    { text: "x2", align: "CENTER", width: 0.25 },
+    { text: "$20.00", align: "RIGHT", width: 0.25 }
   ]);
   printer.drawLine();
   printer.alignRight();
