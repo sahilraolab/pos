@@ -70,6 +70,9 @@ ipcMain.on('print-receipt', (event, receiptContent) => {
       const autoCutCommand = Buffer.from([0x1D, 0x56, 0x00]); // ESC/POS command for full cut
       socket.write(autoCutCommand, (cutError) => {
         if (cutError) {
+          console.log('<><><><><><><><>')
+          console.log(cutError);
+          console.log('<><><><><><><><>')
           event.sender.send('print-receipt-response', 'Printed successfully, but failed to cut.');
         } else {
           event.sender.send('print-receipt-response', 'Printed and cut successfully.');
