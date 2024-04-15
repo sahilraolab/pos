@@ -75,6 +75,7 @@ ipcMain.on('print-receipt', (event, receiptContent) => {
           console.log('<><><><><><><><>')
           event.sender.send('print-receipt-response', 'Printed successfully, but failed to cut.');
         } else {
+          console.log("I'm here buddy, where you finding me !")
           event.sender.send('print-receipt-response', 'Printed and cut successfully.');
         }
       });

@@ -15,7 +15,7 @@ function printReceipt() {
   // Send a message to the main process to print the receipt
   window.api.send('print-receipt', receiptContent);
   
-  // Listen for response from the main process (if needed)
+  // Listen for response from the main process
   window.api.receive('print-receipt-response', (event, message) => {
     console.log(message);
   });
