@@ -42,23 +42,23 @@ app.on('activate', function () {
           KDS CONNECT WITH IP
    ============================================================== */
 
-// Create a socket connection to the KDS
-const kdsAddress = '127.0.01'; // Replace with the IP address of the KDS
-const kdsPort = 9001; // Specify the port the KDS is listening on
-const kdsSocket = net.createConnection({ host: kdsAddress, port: kdsPort }, () => {
-  console.log('Connected to KDS');
-});
+// // Create a socket connection to the KDS
+// const kdsAddress = '127.0.01'; // Replace with the IP address of the KDS
+// const kdsPort = 9001; // Specify the port the KDS is listening on
+// const kdsSocket = net.createConnection({ host: kdsAddress, port: kdsPort }, () => {
+//   console.log('Connected to KDS');
+// });
 
-// Function to send order to KDS
-function sendOrderToKDS(order) {
-  kdsSocket.write(order);
-}
+// // Function to send order to KDS
+// function sendOrderToKDS(order) {
+//   kdsSocket.write(order);
+// }
 
-// Listen for changes in KDS orders
-kdsSocket.on('data', (data) => {
-  // Process the received data (e.g., update order status)
-  console.log('Received KDS order update:', data.toString());
-});
+// // Listen for changes in KDS orders
+// kdsSocket.on('data', (data) => {
+//   // Process the received data (e.g., update order status)
+//   console.log('Received KDS order update:', data.toString());
+// });
 
 
 
