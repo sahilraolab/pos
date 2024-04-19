@@ -97,7 +97,7 @@ ipcMain.on('print-receipt', (event, receiptContent) => {
       const feedAndCutCommand = Buffer.concat([
         Buffer.from('\x1B\x64\x05'), // Feed 5 lines
         Buffer.from('\x1D\x56\x00'),  // Full cut
-        Buffer.from('\x07') // Open cash drawer
+        Buffer.from([0x1B, 0x70, 0x00, 0x19, 0xFA]) // Open cash drawer
       ]);      
       socket.write(feedAndCutCommand, (cutError) => {
         if (cutError) {
