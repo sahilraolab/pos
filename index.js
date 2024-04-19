@@ -37,6 +37,31 @@ app.on('activate', function () {
 });
 
 
+
+/* ==============================================================
+          KDS CONNECT WITH IP
+   ============================================================== */
+
+// Create a socket connection to the KDS
+const kdsAddress = '127.0.01'; // Replace with the IP address of the KDS
+const kdsPort = 9001; // Specify the port the KDS is listening on
+const kdsSocket = net.createConnection({ host: kdsAddress, port: kdsPort }, () => {
+  console.log('Connected to KDS');
+});
+
+// Function to send order to KDS
+function sendOrderToKDS(order) {
+  kdsSocket.write(order);
+}
+
+// Listen for changes in KDS orders
+kdsSocket.on('data', (data) => {
+  // Process the received data (e.g., update order status)
+  console.log('Received KDS order update:', data.toString());
+});
+
+
+
 /* ==============================================================
           THERMAL PRINTER CONNECTION WITH IP
    ============================================================== */
@@ -71,7 +96,8 @@ ipcMain.on('print-receipt', (event, receiptContent) => {
       // const partialCutCommand = Buffer.from([0x1D, 0x56, 0x01]); // ESC/POS command for partial cut
       const feedAndCutCommand = Buffer.concat([
         Buffer.from('\x1B\x64\x05'), // Feed 5 lines
-        Buffer.from('\x1D\x56\x00')  // Full cut
+        Buffer.from('\x1D\x56\x00'),  // Full cut
+        Buffer.from('\x07') // Open cash drawer
       ]);      
       socket.write(feedAndCutCommand, (cutError) => {
         if (cutError) {
