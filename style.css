@@ -230,6 +230,7 @@ header .active_link {
     margin-bottom: 20px;
     font-size: 24px;
     font-weight: bold;
+    margin-bottom: 20px;
 }
 
 .menu_category > div{
@@ -254,6 +255,74 @@ header .active_link {
     background-color: #FFEEEF;
     color: #F05756;
 }
+
+.choosen_category_menu_items{
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.choosen_category_menu_items > span{
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2B2B2B;
+}
+
+.choosen_category_menu_items > div{
+    display: grid;
+    grid-template-columns: auto auto auto;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.category_menu_item{
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 5%;
+    background-color: #FFFFFF;
+    max-width: 350px;
+    cursor: pointer;
+    /* border: 2px solid #FFFFFF; */
+    color: #2B2B2B;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.category_menu_item_active{
+    background: linear-gradient(#EFA280, #EFA280);
+    color: white;
+}
+
+.category_menu_item > img{
+    width: 100%;
+    border-radius: 5%;
+}
+
+.category_menu_item > span{
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.category_menu_item .price{
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.category_menu_item > div {
+    display: flex;
+    gap: 5px;
+}
+
+.category_menu_item > div > span{
+    font-size: 12px;
+    align-self: first baseline;
+}
+
 
 .right_aside {
     grid-area: right;

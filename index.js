@@ -8,8 +8,8 @@ function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
   mainWindow = new BrowserWindow({
-    width: width,
-    height: height,
+    width: 800,
+    height: 500,
     webPreferences: {
       // preload: path.join(app.getAppPath(), 'preload.js')
       preload: path.join(__dirname, 'preload.js')
@@ -44,23 +44,23 @@ app.on('activate', function () {
           KDS CONNECT WITH IP
    ============================================================== */
 
-// // Create a socket connection to the KDS
-// const kdsAddress = '127.0.01'; // Replace with the IP address of the KDS
-// const kdsPort = 9001; // Specify the port the KDS is listening on
-// const kdsSocket = net.createConnection({ host: kdsAddress, port: kdsPort }, () => {
-//   console.log('Connected to KDS');
-// });
+// Create a socket connection to the KDS
+const kdsAddress = '127.0.01'; // Replace with the IP address of the KDS
+const kdsPort = 9001; // Specify the port the KDS is listening on
+const kdsSocket = net.createConnection({ host: kdsAddress, port: kdsPort }, () => {
+  console.log('Connected to KDS');
+});
 
-// // Function to send order to KDS
-// function sendOrderToKDS(order) {
-//   kdsSocket.write(order);
-// }
+// Function to send order to KDS
+function sendOrderToKDS(order) {
+  kdsSocket.write(order);
+}
 
-// // Listen for changes in KDS orders
-// kdsSocket.on('data', (data) => {
-//   // Process the received data (e.g., update order status)
-//   console.log('Received KDS order update:', data.toString());
-// });
+// Listen for changes in KDS orders
+kdsSocket.on('data', (data) => {
+  // Process the received data (e.g., update order status)
+  console.log('Received KDS order update:', data.toString());
+});
 
 
 
@@ -117,76 +117,3 @@ ipcMain.on('print-receipt', (event, receiptContent) => {
 });
 
 
-
-
-// // Listen for events from the renderer process to print
-// ipcMain.on('print-receipt', (event, data) => {
-//   if (!printerPort) {
-//     event.sender.send('print-receipt-response', 'Printer not connected.');
-//     return;
-//   }
-
-//   // Format the data as needed for printing
-//   const formattedData = formatDataForPrinting(data);
-
-//   // Send the formatted data to the printer
-//   printerPort.write(formattedData, (error) => {
-//     if (error) {
-//       event.sender.send('print-receipt-response', 'Failed to print.');
-//     } else {
-//       event.sender.send('print-receipt-response', 'Printed successfully.');
-//     }
-//   });
-// });
-
-// // Open the serial port connection to the printer
-// function openPrinterPort() {
-//   SerialPort.list().then((ports) => {
-//     // Find the port corresponding to your printer
-//     const printerPortInfo = ports.find((portInfo) => {
-//       return portInfo.vendorId === 'your_vendor_id' && portInfo.productId === 'your_product_id';
-//     });
-
-//     if (printerPortInfo) {
-//       printerPort = new SerialPort(printerPortInfo.path, { baudRate: 9600 });
-//     } else {
-//       console.error('Printer not found.');
-//     }
-//   }).catch((error) => {
-//     console.error('Error listing serial ports:', error);
-//   });
-// }
-
-// function formatDataForPrinting() {
-//   // Hardcoded order summary data
-//   const orderSummary = {
-//     items: [
-//       { name: "Pizza", qty: 2, price: "$10.00" },
-//       { name: "Burger", qty: 1, price: "$5.00" },
-//       { name: "Fries", qty: 1, price: "$3.00" }
-//     ],
-//     total: "$28.00"
-//   };
-
-//   // Format the data for printing
-//   let formattedData = '';
-
-//   // Add header
-//   formattedData += 'Order Summary\n';
-//   formattedData += '--------------------------\n';
-
-//   // Add items
-//   orderSummary.items.forEach(item => {
-//     formattedData += `${item.name}\t\t${item.qty}\t\t${item.price}\n`;
-//   });
-
-//   // Add footer
-//   formattedData += '--------------------------\n';
-//   formattedData += `Total: ${orderSummary.total}\n`;
-
-//   return formattedData;
-// }
-
-
-// // Call the function to open the printer port when the app is ready
-// app.on('ready', openPrinterPort);
