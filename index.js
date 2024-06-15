@@ -8,8 +8,10 @@ function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 500,
+    width: width,
+    height: height,
+    // frame: false,
+    fullscreen: true,
     webPreferences: {
       // preload: path.join(app.getAppPath(), 'preload.js')
       preload: path.join(__dirname, 'preload.js')
@@ -45,22 +47,49 @@ app.on('activate', function () {
    ============================================================== */
 
 // Create a socket connection to the KDS
-const kdsAddress = '127.0.01'; // Replace with the IP address of the KDS
-const kdsPort = 9001; // Specify the port the KDS is listening on
-const kdsSocket = net.createConnection({ host: kdsAddress, port: kdsPort }, () => {
-  console.log('Connected to KDS');
-});
+// const kdsAddress = '127.0.0.1'; // Replace with the IP address of the KDS
+// const kdsPort = 9001; // Specify the port the KDS is listening on
+// const kdsSocket = net.createConnection({ host: kdsAddress, port: kdsPort }, () => {
+//   console.log('Connected to KDS');
+// });
 
-// Function to send order to KDS
-function sendOrderToKDS(order) {
-  kdsSocket.write(order);
+// ipcMain.on('dummy-order', (event, order) => {
+//   // Process the dummy order
+//   console.log('Received dummy order:', order);
+//   // Send the order to the KDS
+//   kdsSocket.write(JSON.stringify(order));
+
+//   event.sender.send('dummy-order-come', "Data send successfully");
+// });
+
+// kdsSocket.on('data', (data) => {
+//   console.log('Received KDS order update:', data.toString());
+// });
+
+
+// Start KDS connection
+function connectToKDS() {
+  kdsSocket = net.createConnection({ host: '127.0.0.1', port: 9001 }, () => {
+    console.log('Connected to KDS');
+  });
+
+  kdsSocket.on('data', (data) => {
+    console.log('Received KDS order update:', data.toString());
+  });
 }
 
-// Listen for changes in KDS orders
-kdsSocket.on('data', (data) => {
-  // Process the received data (e.g., update order status)
-  console.log('Received KDS order update:', data.toString());
+ipcMain.on('dummy-order', (event, order) => {
+  console.log('Received dummy order:', order);
+  if (!kdsSocket) {
+    console.error('KDS socket not initialized');
+    return;
+  }
+  kdsSocket.write(JSON.stringify(order));
+  event.reply('dummy-order-come', "Data sent successfully");
 });
+
+// Initialize KDS connection when the app is ready
+app.on('ready', connectToKDS);
 
 
 
@@ -68,52 +97,52 @@ kdsSocket.on('data', (data) => {
           THERMAL PRINTER CONNECTION WITH IP
    ============================================================== */
 
-// IP address and port of the thermal printer
-const printerAddress = '192.168.1.23'; // Replace with the printer's IP address
-const printerPort = 9100; // Default port for most thermal printers
+// // IP address and port of the thermal printer
+// const printerAddress = '192.168.1.23'; // Replace with the printer's IP address
+// const printerPort = 9100; // Default port for most thermal printers
 
-// Create a socket connection to the printer
-const socket = net.createConnection({ host: printerAddress, port: printerPort }, () => {
-  console.log('Connected to printer');
-});
+// // Create a socket connection to the printer
+// const socket = net.createConnection({ host: printerAddress, port: printerPort }, () => {
+//   console.log('Connected to printer');
+// });
 
-// Handle errors and close events
-socket.on('error', (err) => {
-  console.error('Error:', err);
-});
+// // Handle errors and close events
+// socket.on('error', (err) => {
+//   console.error('Error:', err);
+// });
 
-socket.on('close', () => {
-  console.log('Connection closed');
-});
+// socket.on('close', () => {
+//   console.log('Connection closed');
+// });
 
-// Listen for events from the renderer process to print
-ipcMain.on('print-receipt', (event, receiptContent) => {
-  // Send the receipt content to the printer
-  socket.write(receiptContent, (error) => {
-    if (error) {
-      event.sender.send('print-receipt-response', 'Failed to print.');
-    } else {
-      // Send ESC/POS command for auto-cutting
-      // const autoCutCommand = Buffer.from([0x1D, 0x56, 0x00]); // ESC/POS command for full cut
-      // const partialCutCommand = Buffer.from([0x1D, 0x56, 0x01]); // ESC/POS command for partial cut
-      const feedAndCutCommand = Buffer.concat([
-        Buffer.from('\x1B\x64\x05'), // Feed 5 lines
-        Buffer.from('\x1D\x56\x00'),  // Full cut
-        Buffer.from([0x1B, 0x70, 0x00, 0x19, 0xFA]) // Open cash drawer
-      ]);      
-      socket.write(feedAndCutCommand, (cutError) => {
-        if (cutError) {
-          console.log('<><><><><><><><>')
-          console.log(cutError);
-          console.log('<><><><><><><><>')
-          event.sender.send('print-receipt-response', 'Printed successfully, but failed to cut.');
-        } else {
-          console.log("I'm here buddy, where you finding me !")
-          event.sender.send('print-receipt-response', 'Printed and cut successfully.');
-        }
-      });
-    }
-  });
-});
+// // Listen for events from the renderer process to print
+// ipcMain.on('print-receipt', (event, receiptContent) => {
+//   // Send the receipt content to the printer
+//   socket.write(receiptContent, (error) => {
+//     if (error) {
+//       event.sender.send('print-receipt-response', 'Failed to print.');
+//     } else {
+//       // Send ESC/POS command for auto-cutting
+//       // const autoCutCommand = Buffer.from([0x1D, 0x56, 0x00]); // ESC/POS command for full cut
+//       // const partialCutCommand = Buffer.from([0x1D, 0x56, 0x01]); // ESC/POS command for partial cut
+//       const feedAndCutCommand = Buffer.concat([
+//         Buffer.from('\x1B\x64\x05'), // Feed 5 lines
+//         Buffer.from('\x1D\x56\x00'),  // Full cut
+//         Buffer.from([0x1B, 0x70, 0x00, 0x19, 0xFA]) // Open cash drawer
+//       ]);
+//       socket.write(feedAndCutCommand, (cutError) => {
+//         if (cutError) {
+//           console.log('<><><><><><><><>')
+//           console.log(cutError);
+//           console.log('<><><><><><><><>')
+//           event.sender.send('print-receipt-response', 'Printed successfully, but failed to cut.');
+//         } else {
+//           console.log("I'm here buddy, where you finding me !")
+//           event.sender.send('print-receipt-response', 'Printed and cut successfully.');
+//         }
+//       });
+//     }
+//   });
+// });
 
 

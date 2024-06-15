@@ -11,12 +11,37 @@ function printReceipt() {
     <div style="text-align: right;">Total:           $30.00</div>
     <div style="text-align: center;">--------------------------</div>
   `;
-  
+
   // Send a message to the main process to print the receipt
   window.api.send('print-receipt', receiptContent);
-  
+
   // Listen for response from the main process
   window.api.receive('print-receipt-response', (event, message) => {
     console.log(message);
   });
 }
+
+// Listen for the confirmation message from the main process
+window.api.receive("dummy-order-come", (event, message)=>{
+  console.log(message);
+});
+
+function sendDummyOrder() {
+  // let data = prompt("Enter name", "sr");
+  const dummyOrder = {
+    name: "sar",
+    type: "Quick Bill",
+    id: "001",
+    items: [
+      { item: 'Burger', quantity: 2 },
+      { item: 'Pizza', quantity: 1 },
+      { item: 'Salad', quantity: 1 }
+    ]
+  }
+
+  // Send the dummy order to the main process
+  window.api.send('dummy-order', dummyOrder);
+}
+
+// Call the function to send the dummy order
+// sendDummyOrder();
