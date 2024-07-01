@@ -1,0 +1,218 @@
+
+.model {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px); /* Blur the background */
+    background-color: rgba(0, 0, 0, 0.134);
+}
+
+
+/* start day screen */
+
+.start_day > div {
+    background-color: #FFFFFF;
+    border-radius: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.start_day > div > form {
+    display: flex;
+    flex-direction: column;
+    /* gap: 15px;  */
+    padding: 20px 40px;
+}
+
+.start_day > div > form > label{
+    font-weight: 500;
+    margin-top: 1rem;
+    margin-bottom: .3rem;
+}
+
+.start_day > div > form > input{
+    padding: .5rem;
+    text-align: center;
+    border: 1px solid #E4E4E4;
+    border-radius: 1rem;
+}
+
+.start_day > div > form > button{
+    padding: .5rem;
+    margin-top: 1.5rem;
+    border-radius: 1rem;
+    border: none;
+    font-weight: 500;
+    font-size: 1rem;
+    color: white;
+    background: linear-gradient(#EFA280, #DF6229);
+}
+
+.start_day > div > h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 20px;
+    border-bottom: 1px solid #E4E4E4;
+}
+
+/* punch in screen */
+
+.punch_in > div, .punch_out_and_break > div{
+    background-color: #FFFFFF;
+    border-radius: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.punch_in > div > h3, .punch_out_and_break > div > h3{
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 20px 20px 0 20px;
+    /* border-bottom: 1px solid #E4E4E4; */
+}
+
+.punch_in > div > p{
+    color: #929292;
+    font-weight: 500;
+    font-size: .8rem;
+}
+
+.punch_in > div > .line, .punch_out_and_break > div > .line{
+    width: 100%;
+    height: 1px;
+    background-color: #E4E4E4;
+}
+
+.punch_in > div > input{
+    font-size: 2rem;
+    margin: 1rem 2rem;
+    border: 2px solid #E4E4E4;
+    padding: .5rem 1rem;
+    border-radius: 1rem;
+    outline: none;
+}
+
+
+.punch_in > div > button{
+    border-radius: 50%;
+    height: 8rem;
+    width: 8rem;
+    background: linear-gradient(#EFA280, #DF6229);
+    border: none;
+    color: white;
+    font-weight: 500;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+
+/* punch out and break */
+
+.punch_out_and_break > div > h3{
+    padding-bottom: 1rem;
+}
+
+.punch_out_and_break > div > #liveClock{
+    font-size: 2rem;
+    display: block;
+    padding: 2rem 2rem .1rem 2rem;
+}
+
+
+.punch_out_and_break > div > #date{
+    color: #929292;
+    font-weight: 400;
+    font-size: .8rem;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.punch_out_and_break_div{
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.punch_out_and_break_div > button{
+    padding: 1rem 2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 2rem;
+    border: 1px solid transparent;
+    font-weight: 500;;
+    background: linear-gradient(#EFA280, #DF6229);
+    color: #FFFFFF;
+}
+
+#punchOut, #shipEnd{
+    background: white;
+    color: #DF6229;
+    border: 1px solid #DF6229;
+}
+
+.punch_out_and_break > div > .user_hours{
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.punch_out_and_break > div > .user_hours > div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+
+.punch_out_and_break > div > .user_hours > div > span{
+    color: #929292;
+    font-weight: 600;
+}
+
+.punch_out_and_break > div > .user_hours > div > .time{
+    font-size: 1.5rem;
+    display: block;
+    margin-top: .5rem;
+    font-weight: 500;
+    color: #19191C;
+}
+
+
+/* break end & logout screen */
+
+.breakend_and_logout > div {
+    min-width: 25%;
+}
+
+.breakend_and_logout > div > p{
+    color: #929292;
+    font-weight: 500;
+    font-size: .8rem;
+}
+
+
+.breakend_and_logout > div > svg{
+    padding: 0 1rem;
+    margin-top: 1rem;
+}
+
+.breakend_and_logout > div > span{
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 600;
+}

@@ -2,7 +2,7 @@
   "name": "windowapp",
   "version": "1.0.0",
   "description": "Electron application for printing receipts",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"

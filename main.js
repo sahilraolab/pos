@@ -10,16 +10,30 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: width,
     height: height,
-    // frame: false,
     fullscreen: true,
     webPreferences: {
-      // preload: path.join(app.getAppPath(), 'preload.js')
       preload: path.join(__dirname, 'preload.js')
     }
   });
 
+
   // Load your HTML file that contains the print functionality
   mainWindow.loadFile('index.html');
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    // Set the zoom level to 100% (zoom level 0)
+    mainWindow.webContents.setZoomLevel(-0.1);
+  });
+
+  // Intercept and prevent zoom shortcuts
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if ((input.key === '=' || input.key === '-' || input.key === '0') && (input.control || input.meta)) {
+      event.preventDefault();
+    }
+    // if ((input.key === 'R' && input.control) || (input.key === 'r' && input.meta) || input.key === 'F5') {
+    //   event.preventDefault();
+    // }
+  });
 
   mainWindow.on('closed', function () {
     mainWindow = null;
@@ -89,7 +103,7 @@ ipcMain.on('dummy-order', (event, order) => {
 });
 
 // Initialize KDS connection when the app is ready
-app.on('ready', connectToKDS);
+// app.on('ready', connectToKDS);
 
 
 
