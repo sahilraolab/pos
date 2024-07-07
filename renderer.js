@@ -71,6 +71,57 @@ function showMenuCategories(menuCategories) {
   }
 }
 
+// Function to update the localStorage with the selected products and their add-ons
+function updateLocalStorage() {
+  const menuItems = document.querySelectorAll('.selected_menu .menu_item');
+  const products = [];
+
+  menuItems.forEach(menuItem => {
+    const name = menuItem.querySelector('.menu_item_product_name').textContent;
+    const basePrice = parseFloat(menuItem.querySelector('.menu_item_product_price').textContent.replace('$', '')) / parseInt(menuItem.querySelector('.menu_numbers').value);
+    const quantity = parseInt(menuItem.querySelector('.menu_numbers').value);
+    const addonNames = menuItem.querySelector('.menu_item_sub_product_names').textContent.split(', ').filter(name => name !== "");
+
+    const addons = addonNames.map(name => {
+      const addon = Array.from(document.querySelectorAll(`.addon`)).find(el => el.querySelector('.name').textContent === name);
+      return {
+        name: addon.querySelector('.name').textContent,
+        price: parseFloat(addon.querySelector('.price').textContent.replace(/[()$]/g, ''))
+      };
+    });
+
+    products.push({ name, basePrice, quantity, addons });
+  });
+
+  localStorage.setItem('selectedProducts', JSON.stringify(products));
+}
+
+// Function to update the order summary based on the data in localStorage
+function updateOrderSummary() {
+  const products = JSON.parse(localStorage.getItem('selectedProducts')) || [];
+  let subtotal = 0;
+  let totalAddonPrice = 0;
+
+  products.forEach(product => {
+    subtotal += product.basePrice * product.quantity;
+    product.addons.forEach(addon => {
+      totalAddonPrice += addon.price * product.quantity;
+    });
+  });
+
+  const discount = 0; // Example discount value, replace with your calculation logic
+  const taxRate = 0.13; // Example tax rate, replace with your tax calculation logic
+
+  const tax = (subtotal - discount) * taxRate;
+  const total = subtotal - discount + tax + totalAddonPrice;
+
+  document.querySelector('.menu_bills:nth-child(2) span:nth-child(2)').textContent = `$${subtotal.toFixed(2)}`;
+  document.querySelector('.menu_bills:nth-child(3) span:nth-child(2)').textContent = `$${discount.toFixed(2)}`;
+  document.querySelector('.menu_bills:nth-child(4) span:nth-child(2)').textContent = `$${tax.toFixed(2)}`;
+  document.querySelector('.menu_total span:nth-child(2)').textContent = `$${total.toFixed(2)}`;
+}
+
+// Modified selectProduct function to include localStorage updates
 function selectProduct(name, price, quantity, element) {
   const addonsString = element.getAttribute('data-addons');
   const addons = JSON.parse(addonsString);
@@ -83,7 +134,7 @@ function selectProduct(name, price, quantity, element) {
     addonModelListSection.innerHTML = "";
     addons.forEach(addon => {
       addonModelListSection.innerHTML += `
-        <button>
+        <button class="addon" data-name="${addon.name}">
             <span class="name">${addon.name}</span>
             <span class="price">($${addon.price})</span>
         </button>
@@ -118,13 +169,16 @@ function selectProduct(name, price, quantity, element) {
       menuPriceElement.textContent = `$${(price * quantity + totalAddonPrice).toFixed(2)}`;
 
       document.querySelector('.add_on').classList.add('hidden');
+
+      // Update localStorage and order summary after adding addons
+      updateLocalStorage();
+      updateOrderSummary();
     });
 
     document.querySelector('.add_on_bottom .cancel').addEventListener('click', () => {
       document.querySelector('.add_on').classList.add('hidden');
       addonModelListSection.innerHTML = ""; // Clear add-ons list
     });
-
   }
 
   const menuItemHTML = `
@@ -175,6 +229,10 @@ function selectProduct(name, price, quantity, element) {
       });
       const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
       menuPriceElement.textContent = `$${(price * count + totalAddonPrice).toFixed(2)}`;
+
+      // Update localStorage and order summary after changing quantity
+      updateLocalStorage();
+      updateOrderSummary();
     }
   }
 
@@ -183,6 +241,10 @@ function selectProduct(name, price, quantity, element) {
     if (menuItems.length === 0) {
       document.querySelector('.right_aside').classList.add('hidden');
     }
+
+    // Update localStorage and order summary after removing an item
+    updateLocalStorage();
+    updateOrderSummary();
   }
 
   menuNumbersInput.addEventListener('click', function () {
@@ -200,9 +262,11 @@ function selectProduct(name, price, quantity, element) {
   menuNumbersInput.addEventListener('input', () => {
     updateItemCount(menuNumbersInput.value);
   });
+
+  // Update localStorage and order summary after adding a new product
+  updateLocalStorage();
+  updateOrderSummary();
 }
-
-
 
 
 function updateQuickLinks(show, hide1, hide2) {

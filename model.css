@@ -1,4 +1,3 @@
-
 .model {
     position: fixed;
     top: 0;
@@ -9,14 +8,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(5px); 
+    backdrop-filter: blur(5px);
     background-color: rgba(0, 0, 0, 0.134);
 }
 
 
 /* start day screen */
 
-.start_day > div {
+.start_day>div {
     background-color: #FFFFFF;
     border-radius: 1rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -26,27 +25,27 @@
     text-align: center;
 }
 
-.start_day > div > form {
+.start_day>div>form {
     display: flex;
     flex-direction: column;
     /* gap: 15px;  */
     padding: 20px 40px;
 }
 
-.start_day > div > form > label{
+.start_day>div>form>label {
     font-weight: 500;
     margin-top: 1rem;
     margin-bottom: .3rem;
 }
 
-.start_day > div > form > input{
+.start_day>div>form>input {
     padding: .5rem;
     text-align: center;
     border: 1px solid #E4E4E4;
     border-radius: 1rem;
 }
 
-.start_day > div > form > button{
+.start_day>div>form>button {
     padding: .5rem;
     margin-top: 1.5rem;
     border-radius: 1rem;
@@ -57,7 +56,7 @@
     background: linear-gradient(#EFA280, #DF6229);
 }
 
-.start_day > div > h3 {
+.start_day>div>h3 {
     font-size: 1.5rem;
     font-weight: 600;
     padding: 20px;
@@ -66,7 +65,8 @@
 
 /* punch in screen */
 
-.punch_in > div, .punch_out_and_break > div{
+.punch_in>div,
+.punch_out_and_break>div {
     background-color: #FFFFFF;
     border-radius: 1rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -74,26 +74,28 @@
     text-align: center;
 }
 
-.punch_in > div > h3, .punch_out_and_break > div > h3{
+.punch_in>div>h3,
+.punch_out_and_break>div>h3 {
     font-size: 1.5rem;
     font-weight: 600;
     padding: 20px 20px 0 20px;
     /* border-bottom: 1px solid #E4E4E4; */
 }
 
-.punch_in > div > p{
+.punch_in>div>p {
     color: #929292;
     font-weight: 500;
     font-size: .8rem;
 }
 
-.punch_in > div > .line, .punch_out_and_break > div > .line{
+.punch_in>div>.line,
+.punch_out_and_break>div>.line {
     width: 100%;
     height: 1px;
     background-color: #E4E4E4;
 }
 
-.punch_in > div > input{
+.punch_in>div>input {
     font-size: 2rem;
     margin: 1rem 2rem;
     border: 2px solid #E4E4E4;
@@ -103,7 +105,7 @@
 }
 
 
-.punch_in > div > button{
+.punch_in>div>button {
     border-radius: 50%;
     height: 8rem;
     width: 8rem;
@@ -120,18 +122,18 @@
 
 /* punch out and break */
 
-.punch_out_and_break > div > h3{
+.punch_out_and_break>div>h3 {
     padding-bottom: 1rem;
 }
 
-.punch_out_and_break > div > #liveClock{
+.punch_out_and_break>div>#liveClock {
     font-size: 2rem;
     display: block;
     padding: 2rem 2rem .1rem 2rem;
 }
 
 
-.punch_out_and_break > div > #date{
+.punch_out_and_break>div>#date {
     color: #929292;
     font-weight: 400;
     font-size: .8rem;
@@ -139,38 +141,40 @@
     padding-top: 0;
 }
 
-.punch_out_and_break_div{
+.punch_out_and_break_div {
     display: grid;
     grid-template-columns: auto auto;
     gap: 1rem;
     padding: 2rem;
 }
 
-.punch_out_and_break_div > button{
+.punch_out_and_break_div>button {
     padding: 1rem 2rem;
     cursor: pointer;
     font-size: 1rem;
     border-radius: 2rem;
     border: 1px solid transparent;
-    font-weight: 500;;
+    font-weight: 500;
+    ;
     background: linear-gradient(#EFA280, #DF6229);
     color: #FFFFFF;
 }
 
-#punchOut, #shipEnd{
+#punchOut,
+#shipEnd {
     background: white;
     color: #DF6229;
     border: 1px solid #DF6229;
 }
 
-.punch_out_and_break > div > .user_hours{
+.punch_out_and_break>div>.user_hours {
     display: grid;
     grid-template-columns: auto auto;
     gap: 1rem;
     padding: 2rem;
 }
 
-.punch_out_and_break > div > .user_hours > div{
+.punch_out_and_break>div>.user_hours>div {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -179,12 +183,12 @@
 }
 
 
-.punch_out_and_break > div > .user_hours > div > span{
+.punch_out_and_break>div>.user_hours>div>span {
     color: #929292;
     font-weight: 600;
 }
 
-.punch_out_and_break > div > .user_hours > div > .time{
+.punch_out_and_break>div>.user_hours>div>.time {
     font-size: 1.5rem;
     display: block;
     margin-top: .5rem;
@@ -195,23 +199,23 @@
 
 /* break end & logout screen */
 
-.breakend_and_logout > div {
+.breakend_and_logout>div {
     min-width: 25%;
 }
 
-.breakend_and_logout > div > p{
+.breakend_and_logout>div>p {
     color: #929292;
     font-weight: 500;
     font-size: .8rem;
 }
 
 
-.breakend_and_logout > div > svg{
+.breakend_and_logout>div>svg {
     padding: 0 1rem;
     margin-top: 1rem;
 }
 
-.breakend_and_logout > div > span{
+.breakend_and_logout>div>span {
     display: block;
     font-size: 1.5rem;
     font-weight: 600;
@@ -219,7 +223,7 @@
 
 /* add on model */
 
-.add_on > div {
+.add_on>div {
     background-color: white;
     border-radius: 1rem;
     max-width: 50%;
@@ -243,7 +247,7 @@
     gap: 2rem;
 }
 
-.add_on_main > div {
+.add_on_main>div {
     display: flex;
     gap: 1rem;
     justify-content: start;
@@ -251,7 +255,7 @@
     flex-wrap: wrap;
 }
 
-.add_on_main > div > button {
+.add_on_main>div>button {
     padding: 0.5rem 1rem;
     border-radius: 1rem;
     background-color: transparent;
@@ -259,7 +263,7 @@
     border: 2px solid #E4E4E4;
 }
 
-.add_on_main > div > button.active{
+.add_on_main>div>button.active {
     color: #DF6229;
     border: 2px solid #DF6229;
     background-color: #FFE8E1;
@@ -271,8 +275,107 @@
     gap: 1rem;
 }
 
-.add_on_bottom > button {
+.add_on_bottom>button {
     padding: .5rem;
     border-radius: 2rem;
     width: 100%;
+}
+
+/* DISCOUNT */
+
+.discount>div {
+    background-color: white;
+    border-radius: 1rem;
+    min-width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+.discount_top {
+    padding: 2rem;
+    border-bottom: 2px solid #E4E4E4;
+    text-align: center;
+}
+
+.discount_main {
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.discount_main>div {
+    display: flex;
+    height: 72px;
+    max-height: 72px;
+}
+
+.discount_left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    height: 72px;
+    padding: 0 1rem;
+    border-top-left-radius: 1rem;
+    border-bottom-left-radius: 1rem;
+    border-top: 2px solid #E4E4E4;
+    border-left: 2px solid #E4E4E4;
+    border-bottom: 2px solid #E4E4E4;
+}
+
+.discount_left>.selected {
+    height: 1.5rem;
+    width: 1.5rem;
+    border: 2px solid #C2C2C2;
+    border-radius: 50%;
+}
+
+.discount_left>.value {
+    color: #19191C;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.discount_badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(#EFA280, #DF6229);
+    color: white;
+    padding: 0 1rem;
+    font-size: 1.5rem;
+    position: relative;
+}
+
+.discount_badge>svg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: -5px;
+}
+
+.discount_bottom {
+    padding: 2rem;
+    display: flex;
+    gap: 1rem;
+    align-self: center;
+    justify-content: center;
+}
+
+.discount_bottom>button {
+    min-width: 100%;
+}
+
+.tick {
+    background: linear-gradient(#EFA280, #DF6229);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: none !important;
+    height: 1.6rem !important;
+    width: 1.6rem !important;
 }
