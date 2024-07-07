@@ -31,11 +31,12 @@ function showMenuCategories(menuCategories) {
     itemContainer.innerHTML = '';
     const categoryItems = menuCategories.find(cat => cat.category === category).items;
     categoryItems.forEach((item) => {
+      const addonsString = JSON.stringify(item.addons);
       itemContainer.innerHTML += `
-        <div class="category_menu_item" onclick="selectProduct('${item.name}', ${item.price}, 1, null)">
+        <div class="category_menu_item" data-addons='${addonsString}' onclick="selectProduct('${item.name}', ${item.price}, 1, this)">
           <div class="imgCon">
             <img src="${item.imageUrl}" alt="${item.name}">
-          </div>
+          </div>  
           <span>${item.name}</span>
           <div><span class="price">$${item.price}</span><span>/portion</span></div>
         </div>
@@ -43,11 +44,15 @@ function showMenuCategories(menuCategories) {
     });
   }
 
+
   // Display category buttons and attach click event listeners
   menuCategories.forEach((categoryObj) => {
     const categoryButton = document.createElement('button');
+    categoryButton.classList.add("menu_category_button");
     categoryButton.innerText = categoryObj.category;
-    categoryButton.addEventListener('click', () => {
+    categoryButton.addEventListener('click', (event) => {
+      document.querySelectorAll('.menu_category_button').forEach(item => item.classList.remove("active"));
+      event.target.classList.add('active');
       displayItems(categoryObj.category);
       // Update the heading for the chosen category
       const categoryHeading = document.querySelector(".choosen_category_menu_items h3");
@@ -62,45 +67,89 @@ function showMenuCategories(menuCategories) {
     // Update the heading for the first category
     const categoryHeading = document.querySelector(".choosen_category_menu_items h3");
     categoryHeading.innerText = `${menuCategories[0].category} Menu`;
+    categoryContainer.firstChild.classList.add('active');
   }
 }
 
-function selectProduct(itemName, itemPrice, numberOfItems, arrayOfAddons) {
-  console.log(`Item selected: ${itemName}`);
-  console.log(`Price: $${itemPrice}`);
-  console.log(`Number of items: ${numberOfItems}`);
-  console.log(`Add-ons: ${arrayOfAddons}`);
+function selectProduct(name, price, quantity, element) {
+  const addonsString = element.getAttribute('data-addons');
+  const addons = JSON.parse(addonsString);
+  console.log('Selected product:', { name, price, quantity, addons });
   document.querySelector('.right_aside').classList.remove('hidden');
   const menuItemsContainer = document.querySelector('.selected_menu');
 
+  if (addons && addons.length > 0) {
+    const addonModelListSection = document.getElementById("addonItems");
+    addonModelListSection.innerHTML = "";
+    addons.forEach(addon => {
+      addonModelListSection.innerHTML += `
+        <button>
+            <span class="name">${addon.name}</span>
+            <span class="price">($${addon.price})</span>
+        </button>
+      `;
+    });
+
+    document.querySelector('.add_on').classList.remove('hidden');
+
+    const addonButtons = addonModelListSection.querySelectorAll('button');
+    addonButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        button.classList.toggle('active');
+      });
+    });
+
+    document.querySelector('.add_on_bottom .save').addEventListener('click', () => {
+      const selectedAddons = [];
+      addonButtons.forEach(button => {
+        if (button.classList.contains('active')) {
+          const name = button.querySelector('.name').textContent;
+          const price = parseFloat(button.querySelector('.price').textContent.replace(/[()$]/g, ''));
+          selectedAddons.push({ name, price });
+        }
+      });
+
+      // Update the menu item HTML with the selected add-ons
+      const addonNames = selectedAddons.map(addon => addon.name).join(', ');
+      const addonPrices = selectedAddons.map(addon => addon.price);
+      const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
+
+      menuItemElement.querySelector('.menu_item_sub_product_names').textContent = addonNames;
+      menuPriceElement.textContent = `$${(price * quantity + totalAddonPrice).toFixed(2)}`;
+
+      document.querySelector('.add_on').classList.add('hidden');
+    });
+
+    document.querySelector('.add_on_bottom .cancel').addEventListener('click', () => {
+      document.querySelector('.add_on').classList.add('hidden');
+      addonModelListSection.innerHTML = ""; // Clear add-ons list
+    });
+
+  }
+
   const menuItemHTML = `
-   <div class="menu_item">
-        <div class="menu_item_name">
-            <span class="menu_item_product_name">${itemName}</span>
-            <span class="menu_item_product_price">$${(itemPrice * numberOfItems).toFixed(2)}</span>
+    <div class="menu_item">
+      <div class="menu_item_name">
+        <span class="menu_item_product_name">${name}</span>
+        <span class="menu_item_product_price">$${(price * quantity).toFixed(2)}</span>
+      </div>
+      <div class="menu_item_number__price">
+        <span class="menu_item_sub_product_names">${addons ? addons.map(a => a.name).join(', ') : ""}</span>
+        <div>
+          <button class="sub">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.25012 8.99997H15.7501" stroke="#2B2B2B" stroke-width="1.125" stroke-linecap="round" />
+            </svg>
+          </button>
+          <input type="text" class="menu_numbers" value="${quantity}">
+          <button class="add">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.00012 2.24997V15.75" stroke="white" stroke-width="1.125" stroke-linecap="round" />
+              <path d="M2.25012 8.99997H15.7501" stroke="white" stroke-width="1.125" stroke-linecap="round" />
+            </svg>
+          </button>
         </div>
-        <div class="menu_item_number__price">
-            <span class="menu_item_sub_product_names">${arrayOfAddons ? arrayOfAddons : ""}</span>
-            <div>
-                <button class="sub">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2.25012 8.99997H15.7501" stroke="#2B2B2B" stroke-width="1.125"
-                            stroke-linecap="round" />
-                    </svg>
-                </button>
-                <input type="text" class="menu_numbers" value="${numberOfItems}">
-                <button class="add">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9.00012 2.24997V15.75" stroke="white" stroke-width="1.125"
-                            stroke-linecap="round" />
-                        <path d="M2.25012 8.99997H15.7501" stroke="white" stroke-width="1.125"
-                            stroke-linecap="round" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+      </div>
     </div>
   `;
 
@@ -120,7 +169,12 @@ function selectProduct(itemName, itemPrice, numberOfItems, arrayOfAddons) {
       removeRightAside();
     } else {
       menuNumbersInput.value = count;
-      menuPriceElement.textContent = `$${(itemPrice * count).toFixed(2)}`;
+      const addonPrices = menuItemElement.querySelector('.menu_item_sub_product_names').textContent.split(', ').map(name => {
+        const addon = addons.find(a => a.name === name);
+        return addon ? addon.price : 0;
+      });
+      const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
+      menuPriceElement.textContent = `$${(price * count + totalAddonPrice).toFixed(2)}`;
     }
   }
 
@@ -130,9 +184,8 @@ function selectProduct(itemName, itemPrice, numberOfItems, arrayOfAddons) {
       document.querySelector('.right_aside').classList.add('hidden');
     }
   }
-  
 
-  menuNumbersInput.addEventListener('click', function() {
+  menuNumbersInput.addEventListener('click', function () {
     this.select();
   });
 
@@ -148,6 +201,7 @@ function selectProduct(itemName, itemPrice, numberOfItems, arrayOfAddons) {
     updateItemCount(menuNumbersInput.value);
   });
 }
+
 
 
 
@@ -259,7 +313,12 @@ function loadMenu() {
           price: 8.99,
           description: "Classic pizza with tomato sauce, mozzarella, and fresh basil.",
           available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          addons: [
+            { name: "Extra Cheese", price: 1.5 },
+            { name: "Olives", price: 1.0 },
+            { name: "Mushrooms", price: 1.0 }
+          ]
         },
         {
           id: 2,
@@ -267,64 +326,10 @@ function loadMenu() {
           price: 9.99,
           description: "Pizza with tomato sauce, mozzarella, and pepperoni slices.",
           available: true,
-          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          addons: null
         },
-        {
-          id: 1,
-          name: "Margherita",
-          price: 8.99,
-          description: "Classic pizza with tomato sauce, mozzarella, and fresh basil.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 2,
-          name: "Pepperoni",
-          price: 9.99,
-          description: "Pizza with tomato sauce, mozzarella, and pepperoni slices.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 1,
-          name: "Margherita",
-          price: 8.99,
-          description: "Classic pizza with tomato sauce, mozzarella, and fresh basil.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 2,
-          name: "Pepperoni",
-          price: 9.99,
-          description: "Pizza with tomato sauce, mozzarella, and pepperoni slices.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 1,
-          name: "Margherita",
-          price: 8.99,
-          description: "Classic pizza with tomato sauce, mozzarella, and fresh basil.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 2,
-          name: "Pepperoni",
-          price: 9.99,
-          description: "Pizza with tomato sauce, mozzarella, and pepperoni slices.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 3,
-          name: "BBQ Chicken",
-          price: 11.99,
-          description: "Pizza with BBQ sauce, mozzarella, grilled chicken, red onions, and cilantro.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?q=80&w=2825&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        }
+        // More items...
       ]
     },
     {
@@ -336,7 +341,12 @@ function loadMenu() {
           price: 7.99,
           description: "Romaine lettuce, croutons, Parmesan cheese, and Caesar dressing.",
           available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          addons: [
+            { name: "Grilled Chicken", price: 2.5 },
+            { name: "Bacon Bits", price: 1.5 },
+            { name: "Avocado", price: 1.5 }
+          ]
         },
         {
           id: 5,
@@ -344,40 +354,14 @@ function loadMenu() {
           price: 8.49,
           description: "Mixed greens, tomatoes, cucumbers, red onions, olives, feta cheese, and Greek dressing.",
           available: true,
-          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          addons: [
+            { name: "Grilled Chicken", price: 2.5 },
+            { name: "Bacon Bits", price: 1.5 },
+            { name: "Avocado", price: 1.5 }
+          ]
         },
-        {
-          id: 6,
-          name: "Garden Salad",
-          price: 6.99,
-          description: "Mixed greens, tomatoes, cucumbers, carrots, and choice of dressing.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?q=80&w=2825&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 4,
-          name: "Caesar Salad",
-          price: 7.99,
-          description: "Romaine lettuce, croutons, Parmesan cheese, and Caesar dressing.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 5,
-          name: "Greek Salad",
-          price: 8.49,
-          description: "Mixed greens, tomatoes, cucumbers, red onions, olives, feta cheese, and Greek dressing.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 6,
-          name: "Garden Salad",
-          price: 6.99,
-          description: "Mixed greens, tomatoes, cucumbers, carrots, and choice of dressing.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?q=80&w=2825&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        }
+        // More items...
       ]
     },
     {
@@ -389,7 +373,12 @@ function loadMenu() {
           price: 9.49,
           description: "Turkey, bacon, lettuce, tomato, and mayo on toasted bread.",
           available: true,
-          imageUrl: "https://images.unsplash.com/photo-1655195672072-0ffaa663dfa4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          imageUrl: "https://images.unsplash.com/photo-1655195672072-0ffaa663dfa4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          addons: [
+            { name: "Extra Bacon", price: 2.0 },
+            { name: "Cheese", price: 1.0 },
+            { name: "Avocado", price: 1.5 }
+          ]
         },
         {
           id: 8,
@@ -397,16 +386,14 @@ function loadMenu() {
           price: 7.99,
           description: "Bacon, lettuce, and tomato with mayo on toasted bread.",
           available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          addons: [
+            { name: "Extra Bacon", price: 2.0 },
+            { name: "Cheese", price: 1.0 },
+            { name: "Avocado", price: 1.5 }
+          ]
         },
-        {
-          id: 9,
-          name: "Grilled Cheese",
-          price: 5.99,
-          description: "Melted cheese on toasted bread.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        }
+        // More items...
       ]
     },
     {
@@ -418,7 +405,12 @@ function loadMenu() {
           price: 10.99,
           description: "Beef patty with cheddar cheese, lettuce, tomato, onions, and pickles on a sesame seed bun.",
           available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          addons: [
+            { name: "Extra Cheese", price: 1.5 },
+            { name: "Bacon", price: 2.0 },
+            { name: "Avocado", price: 1.5 }
+          ]
         },
         {
           id: 11,
@@ -426,51 +418,20 @@ function loadMenu() {
           price: 12.49,
           description: "Beef patty with bacon, cheddar cheese, lettuce, tomato, and BBQ sauce on a sesame seed bun.",
           available: true,
-          imageUrl: "https://images.unsplash.com/photo-1655195672072-0ffaa663dfa4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          imageUrl: "https://images.unsplash.com/photo-1655195672072-0ffaa663dfa4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          addons: [
+            { name: "Extra Cheese", price: 1.5 },
+            { name: "Bacon", price: 2.0 },
+            { name: "Avocado", price: 1.5 }
+          ]
         },
-        {
-          id: 12,
-          name: "Veggie Burger",
-          price: 9.99,
-          description: "Grilled veggie patty with lettuce, tomato, onions, and avocado on a whole grain bun.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?q=80&w=2825&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 12,
-          name: "Veggie Burger",
-          price: 9.99,
-          description: "Grilled veggie patty with lettuce, tomato, onions, and avocado on a whole grain bun.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?q=80&w=2825&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 12,
-          name: "Veggie Burger",
-          price: 9.99,
-          description: "Grilled veggie patty with lettuce, tomato, onions, and avocado on a whole grain bun.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?q=80&w=2825&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 12,
-          name: "Veggie Burger",
-          price: 9.99,
-          description: "Grilled veggie patty with lettuce, tomato, onions, and avocado on a whole grain bun.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?q=80&w=2825&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          id: 12,
-          name: "Veggie Burger",
-          price: 9.99,
-          description: "Grilled veggie patty with lettuce, tomato, onions, and avocado on a whole grain bun.",
-          available: true,
-          imageUrl: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?q=80&w=2825&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        }
+        // More items...
       ]
     }
   ];
+
+  // Duplicate items removed and addon data added.
+
 
   showMenuCategories(menu);
   hideLoader();

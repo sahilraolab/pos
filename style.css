@@ -1,5 +1,5 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -32,7 +32,7 @@ body {
     background-color: #F05756;
 }
 
-.hidden{
+.hidden {
     display: none !important;
 }
 
@@ -226,7 +226,7 @@ body {
     background: linear-gradient(#EFA280, #DF6229);
 }
 
-.menu_btns > button:focus{
+.menu_btns>button:focus {
     outline: 1px solid 19191C;
 }
 
@@ -255,7 +255,7 @@ body {
 }
 
 .menu_category>div>button:hover,
-.menu_category>div>.active_link {
+.menu_category>div>.active {
     border: 1px solid #F05756;
     background-color: #FFEEEF;
     color: #F05756;
@@ -462,7 +462,7 @@ body {
 .menu_summary {
     display: flex;
     flex-direction: column;
-    padding: .5rem 1rem 1rem 1rem ;
+    padding: .5rem 1rem 1rem 1rem;
 }
 
 .menu_offers {
@@ -511,7 +511,7 @@ body {
     display: grid;
     grid-template-columns: auto auto;
     grid-gap: .5rem;
-    align-items: center; 
+    align-items: center;
     margin-top: 1rem;
 }
 
@@ -527,11 +527,11 @@ body {
 }
 
 
-.customer_details{
+.customer_details {
     padding: 1rem;
 }
 
-.customer_details_header{
+.customer_details_header {
     border-bottom: 1px solid #CCCCCC;
     padding-bottom: 1rem;
     display: flex;
@@ -539,18 +539,18 @@ body {
     justify-content: space-between;
 }
 
-.customer_details_header > div{
+.customer_details_header>div {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.customer_details_header > div > span{
+.customer_details_header>div>span {
     font-size: 1.2rem;
     font-weight: 500;
 }
 
-.customer_details_header button{
+.customer_details_header button {
     border: none;
     outline: none;
     background: transparent;
@@ -559,17 +559,18 @@ body {
     justify-content: center;
 }
 
-.customer_details_form{
+.customer_details_form {
     display: flex;
     flex-direction: column;
 }
 
-.customer_details_form > label{
+.customer_details_form>label {
     margin-top: .8rem;
     margin-bottom: .2rem;
 }
 
-.customer_details_form > input, .customer_details_form > textarea{
+.customer_details_form>input,
+.customer_details_form>textarea {
     padding: .5rem;
     border-radius: .5rem;
     border: 1px solid #C2C2C2;
@@ -577,7 +578,8 @@ body {
     font-size: 1rem;
 }
 
-.customer_details_form > input::placeholder, .customer_details_form > textarea::placeholder{
+.customer_details_form>input::placeholder,
+.customer_details_form>textarea::placeholder {
     color: #C2C2C2;
 }
 
@@ -633,7 +635,7 @@ body {
     gap: 1.5rem;
 }
 
-.keypad > div {
+.keypad>div {
     display: flex;
     gap: 2rem;
 }
@@ -685,8 +687,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: inherit; 
-    backdrop-filter: blur(5px); 
+    background-image: inherit;
+    backdrop-filter: blur(5px);
     z-index: -1;
 }
 
@@ -732,9 +734,13 @@ body {
 }
 
 @keyframes wave {
-    0%, 40%, 100% {
+
+    0%,
+    40%,
+    100% {
         transform: translateY(0);
     }
+
     20% {
         transform: translateY(-20px);
     }
@@ -761,26 +767,26 @@ body {
     bottom: 0;
 }
 
-.posloginContainer > .login_name {
+.posloginContainer>.login_name {
     margin-bottom: 1rem;
     color: #333;
 }
 
-.posloginContainer > form {
+.posloginContainer>form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     width: 50%;
 }
 
-.posloginContainer > form > input {
+.posloginContainer>form>input {
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-.posloginContainer > form > button {
+.posloginContainer>form>button {
     padding: 0.75rem;
     font-size: 1rem;
     border: none;

@@ -9,7 +9,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(5px); /* Blur the background */
+    backdrop-filter: blur(5px); 
     background-color: rgba(0, 0, 0, 0.134);
 }
 
@@ -215,4 +215,64 @@
     display: block;
     font-size: 1.5rem;
     font-weight: 600;
+}
+
+/* add on model */
+
+.add_on > div {
+    background-color: white;
+    border-radius: 1rem;
+    max-width: 50%;
+}
+
+.addon_on_top {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* gap: 5rem; */
+    border-bottom: 1px solid #E4E4E4;
+}
+
+.add_on_main {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.add_on_main > div {
+    display: flex;
+    gap: 1rem;
+    justify-content: start;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.add_on_main > div > button {
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    background-color: transparent;
+    color: #19191C;
+    border: 2px solid #E4E4E4;
+}
+
+.add_on_main > div > button.active{
+    color: #DF6229;
+    border: 2px solid #DF6229;
+    background-color: #FFE8E1;
+}
+
+.add_on_bottom {
+    padding: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.add_on_bottom > button {
+    padding: .5rem;
+    border-radius: 2rem;
+    width: 100%;
 }
