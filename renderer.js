@@ -81,6 +81,8 @@ function updateLocalStorage() {
     const basePrice = parseFloat(menuItem.querySelector('.menu_item_product_price').textContent.replace('$', '')) / parseInt(menuItem.querySelector('.menu_numbers').value);
     const quantity = parseInt(menuItem.querySelector('.menu_numbers').value);
     const addonNames = menuItem.querySelector('.menu_item_sub_product_names').textContent.split(', ').filter(name => name !== "");
+    const discountElement = menuItem.querySelector('.discount_badge .discount_text');
+    const discount = discountElement ? discountElement.textContent : '0%';
 
     const addons = addonNames.map(name => {
       const addon = Array.from(document.querySelectorAll(`.addon`)).find(el => el.querySelector('.name').textContent === name);
@@ -90,7 +92,7 @@ function updateLocalStorage() {
       };
     });
 
-    products.push({ name, basePrice, quantity, addons });
+    products.push({ name, basePrice, quantity, addons, discount });
   });
 
   localStorage.setItem('selectedProducts', JSON.stringify(products));
@@ -101,17 +103,23 @@ function updateOrderSummary() {
   const products = JSON.parse(localStorage.getItem('selectedProducts')) || [];
   let subtotal = 0;
   let totalAddonPrice = 0;
+  let discount = 0;
 
   products.forEach(product => {
     subtotal += product.basePrice * product.quantity;
     product.addons.forEach(addon => {
       totalAddonPrice += addon.price * product.quantity;
     });
+
+    if (product.discount.includes('%')) {
+      const discountPercentage = parseFloat(product.discount.replace('%', '')) / 100;
+      discount += product.basePrice * product.quantity * discountPercentage;
+    } else if (product.discount.includes('$')) {
+      discount += parseFloat(product.discount.replace('$', '')) * product.quantity;
+    }
   });
 
-  const discount = 0; // Example discount value, replace with your calculation logic
   const taxRate = 0.13; // Example tax rate, replace with your tax calculation logic
-
   const tax = (subtotal - discount) * taxRate;
   const total = subtotal - discount + tax + totalAddonPrice;
 
@@ -177,7 +185,6 @@ function selectProduct(name, price, quantity, element) {
 
     document.querySelector('.add_on_bottom .cancel').addEventListener('click', () => {
       document.querySelector('.add_on').classList.add('hidden');
-      addonModelListSection.innerHTML = ""; // Clear add-ons list
     });
   }
 
@@ -188,7 +195,7 @@ function selectProduct(name, price, quantity, element) {
         <span class="menu_item_product_price">$${(price * quantity).toFixed(2)}</span>
       </div>
       <div class="menu_item_number__price">
-        <span class="menu_item_sub_product_names">${addons ? addons.map(a => a.name).join(', ') : ""}</span>
+        <span class="menu_item_sub_product_names"></span>
         <div>
           <button class="sub">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -493,10 +500,6 @@ function loadMenu() {
       ]
     }
   ];
-
-  // Duplicate items removed and addon data added.
-
-
   showMenuCategories(menu);
   hideLoader();
 }
@@ -636,6 +639,180 @@ function showSalePersonAuthScreen() {
   document.querySelector(".posloginContainer").classList.add("hidden");
   document.querySelector(".loginContainer").classList.remove("hidden");
 }
+
+function showDiscounts() {
+
+  const discounts = [
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', selected: false },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', selected: false },
+    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', selected: false },
+    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', selected: false },
+  ];
+
+  const discountModal = document.getElementById('discountModal');
+  const discountList = document.getElementById('discountList');
+
+  discountList.innerHTML = ''; // Clear previous discounts
+
+  discounts.forEach(discount => {
+    const discountElement = document.createElement('div');
+    discountElement.innerHTML = `
+      <div class="discount_left">
+        <div class="selected ${discount.selected ? 'tick' : ''}">
+          <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+            <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
+          </svg>
+        </div>
+        <div class="value">
+          <span>${discount.name}</span>
+          <span>(on ${discount.type})</span>
+        </div>
+      </div>
+      <div class="discount_badge">
+        <span class="discount_text">${discount.value}${discount.unit}</span>
+        <svg width="8" height="72" viewBox="0 0 8 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 0C4 2.2766 5.52153 4.19783 7.60317 4.80228C7.83154 4.86859 8 5.07088 8 5.30868V9.09122C8 9.32902 7.83154 9.53132 7.60317 9.59763C5.52153 10.2021 4 12.1233 4 14.3999C4 16.6765 5.52153 18.5977 7.60317 19.2022C7.83154 19.2685 8 19.4708 8 19.7086V23.4911C8 23.7289 7.83154 23.9312 7.60317 23.9975C5.52153 24.602 4 26.5232 4 28.7998C4 31.0764 5.52153 32.9976 7.60317 33.6021C7.83154 33.6684 8 33.8707 8 34.1085V37.8915C8 38.1293 7.83154 38.3316 7.60317 38.3979C5.52153 39.0024 4 40.9236 4 43.2002C4 45.4768 5.52153 47.398 7.60317 48.0025C7.83154 48.0688 8 48.2711 8 48.5089V52.2914C8 52.5292 7.83154 52.7315 7.60317 52.7978C5.52153 53.4023 4 55.3235 4 57.6001C4 59.8767 5.52153 61.7979 7.60317 62.4024C7.83154 62.4687 8 62.671 8 62.9088V66.6913C8 66.9291 7.83154 67.1314 7.60317 67.1977C5.52153 67.8022 4 69.7234 4 72H0V0H4Z"
+            fill="url(#paint0_linear_7196_752)" />
+          <defs>
+            <linearGradient id="paint0_linear_7196_752" x1="4" y1="0" x2="4" y2="72" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#EFA280" />
+              <stop offset="1" stop-color="#DF6229" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    `;
+
+    discountElement.addEventListener('click', (event) => {
+      const selectedElement = event.currentTarget.querySelector('.selected');
+      if (selectedElement) {
+        selectedElement.classList.toggle('tick');
+        discount.selected = !discount.selected;
+      }
+      updateLocalStorage();
+      updateOrderSummary();
+    });
+
+    discountList.appendChild(discountElement);
+  });
+
+  discountModal.classList.remove('hidden');
+
+  document.querySelector('.discount_bottom .apply').addEventListener('click', () => {
+    const selectedDiscounts = discounts.filter(discount => discount.selected);
+    console.log('Selected discounts:', selectedDiscounts);
+    discountModal.classList.add('hidden');
+    // Apply the selected discounts to the order (update order summary, localStorage, etc.)
+    // updateOrderWithDiscounts(selectedDiscounts);
+  });
+
+  document.querySelector('.discount_bottom .cancel').addEventListener('click', () => {
+    discounts.forEach(discount => discount.selected = false);
+    discountModal.classList.add('hidden');
+  });
+}
+
+
+function showAdditionalChargesModel() {
+
+  const charges = [
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', selected: false },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', selected: false },
+    { name: 'Fly Dubai', type: 'item', value: '5', unit: '$', selected: false },
+    { name: 'Better homes', type: 'total', value: '10', unit: '%', selected: false },
+  ];
+
+  const chargesModel = document.getElementById('chargeModel');
+  const chargesList = document.getElementById('chargeList');
+
+  chargesList.innerHTML = '';
+
+  charges.forEach(data => {
+    const chargeElement = document.createElement('div');
+    chargeElement.innerHTML = `
+      <div class="additional_charges_left">
+        <div class="selected ${data.selected ? 'tick' : ''}">
+          <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+            <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
+          </svg>
+        </div>
+        <div class="value">
+          <span>${data.name}</span>
+          <span>(on ${data.type})</span>
+        </div>
+      </div>
+      <div class="additional_charges_badge">
+        <span class="discount_text">${data.value}${data.unit}</span>
+      </div>
+    `;
+
+    chargeElement.addEventListener('click', (event) => {
+      const selectedElement = event.currentTarget.querySelector('.selected');
+      if (selectedElement) {
+        selectedElement.classList.toggle('tick');
+        data.selected = !data.selected;
+      }
+      updateLocalStorage();
+      updateOrderSummary();
+    });
+
+    chargesList.appendChild(chargeElement);
+  });
+
+  chargesModel.classList.remove('hidden');
+
+  document.querySelector('.additional_charges_bottom .apply').addEventListener('click', () => {
+    const selectedCharges = charges.filter(data => data.selected);
+    console.log('Selected Charges:', selectedCharges);
+    chargesModel.classList.add('hidden');
+    // Apply the selected discounts to the order (update order summary, localStorage, etc.)
+    // updateOrderWithDiscounts(selectedDiscounts);
+  });
+
+  document.querySelector('.additional_charges_bottom .cancel').addEventListener('click', () => {
+    charges.forEach(data => data.selected = false);
+    chargesModel.classList.add('hidden');
+  });
+}
+
+function showCouponModel() {
+
+  const coupons = [
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234" ,selected: false },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false },
+    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false },
+    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false },
+  ];
+
+  let couponeModel = document.getElementById("couponCodeModel");
+  couponeModel.classList.remove('hidden');
+
+  document.querySelector('.apply_coupon_bottom .apply').addEventListener('click', () => {
+    const inputElement = document.getElementById("couponCode");
+    if(inputElement){
+      const selectedCoupon = coupons.find(data => data.code === inputElement.value.trim());
+      if(selectedCoupon){
+        console.log('Selected Coupon:', selectedCoupon);
+        couponeModel.classList.add('hidden');
+        // Apply the selected discounts to the order (update order summary, localStorage, etc.)
+        // updateOrderWithDiscounts(selectedDiscounts);
+      } else {
+        alert("Invalid Code");
+      }
+    } else {  
+      alert("Enter a code");
+    }
+  });
+
+  document.querySelector('.apply_coupon_bottom .cancel').addEventListener('click', () => {
+    const inputElement = document.getElementById("#couponCode");
+    inputElement.value = "";
+    couponeModel.classList.add('hidden');
+  });
+
+}
+
+
 
 //=================================================================//
 

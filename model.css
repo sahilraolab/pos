@@ -283,7 +283,8 @@
 
 /* DISCOUNT */
 
-.discount>div {
+.discount>div,
+.additional_charges>div {
     background-color: white;
     border-radius: 1rem;
     min-width: 50%;
@@ -291,13 +292,16 @@
     flex-direction: column;
 }
 
-.discount_top {
+.discount_top,
+.addon_on_top,
+.additional_charges_top {
     padding: 2rem;
     border-bottom: 2px solid #E4E4E4;
     text-align: center;
 }
 
-.discount_main {
+.discount_main,
+.additional_charges_main {
     padding: 2rem;
     display: grid;
     grid-template-columns: auto auto;
@@ -305,13 +309,14 @@
     justify-content: center;
 }
 
-.discount_main>div {
+.discount_main>div,
+.additional_charges_main>div {
     display: flex;
     height: 72px;
     max-height: 72px;
 }
 
-.discount_left {
+.discount_left,.additional_charges_left {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -325,20 +330,20 @@
     border-bottom: 2px solid #E4E4E4;
 }
 
-.discount_left>.selected {
+.discount_left>.selected,.additional_charges_left>.selected {
     height: 1.5rem;
     width: 1.5rem;
     border: 2px solid #C2C2C2;
     border-radius: 50%;
 }
 
-.discount_left>.value {
+.discount_left>.value,.additional_charges_left>.value {
     color: #19191C;
     font-size: 1rem;
     font-weight: 600;
 }
 
-.discount_badge {
+.discount_badge,.additional_charges_badge {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -348,6 +353,7 @@
     padding: 0 1rem;
     font-size: 1.5rem;
     position: relative;
+    min-width: 25%;
 }
 
 .discount_badge>svg {
@@ -357,7 +363,8 @@
     right: -5px;
 }
 
-.discount_bottom {
+.discount_bottom,
+.additional_charges_bottom {
     padding: 2rem;
     display: flex;
     gap: 1rem;
@@ -365,7 +372,8 @@
     justify-content: center;
 }
 
-.discount_bottom>button {
+.discount_bottom>button,
+.additional_charges_bottom>button {
     min-width: 100%;
 }
 
@@ -378,4 +386,22 @@
     border: none !important;
     height: 1.6rem !important;
     width: 1.6rem !important;
+}
+
+.apply_coupon>div {
+    min-width: 30%;
+}
+
+.apply_coupon input {
+    padding: 1rem;
+    font-size: 1rem;
+    width: 70%;
+    margin: auto;
+    margin-top: 2rem;
+    border-radius: 1rem;
+    border: 1px solid #C2C2C2;
+}
+
+.apply_coupon input::placeholder {
+    color: #C2C2C2;
 }

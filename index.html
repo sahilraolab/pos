@@ -265,34 +265,33 @@
                 </div>
                 <div class="menu_summary">
                     <div class="menu_offers">
-                        <button>Discount</button>
-                        <button>Coupon Code</button>
-                        <button>Charges</button>
+                        <button onclick="showDiscounts();">Discount</button>
+                        <button onclick="showCouponModel();">Coupon Code</button>
+                        <button onclick="showAdditionalChargesModel();">Charges</button>
                     </div>
                     <div class="menu_bills">
                         <span>Subtotal</span>
-                        <span>$27.18</span>
+                        <span></span>
                     </div>
                     <div class="menu_bills">
                         <span>Discount</span>
-                        <span>$5.00</span>
+                        <span></span>
                     </div>
                     <div class="menu_bills">
                         <span>Tax</span>
-                        <span>$1.99</span>
+                        <span></span>
                     </div>
                     <div class="dotted_line"></div>
                     <div class="menu_bills menu_total">
                         <span>Total</span>
-                        <span>$20.51</span>
+                        <span></span>
                     </div>
                     <div class="menu_bills_btn">
-                        <button onclick="printReceipt()">Print Bill</button>
-                        <button onclick="sendDummyOrder()">Payment</button>
+                        <button onclick="">Delete Kot</button>
+                        <button onclick="">Place Order</button>
                     </div>
                 </div>
                 <div class="right_aside_handle" id="rightAsideHandle"></div>
-
             </aside>
 
         </div>
@@ -432,131 +431,13 @@
 
     <!------------------------------------ DISCOUNT MODEL
     ------------------------------------------------------>
-    <div class="model discount hidden">
+    <div class="model discount hidden" id="discountModal">
         <div>
             <div class="discount_top">
                 <h3 style="font-size: 1.5rem; font-weight: 600;">Select Discount</h3>
-                <!-- <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 1.5L15 15.5M15 1.5L1 15.5" stroke="#282930" stroke-width="1.5" stroke-linecap="round" />
-                </svg> -->
             </div>
-            <div class="discount_main">
-                <div>
-                    <div class="discount_left">
-                        <div class="selected tick">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px"
-                                fill="#FFFFFF">
-                                <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-                            </svg>
-                        </div>
-                        <div class="value">
-                            <span>Broccoli Staff</span>
-                            <span>(on total)</span>
-                        </div>
-                    </div>
-                    <div class="discount_badge">
-                        <span class="discount_text">50%</span>
-                        <svg width="8" height="72" viewBox="0 0 8 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M4 0C4 2.2766 5.52153 4.19783 7.60317 4.80228C7.83154 4.86859 8 5.07088 8 5.30868V9.09122C8 9.32902 7.83154 9.53132 7.60317 9.59763C5.52153 10.2021 4 12.1233 4 14.3999C4 16.6765 5.52153 18.5977 7.60317 19.2022C7.83154 19.2685 8 19.4708 8 19.7086V23.4911C8 23.7289 7.83154 23.9312 7.60317 23.9975C5.52153 24.602 4 26.5232 4 28.7998C4 31.0764 5.52153 32.9976 7.60317 33.6021C7.83154 33.6684 8 33.8707 8 34.1085V37.8915C8 38.1293 7.83154 38.3316 7.60317 38.3979C5.52153 39.0024 4 40.9236 4 43.2002C4 45.4768 5.52153 47.398 7.60317 48.0025C7.83154 48.0688 8 48.2711 8 48.5089V52.2914C8 52.5292 7.83154 52.7315 7.60317 52.7978C5.52153 53.4023 4 55.3235 4 57.6001C4 59.8767 5.52153 61.7979 7.60317 62.4024C7.83154 62.4687 8 62.671 8 62.9088V66.6913C8 66.9291 7.83154 67.1314 7.60317 67.1977C5.52153 67.8022 4 69.7234 4 72H0V0H4Z"
-                                fill="url(#paint0_linear_7196_752)" />
-                            <defs>
-                                <linearGradient id="paint0_linear_7196_752" x1="4" y1="0" x2="4" y2="72"
-                                    gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#EFA280" />
-                                    <stop offset="1" stop-color="#DF6229" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
-                </div>
-                <div>
-                    <div class="discount_left">
-                        <div class="selected">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px"
-                                fill="#FFFFFF">
-                                <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-                            </svg>
-                        </div>
-                        <div class="value">
-                            <span>Broccoli Staff</span>
-                            <span>(on total)</span>
-                        </div>
-                    </div>
-                    <div class="discount_badge">
-                        <span class="discount_text">50%</span>
-                        <svg width="8" height="72" viewBox="0 0 8 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M4 0C4 2.2766 5.52153 4.19783 7.60317 4.80228C7.83154 4.86859 8 5.07088 8 5.30868V9.09122C8 9.32902 7.83154 9.53132 7.60317 9.59763C5.52153 10.2021 4 12.1233 4 14.3999C4 16.6765 5.52153 18.5977 7.60317 19.2022C7.83154 19.2685 8 19.4708 8 19.7086V23.4911C8 23.7289 7.83154 23.9312 7.60317 23.9975C5.52153 24.602 4 26.5232 4 28.7998C4 31.0764 5.52153 32.9976 7.60317 33.6021C7.83154 33.6684 8 33.8707 8 34.1085V37.8915C8 38.1293 7.83154 38.3316 7.60317 38.3979C5.52153 39.0024 4 40.9236 4 43.2002C4 45.4768 5.52153 47.398 7.60317 48.0025C7.83154 48.0688 8 48.2711 8 48.5089V52.2914C8 52.5292 7.83154 52.7315 7.60317 52.7978C5.52153 53.4023 4 55.3235 4 57.6001C4 59.8767 5.52153 61.7979 7.60317 62.4024C7.83154 62.4687 8 62.671 8 62.9088V66.6913C8 66.9291 7.83154 67.1314 7.60317 67.1977C5.52153 67.8022 4 69.7234 4 72H0V0H4Z"
-                                fill="url(#paint0_linear_7196_752)" />
-                            <defs>
-                                <linearGradient id="paint0_linear_7196_752" x1="4" y1="0" x2="4" y2="72"
-                                    gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#EFA280" />
-                                    <stop offset="1" stop-color="#DF6229" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
-                </div>
-                <div>
-                    <div class="discount_left">
-                        <div class="selected">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px"
-                                fill="#FFFFFF">
-                                <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-                            </svg>
-                        </div>
-                        <div class="value">
-                            <span>Broccoli Staff</span>
-                            <span>(on total)</span>
-                        </div>
-                    </div>
-                    <div class="discount_badge">
-                        <span class="discount_text">50%</span>
-                        <svg width="8" height="72" viewBox="0 0 8 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M4 0C4 2.2766 5.52153 4.19783 7.60317 4.80228C7.83154 4.86859 8 5.07088 8 5.30868V9.09122C8 9.32902 7.83154 9.53132 7.60317 9.59763C5.52153 10.2021 4 12.1233 4 14.3999C4 16.6765 5.52153 18.5977 7.60317 19.2022C7.83154 19.2685 8 19.4708 8 19.7086V23.4911C8 23.7289 7.83154 23.9312 7.60317 23.9975C5.52153 24.602 4 26.5232 4 28.7998C4 31.0764 5.52153 32.9976 7.60317 33.6021C7.83154 33.6684 8 33.8707 8 34.1085V37.8915C8 38.1293 7.83154 38.3316 7.60317 38.3979C5.52153 39.0024 4 40.9236 4 43.2002C4 45.4768 5.52153 47.398 7.60317 48.0025C7.83154 48.0688 8 48.2711 8 48.5089V52.2914C8 52.5292 7.83154 52.7315 7.60317 52.7978C5.52153 53.4023 4 55.3235 4 57.6001C4 59.8767 5.52153 61.7979 7.60317 62.4024C7.83154 62.4687 8 62.671 8 62.9088V66.6913C8 66.9291 7.83154 67.1314 7.60317 67.1977C5.52153 67.8022 4 69.7234 4 72H0V0H4Z"
-                                fill="url(#paint0_linear_7196_752)" />
-                            <defs>
-                                <linearGradient id="paint0_linear_7196_752" x1="4" y1="0" x2="4" y2="72"
-                                    gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#EFA280" />
-                                    <stop offset="1" stop-color="#DF6229" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
-                </div>
-                <div>
-                    <div class="discount_left">
-                        <div class="selected">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px"
-                                fill="#FFFFFF">
-                                <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-                            </svg>
-                        </div>
-                        <div class="value">
-                            <span>Broccoli Staff</span>
-                            <span>(on total)</span>
-                        </div>
-                    </div>
-                    <div class="discount_badge">
-                        <span class="discount_text">50%</span>
-                        <svg width="8" height="72" viewBox="0 0 8 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M4 0C4 2.2766 5.52153 4.19783 7.60317 4.80228C7.83154 4.86859 8 5.07088 8 5.30868V9.09122C8 9.32902 7.83154 9.53132 7.60317 9.59763C5.52153 10.2021 4 12.1233 4 14.3999C4 16.6765 5.52153 18.5977 7.60317 19.2022C7.83154 19.2685 8 19.4708 8 19.7086V23.4911C8 23.7289 7.83154 23.9312 7.60317 23.9975C5.52153 24.602 4 26.5232 4 28.7998C4 31.0764 5.52153 32.9976 7.60317 33.6021C7.83154 33.6684 8 33.8707 8 34.1085V37.8915C8 38.1293 7.83154 38.3316 7.60317 38.3979C5.52153 39.0024 4 40.9236 4 43.2002C4 45.4768 5.52153 47.398 7.60317 48.0025C7.83154 48.0688 8 48.2711 8 48.5089V52.2914C8 52.5292 7.83154 52.7315 7.60317 52.7978C5.52153 53.4023 4 55.3235 4 57.6001C4 59.8767 5.52153 61.7979 7.60317 62.4024C7.83154 62.4687 8 62.671 8 62.9088V66.6913C8 66.9291 7.83154 67.1314 7.60317 67.1977C5.52153 67.8022 4 69.7234 4 72H0V0H4Z"
-                                fill="url(#paint0_linear_7196_752)" />
-                            <defs>
-                                <linearGradient id="paint0_linear_7196_752" x1="4" y1="0" x2="4" y2="72"
-                                    gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#EFA280" />
-                                    <stop offset="1" stop-color="#DF6229" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
-                </div>
+            <div class="discount_main" id="discountList">
+                <!-- Discounts will be dynamically inserted here -->
             </div>
             <div class="discount_bottom add_on_bottom">
                 <button class="cancel"
@@ -566,6 +447,42 @@
             </div>
         </div>
     </div>
+
+    <!-------------------------------- APPLY COUPON MODEL
+    ------------------------------------------------------>
+    <div class="model discount apply_coupon hidden" id="couponCodeModel">
+        <div>
+            <div class="addon_on_top">
+                <h3 style="font-size: 1.5rem; font-weight: 600;">Apply Coupon</h3>
+            </div>
+            <input type="text" name="couponCode" id="couponCode" placeholder="Coupon">
+            <div class="apply_coupon_bottom add_on_bottom">
+                <button class="cancel"
+                    style="background: transparent; color: #DF6229; font-size: 1.2rem; border: 2px solid #DF6229;">Cancel</button>
+                <button class="apply"
+                    style="font-size: 1.2rem; color: white; border: none; padding: 0.6rem; background: linear-gradient(#EFA280, #DF6229);">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!---------------------------- ADDITION CHARGES MODEL
+    ------------------------------------------------------>
+    <div class="model additional_charges hidden" id="chargeModel">
+        <div>
+            <div class="additional_charges_top">
+                <h3 style="font-size: 1.5rem; font-weight: 600;">Additional Charges</h3>
+            </div>
+            <div class="additional_charges_main" id="chargeList">
+            </div>
+            <div class="additional_charges_bottom add_on_bottom">
+                <button class="cancel"
+                    style="background: transparent; color: #DF6229; font-size: 1.2rem; border: 2px solid #DF6229;">Cancel</button>
+                <button class="apply"
+                    style="font-size: 1.2rem; color: white; border: none; padding: 0.6rem; background: linear-gradient(#EFA280, #DF6229);">Apply</button>
+            </div>
+        </div>
+    </div>
+
 
 
 
