@@ -99,34 +99,73 @@ function updateLocalStorage() {
 }
 
 // Function to update the order summary based on the data in localStorage
-function updateOrderSummary() {
+function updateOrderSummary(selectedDiscountObj = null, selectedChargesObj = null) {
   const products = JSON.parse(localStorage.getItem('selectedProducts')) || [];
+  const selectedDiscount = selectedDiscountObj || JSON.parse(localStorage.getItem('selectedDiscount')) || null;
+  const selectedCharge = selectedChargesObj || JSON.parse(localStorage.getItem('selectedCharges')) || null;
   let subtotal = 0;
-  let totalAddonPrice = 0;
   let discount = 0;
+  let charge = 0;
 
   products.forEach(product => {
     subtotal += product.basePrice * product.quantity;
-    product.addons.forEach(addon => {
-      totalAddonPrice += addon.price * product.quantity;
-    });
-
-    if (product.discount.includes('%')) {
-      const discountPercentage = parseFloat(product.discount.replace('%', '')) / 100;
-      discount += product.basePrice * product.quantity * discountPercentage;
-    } else if (product.discount.includes('$')) {
-      discount += parseFloat(product.discount.replace('$', '')) * product.quantity;
-    }
   });
 
-  const taxRate = 0.13; // Example tax rate, replace with your tax calculation logic
-  const tax = (subtotal - discount) * taxRate;
-  const total = subtotal - discount + tax + totalAddonPrice;
+  if (selectedDiscount) {
+    if (selectedDiscount.group === 'total') {
+      if (selectedDiscount.unit === '%') {
+        discount = (subtotal * selectedDiscount.value) / 100;
+      } else if (selectedDiscount.unit === '$') {
+        discount = selectedDiscount.value;
+      }
+    } else {
+      products.forEach(product => {
+        if (product.group === selectedDiscount.group) {
+          if (selectedDiscount.unit === '%') {
+            discount += (product.basePrice * selectedDiscount.value * product.quantity) / 100;
+          } else if (selectedDiscount.unit === '$') {
+            discount += selectedDiscount.value * product.quantity;
+          }
+        }
+      });
+    }
+  }
 
-  document.querySelector('.menu_bills:nth-child(2) span:nth-child(2)').textContent = `$${subtotal.toFixed(2)}`;
-  document.querySelector('.menu_bills:nth-child(3) span:nth-child(2)').textContent = `$${discount.toFixed(2)}`;
-  document.querySelector('.menu_bills:nth-child(4) span:nth-child(2)').textContent = `$${tax.toFixed(2)}`;
-  document.querySelector('.menu_total span:nth-child(2)').textContent = `$${total.toFixed(2)}`;
+  if (selectedCharge) {
+    if (selectedCharge.group === 'total') {
+      if (selectedCharge.unit === '%') {
+        charge = (subtotal * selectedCharge.value) / 100;
+      } else if (selectedCharge.unit === '$') {
+        charge = selectedCharge.value;
+      }
+    } else {
+      products.forEach(product => {
+        if (product.group === selectedCharge.group) {
+          if (selectedCharge.unit === '%') {
+            charge += (product.basePrice * selectedCharge.value * product.quantity) / 100;
+          } else if (selectedCharge.unit === '$') {
+            charge += selectedCharge.value * product.quantity;
+          }
+        }
+      });
+    }
+  }
+
+  const taxRate = 0.13; // Example tax rate, replace with your tax calculation logic
+  const tax = ((subtotal - discount) + charge) * taxRate;
+  const total = (subtotal - discount) + charge + tax;
+
+  document.getElementById("subTotalNumber").innerText = `$${subtotal.toFixed(2)}`;
+  if (discount > 0) {
+    document.getElementById('discountBox').classList.remove('hidden');
+    document.getElementById("discounNumber").innerText = `$${discount.toFixed(2)}`;
+  }
+  if (charge > 0) {
+    document.getElementById('additionChargeBox').classList.remove('hidden');
+    document.getElementById("additionChargeNumber").innerText = `$${charge.toFixed(2)}`;
+  }
+  document.getElementById("taxNumber").innerText = `$${tax.toFixed(2)}`;
+  document.getElementById("totalNumber").innerText = `$${total.toFixed(2)}`;
 }
 
 // Modified selectProduct function to include localStorage updates
@@ -384,6 +423,7 @@ function loadMenu() {
           price: 8.99,
           description: "Classic pizza with tomato sauce, mozzarella, and fresh basil.",
           available: true,
+          group: "total",
           imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Cheese", price: 1.5 },
@@ -397,6 +437,7 @@ function loadMenu() {
           price: 9.99,
           description: "Pizza with tomato sauce, mozzarella, and pepperoni slices.",
           available: true,
+          group: "fine",
           imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: null
         },
@@ -412,6 +453,7 @@ function loadMenu() {
           price: 7.99,
           description: "Romaine lettuce, croutons, Parmesan cheese, and Caesar dressing.",
           available: true,
+          group: "total",
           imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Grilled Chicken", price: 2.5 },
@@ -425,6 +467,7 @@ function loadMenu() {
           price: 8.49,
           description: "Mixed greens, tomatoes, cucumbers, red onions, olives, feta cheese, and Greek dressing.",
           available: true,
+          group: "total",
           imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Grilled Chicken", price: 2.5 },
@@ -444,6 +487,7 @@ function loadMenu() {
           price: 9.49,
           description: "Turkey, bacon, lettuce, tomato, and mayo on toasted bread.",
           available: true,
+          group: "total",
           imageUrl: "https://images.unsplash.com/photo-1655195672072-0ffaa663dfa4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Bacon", price: 2.0 },
@@ -457,6 +501,7 @@ function loadMenu() {
           price: 7.99,
           description: "Bacon, lettuce, and tomato with mayo on toasted bread.",
           available: true,
+          group: "total",
           imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Bacon", price: 2.0 },
@@ -476,6 +521,7 @@ function loadMenu() {
           price: 10.99,
           description: "Beef patty with cheddar cheese, lettuce, tomato, onions, and pickles on a sesame seed bun.",
           available: true,
+          group: "total",
           imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Cheese", price: 1.5 },
@@ -489,6 +535,7 @@ function loadMenu() {
           price: 12.49,
           description: "Beef patty with bacon, cheddar cheese, lettuce, tomato, and BBQ sauce on a sesame seed bun.",
           available: true,
+          group: "total",
           imageUrl: "https://images.unsplash.com/photo-1655195672072-0ffaa663dfa4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Cheese", price: 1.5 },
@@ -641,24 +688,33 @@ function showSalePersonAuthScreen() {
 }
 
 function showDiscounts() {
-
   const discounts = [
-    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', selected: false },
-    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', selected: false },
-    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', selected: false },
-    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', selected: false },
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234", selected: false, group: "total" },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false, group: "total" },
+    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false, group: "fine" },
+    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false, group: "total" },
   ];
 
   const discountModal = document.getElementById('discountModal');
   const discountList = document.getElementById('discountList');
 
+  const discountApplied = JSON.parse(localStorage.getItem("selectedDiscount"));
+
+  if (discountApplied) {
+    discounts.forEach(discount => {
+      if (discount.name === discountApplied.name) {
+        discount.selected = true;
+      }
+    });
+  }
+
   discountList.innerHTML = ''; // Clear previous discounts
 
-  discounts.forEach(discount => {
+  discounts.forEach((discount, index) => {
     const discountElement = document.createElement('div');
     discountElement.innerHTML = `
-      <div class="discount_left">
-        <div class="selected ${discount.selected ? 'tick' : ''}">
+      <div class="discount_left ${discount.selected ? 'selected_section' : ''}">
+        <div class="selected">
           <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
             <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
           </svg>
@@ -684,13 +740,18 @@ function showDiscounts() {
     `;
 
     discountElement.addEventListener('click', (event) => {
-      const selectedElement = event.currentTarget.querySelector('.selected');
-      if (selectedElement) {
-        selectedElement.classList.toggle('tick');
-        discount.selected = !discount.selected;
-      }
-      updateLocalStorage();
-      updateOrderSummary();
+      discounts.forEach((d, i) => {
+        if (i !== index) {
+          d.selected = false;
+          const otherElement = discountList.children[i].querySelector('.discount_left');
+          if (otherElement) {
+            otherElement.classList.remove('selected_section');
+          }
+        }
+      });
+
+      discount.selected = !discount.selected;
+      event.currentTarget.querySelector('.discount_left').classList.toggle('selected_section', discount.selected);
     });
 
     discountList.appendChild(discountElement);
@@ -699,11 +760,12 @@ function showDiscounts() {
   discountModal.classList.remove('hidden');
 
   document.querySelector('.discount_bottom .apply').addEventListener('click', () => {
-    const selectedDiscounts = discounts.filter(discount => discount.selected);
-    console.log('Selected discounts:', selectedDiscounts);
+    const selectedDiscount = discounts.find(discount => discount.selected);
+    console.log('Selected discount:', selectedDiscount);
     discountModal.classList.add('hidden');
-    // Apply the selected discounts to the order (update order summary, localStorage, etc.)
-    // updateOrderWithDiscounts(selectedDiscounts);
+    // Apply the selected discount to the order (update order summary, localStorage, etc.)
+    localStorage.setItem("selectedDiscount", JSON.stringify(selectedDiscount));
+    updateOrderSummary(selectedDiscount);
   });
 
   document.querySelector('.discount_bottom .cancel').addEventListener('click', () => {
@@ -716,22 +778,22 @@ function showDiscounts() {
 function showAdditionalChargesModel() {
 
   const charges = [
-    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', selected: false },
-    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', selected: false },
-    { name: 'Fly Dubai', type: 'item', value: '5', unit: '$', selected: false },
-    { name: 'Better homes', type: 'total', value: '10', unit: '%', selected: false },
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', selected: false, group: "total" },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', selected: false, group: "total" },
+    { name: 'Fly Dubai', type: 'item', value: '5', unit: '$', selected: false, group: "fine" },
+    { name: 'Better homes', type: 'total', value: '10', unit: '%', selected: false, group: "total" },
   ];
 
   const chargesModel = document.getElementById('chargeModel');
   const chargesList = document.getElementById('chargeList');
 
-  chargesList.innerHTML = '';
+  chargesList.innerHTML = ''; // Clear previous charges
 
-  charges.forEach(data => {
+  charges.forEach((data, index) => {
     const chargeElement = document.createElement('div');
     chargeElement.innerHTML = `
-      <div class="additional_charges_left">
-        <div class="selected ${data.selected ? 'tick' : ''}">
+      <div class="additional_charges_left ${data.selected ? 'selected_section' : ''}">
+        <div class="selected">
           <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
             <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
           </svg>
@@ -747,13 +809,18 @@ function showAdditionalChargesModel() {
     `;
 
     chargeElement.addEventListener('click', (event) => {
-      const selectedElement = event.currentTarget.querySelector('.selected');
-      if (selectedElement) {
-        selectedElement.classList.toggle('tick');
-        data.selected = !data.selected;
-      }
-      updateLocalStorage();
-      updateOrderSummary();
+      charges.forEach((d, i) => {
+        if (i !== index) {
+          d.selected = false;
+          const otherElement = chargesList.children[i].querySelector('.additional_charges_left');
+          if (otherElement) {
+            otherElement.classList.remove('selected_section');
+          }
+        }
+      });
+
+      data.selected = !data.selected;
+      event.currentTarget.querySelector('.additional_charges_left').classList.toggle('selected_section', data.selected);
     });
 
     chargesList.appendChild(chargeElement);
@@ -762,11 +829,12 @@ function showAdditionalChargesModel() {
   chargesModel.classList.remove('hidden');
 
   document.querySelector('.additional_charges_bottom .apply').addEventListener('click', () => {
-    const selectedCharges = charges.filter(data => data.selected);
-    console.log('Selected Charges:', selectedCharges);
+    const selectedCharge = charges.find(data => data.selected);
+    console.log('Selected Charge:', selectedCharge);
     chargesModel.classList.add('hidden');
-    // Apply the selected discounts to the order (update order summary, localStorage, etc.)
-    // updateOrderWithDiscounts(selectedDiscounts);
+    // Apply the selected charge to the order (update order summary, localStorage, etc.)
+    localStorage.setItem("selectedCharges", JSON.stringify(selectedCharge));
+    updateOrderSummary(null, selectedCharge);
   });
 
   document.querySelector('.additional_charges_bottom .cancel').addEventListener('click', () => {
@@ -778,10 +846,10 @@ function showAdditionalChargesModel() {
 function showCouponModel() {
 
   const coupons = [
-    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234" ,selected: false },
-    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false },
-    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false },
-    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false },
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234", selected: false, group: "total" },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false, group: "total" },
+    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false, group: "fine" },
+    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false, group: "total" },
   ];
 
   let couponeModel = document.getElementById("couponCodeModel");
@@ -789,23 +857,24 @@ function showCouponModel() {
 
   document.querySelector('.apply_coupon_bottom .apply').addEventListener('click', () => {
     const inputElement = document.getElementById("couponCode");
-    if(inputElement){
+    if (inputElement) {
       const selectedCoupon = coupons.find(data => data.code === inputElement.value.trim());
-      if(selectedCoupon){
+      if (selectedCoupon) {
         console.log('Selected Coupon:', selectedCoupon);
         couponeModel.classList.add('hidden');
         // Apply the selected discounts to the order (update order summary, localStorage, etc.)
-        // updateOrderWithDiscounts(selectedDiscounts);
+        localStorage.setItem("selectedDiscount", JSON.stringify(selectedCoupon));
+        updateOrderSummary(selectedCoupon);
       } else {
         alert("Invalid Code");
       }
-    } else {  
+    } else {
       alert("Enter a code");
     }
   });
 
   document.querySelector('.apply_coupon_bottom .cancel').addEventListener('click', () => {
-    const inputElement = document.getElementById("#couponCode");
+    const inputElement = document.getElementById("couponCode");
     inputElement.value = "";
     couponeModel.classList.add('hidden');
   });

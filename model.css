@@ -292,6 +292,24 @@
     flex-direction: column;
 }
 
+.selected_section{
+    background-color: #FFE8E1;
+    border-top: 2px solid #DF6229;
+    border-left: 2px solid #DF6229;
+    border-bottom: 2px solid #DF6229;
+}
+
+.selected_section > .selected{
+    background: linear-gradient(#EFA280, #DF6229);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: none !important;
+    height: 1.6rem !important;
+    width: 1.6rem !important;
+}
+
 .discount_top,
 .addon_on_top,
 .additional_charges_top {
@@ -328,6 +346,7 @@
     border-top: 2px solid #E4E4E4;
     border-left: 2px solid #E4E4E4;
     border-bottom: 2px solid #E4E4E4;
+    min-width: 75%;
 }
 
 .discount_left>.selected,.additional_charges_left>.selected {
@@ -375,17 +394,6 @@
 .discount_bottom>button,
 .additional_charges_bottom>button {
     min-width: 100%;
-}
-
-.tick {
-    background: linear-gradient(#EFA280, #DF6229);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border: none !important;
-    height: 1.6rem !important;
-    width: 1.6rem !important;
 }
 
 .apply_coupon>div {
