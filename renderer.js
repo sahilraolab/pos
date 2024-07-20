@@ -31,9 +31,9 @@ function showMenuCategories(menuCategories) {
     itemContainer.innerHTML = '';
     const categoryItems = menuCategories.find(cat => cat.category === category).items;
     categoryItems.forEach((item) => {
-      const addonsString = JSON.stringify(item.addons);
+      const itemObj = JSON.stringify(item);
       itemContainer.innerHTML += `
-        <div class="category_menu_item" data-addons='${addonsString}' onclick="selectProduct('${item.name}', ${item.price}, 1, this)">
+        <div class="category_menu_item" data-item='${itemObj}' onclick="selectProduct('${category}', this)">
           <div class="imgCon">
             <img src="${item.imageUrl}" alt="${item.name}">
           </div>  
@@ -98,81 +98,11 @@ function updateLocalStorage() {
   localStorage.setItem('selectedProducts', JSON.stringify(products));
 }
 
-// Function to update the order summary based on the data in localStorage
-function updateOrderSummary(selectedDiscountObj = null, selectedChargesObj = null) {
-  const products = JSON.parse(localStorage.getItem('selectedProducts')) || [];
-  const selectedDiscount = selectedDiscountObj || JSON.parse(localStorage.getItem('selectedDiscount')) || null;
-  const selectedCharge = selectedChargesObj || JSON.parse(localStorage.getItem('selectedCharges')) || null;
-  let subtotal = 0;
-  let discount = 0;
-  let charge = 0;
-
-  products.forEach(product => {
-    subtotal += product.basePrice * product.quantity;
-  });
-
-  if (selectedDiscount) {
-    if (selectedDiscount.group === 'total') {
-      if (selectedDiscount.unit === '%') {
-        discount = (subtotal * selectedDiscount.value) / 100;
-      } else if (selectedDiscount.unit === '$') {
-        discount = selectedDiscount.value;
-      }
-    } else {
-      products.forEach(product => {
-        if (product.group === selectedDiscount.group) {
-          if (selectedDiscount.unit === '%') {
-            discount += (product.basePrice * selectedDiscount.value * product.quantity) / 100;
-          } else if (selectedDiscount.unit === '$') {
-            discount += selectedDiscount.value * product.quantity;
-          }
-        }
-      });
-    }
-  }
-
-  if (selectedCharge) {
-    if (selectedCharge.group === 'total') {
-      if (selectedCharge.unit === '%') {
-        charge = (subtotal * selectedCharge.value) / 100;
-      } else if (selectedCharge.unit === '$') {
-        charge = selectedCharge.value;
-      }
-    } else {
-      products.forEach(product => {
-        if (product.group === selectedCharge.group) {
-          if (selectedCharge.unit === '%') {
-            charge += (product.basePrice * selectedCharge.value * product.quantity) / 100;
-          } else if (selectedCharge.unit === '$') {
-            charge += selectedCharge.value * product.quantity;
-          }
-        }
-      });
-    }
-  }
-
-  const taxRate = 0.13; // Example tax rate, replace with your tax calculation logic
-  const tax = ((subtotal - discount) + charge) * taxRate;
-  const total = (subtotal - discount) + charge + tax;
-
-  document.getElementById("subTotalNumber").innerText = `$${subtotal.toFixed(2)}`;
-  if (discount > 0) {
-    document.getElementById('discountBox').classList.remove('hidden');
-    document.getElementById("discounNumber").innerText = `$${discount.toFixed(2)}`;
-  }
-  if (charge > 0) {
-    document.getElementById('additionChargeBox').classList.remove('hidden');
-    document.getElementById("additionChargeNumber").innerText = `$${charge.toFixed(2)}`;
-  }
-  document.getElementById("taxNumber").innerText = `$${tax.toFixed(2)}`;
-  document.getElementById("totalNumber").innerText = `$${total.toFixed(2)}`;
-}
-
-// Modified selectProduct function to include localStorage updates
-function selectProduct(name, price, quantity, element) {
-  const addonsString = element.getAttribute('data-addons');
-  const addons = JSON.parse(addonsString);
-  console.log('Selected product:', { name, price, quantity, addons });
+function selectProduct(categoryName, element) {
+  let dataObj = element.getAttribute('data-item');
+  dataObj = JSON.parse(dataObj);
+  const addons = dataObj.addons;
+  let quantity = 1;
   document.querySelector('.right_aside').classList.remove('hidden');
   const menuItemsContainer = document.querySelector('.selected_menu');
 
@@ -213,12 +143,12 @@ function selectProduct(name, price, quantity, element) {
       const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
 
       menuItemElement.querySelector('.menu_item_sub_product_names').textContent = addonNames;
-      menuPriceElement.textContent = `$${(price * quantity + totalAddonPrice).toFixed(2)}`;
+      menuPriceElement.textContent = `$${(dataObj.price * quantity + totalAddonPrice).toFixed(2)}`;
 
       document.querySelector('.add_on').classList.add('hidden');
 
       // Update localStorage and order summary after adding addons
-      updateLocalStorage();
+      // updateLocalStorage();
       updateOrderSummary();
     });
 
@@ -230,8 +160,8 @@ function selectProduct(name, price, quantity, element) {
   const menuItemHTML = `
     <div class="menu_item">
       <div class="menu_item_name">
-        <span class="menu_item_product_name">${name}</span>
-        <span class="menu_item_product_price">$${(price * quantity).toFixed(2)}</span>
+        <span class="menu_item_product_name">${dataObj.name}</span>
+        <span class="menu_item_product_price">$${(dataObj.price * quantity).toFixed(2)}</span>
       </div>
       <div class="menu_item_number__price">
         <span class="menu_item_sub_product_names"></span>
@@ -274,10 +204,10 @@ function selectProduct(name, price, quantity, element) {
         return addon ? addon.price : 0;
       });
       const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
-      menuPriceElement.textContent = `$${(price * count + totalAddonPrice).toFixed(2)}`;
+      menuPriceElement.textContent = `$${(dataObj.price * count + totalAddonPrice).toFixed(2)}`;
 
       // Update localStorage and order summary after changing quantity
-      updateLocalStorage();
+      // updateLocalStorage();
       updateOrderSummary();
     }
   }
@@ -289,7 +219,7 @@ function selectProduct(name, price, quantity, element) {
     }
 
     // Update localStorage and order summary after removing an item
-    updateLocalStorage();
+    // updateLocalStorage();
     updateOrderSummary();
   }
 
@@ -310,7 +240,7 @@ function selectProduct(name, price, quantity, element) {
   });
 
   // Update localStorage and order summary after adding a new product
-  updateLocalStorage();
+  // updateLocalStorage();
   updateOrderSummary();
 }
 
@@ -423,7 +353,7 @@ function loadMenu() {
           price: 8.99,
           description: "Classic pizza with tomato sauce, mozzarella, and fresh basil.",
           available: true,
-          group: "total",
+          group: ["total", "fine"],
           imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Cheese", price: 1.5 },
@@ -437,7 +367,7 @@ function loadMenu() {
           price: 9.99,
           description: "Pizza with tomato sauce, mozzarella, and pepperoni slices.",
           available: true,
-          group: "fine",
+          group: ["total", "fine"],
           imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: null
         },
@@ -453,7 +383,7 @@ function loadMenu() {
           price: 7.99,
           description: "Romaine lettuce, croutons, Parmesan cheese, and Caesar dressing.",
           available: true,
-          group: "total",
+          group: ["total", "healthy"],
           imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Grilled Chicken", price: 2.5 },
@@ -467,7 +397,7 @@ function loadMenu() {
           price: 8.49,
           description: "Mixed greens, tomatoes, cucumbers, red onions, olives, feta cheese, and Greek dressing.",
           available: true,
-          group: "total",
+          group: ["total", "healthy"],
           imageUrl: "https://images.unsplash.com/photo-1648679708301-3e2865043526?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Grilled Chicken", price: 2.5 },
@@ -487,7 +417,7 @@ function loadMenu() {
           price: 9.49,
           description: "Turkey, bacon, lettuce, tomato, and mayo on toasted bread.",
           available: true,
-          group: "total",
+          group: ["total", "fine"],
           imageUrl: "https://images.unsplash.com/photo-1655195672072-0ffaa663dfa4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Bacon", price: 2.0 },
@@ -501,7 +431,7 @@ function loadMenu() {
           price: 7.99,
           description: "Bacon, lettuce, and tomato with mayo on toasted bread.",
           available: true,
-          group: "total",
+          group: ["total", "fine"],
           imageUrl: "https://images.unsplash.com/photo-1625937759420-26d7e003e04c?q=80&w=3021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Bacon", price: 2.0 },
@@ -521,7 +451,7 @@ function loadMenu() {
           price: 10.99,
           description: "Beef patty with cheddar cheese, lettuce, tomato, onions, and pickles on a sesame seed bun.",
           available: true,
-          group: "total",
+          group: ["total", "fine"],
           imageUrl: "https://images.unsplash.com/photo-1625937759429-cb12c50970b4?q=80&w=2887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Cheese", price: 1.5 },
@@ -535,7 +465,7 @@ function loadMenu() {
           price: 12.49,
           description: "Beef patty with bacon, cheddar cheese, lettuce, tomato, and BBQ sauce on a sesame seed bun.",
           available: true,
-          group: "total",
+          group: ["total", "fine"],
           imageUrl: "https://images.unsplash.com/photo-1655195672072-0ffaa663dfa4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           addons: [
             { name: "Extra Cheese", price: 1.5 },
@@ -547,6 +477,7 @@ function loadMenu() {
       ]
     }
   ];
+
   showMenuCategories(menu);
   hideLoader();
 }
@@ -689,10 +620,10 @@ function showSalePersonAuthScreen() {
 
 function showDiscounts() {
   const discounts = [
-    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234", selected: false, group: "total" },
-    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false, group: "total" },
-    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false, group: "fine" },
-    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false, group: "total" },
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234", selected: false, groups: ["total"] },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false, groups: ["total"] },
+    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false, groups: ["fine, total"] },
+    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false, groups: ["total"] },
   ];
 
   const discountModal = document.getElementById('discountModal');
@@ -778,10 +709,10 @@ function showDiscounts() {
 function showAdditionalChargesModel() {
 
   const charges = [
-    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', selected: false, group: "total" },
-    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', selected: false, group: "total" },
-    { name: 'Fly Dubai', type: 'item', value: '5', unit: '$', selected: false, group: "fine" },
-    { name: 'Better homes', type: 'total', value: '10', unit: '%', selected: false, group: "total" },
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', selected: false, groups: ["total"] },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', selected: false, groups: ["total"] },
+    { name: 'Fly Dubai', type: 'item', value: '5', unit: '$', selected: false, groups: ["fine"] },
+    { name: 'Better homes', type: 'total', value: '10', unit: '%', selected: false, groups: ["total"] },
   ];
 
   const chargesModel = document.getElementById('chargeModel');
@@ -830,7 +761,7 @@ function showAdditionalChargesModel() {
 
   document.querySelector('.additional_charges_bottom .apply').addEventListener('click', () => {
     const selectedCharge = charges.find(data => data.selected);
-    console.log('Selected Charge:', selectedCharge);
+    console.log('Selected charge:', selectedCharge);
     chargesModel.classList.add('hidden');
     // Apply the selected charge to the order (update order summary, localStorage, etc.)
     localStorage.setItem("selectedCharges", JSON.stringify(selectedCharge));
@@ -846,14 +777,14 @@ function showAdditionalChargesModel() {
 function showCouponModel() {
 
   const coupons = [
-    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234", selected: false, group: "total" },
-    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false, group: "total" },
-    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false, group: "fine" },
-    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false, group: "total" },
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234", selected: false, groups: ["total"] },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false, groups: ["total"] },
+    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false, groups: ["fine"] },
+    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false, groups: ["total"] },
   ];
 
-  let couponeModel = document.getElementById("couponCodeModel");
-  couponeModel.classList.remove('hidden');
+  let couponModel = document.getElementById("couponCodeModel");
+  couponModel.classList.remove('hidden');
 
   document.querySelector('.apply_coupon_bottom .apply').addEventListener('click', () => {
     const inputElement = document.getElementById("couponCode");
@@ -861,7 +792,7 @@ function showCouponModel() {
       const selectedCoupon = coupons.find(data => data.code === inputElement.value.trim());
       if (selectedCoupon) {
         console.log('Selected Coupon:', selectedCoupon);
-        couponeModel.classList.add('hidden');
+        couponModel.classList.add('hidden');
         // Apply the selected discounts to the order (update order summary, localStorage, etc.)
         localStorage.setItem("selectedDiscount", JSON.stringify(selectedCoupon));
         updateOrderSummary(selectedCoupon);
@@ -876,225 +807,88 @@ function showCouponModel() {
   document.querySelector('.apply_coupon_bottom .cancel').addEventListener('click', () => {
     const inputElement = document.getElementById("couponCode");
     inputElement.value = "";
-    couponeModel.classList.add('hidden');
+    couponModel.classList.add('hidden');
   });
 
+}
+
+function updateOrderSummary(selectedDiscountObj = null, selectedChargesObj = null) {
+  const products = JSON.parse(localStorage.getItem('selectedProducts')) || [];
+  const selectedDiscount = selectedDiscountObj || JSON.parse(localStorage.getItem('selectedDiscount')) || null;
+  const selectedCharge = selectedChargesObj || JSON.parse(localStorage.getItem('selectedCharges')) || null;
+  let subtotal = 0;
+  let discount = 0;
+  let charge = 0;
+
+  // Calculate the subtotal
+  products.forEach(product => {
+    subtotal += product.basePrice * product.quantity;
+  });
+
+  // Apply discount
+  if (selectedDiscount && selectedDiscount.groups) {
+    if (selectedDiscount.groups.includes('total')) {
+      if (selectedDiscount.unit === '%') {
+        discount = (subtotal * selectedDiscount.value) / 100;
+      } else if (selectedDiscount.unit === '$') {
+        discount = selectedDiscount.value;
+      }
+    } else {
+      products.forEach(product => {
+        if (selectedDiscount.groups.includes(product.group)) {
+          if (selectedDiscount.unit === '%') {
+            discount += (product.basePrice * selectedDiscount.value * product.quantity) / 100;
+          } else if (selectedDiscount.unit === '$') {
+            discount += selectedDiscount.value * product.quantity;
+          }
+        }
+      });
+    }
+  }
+
+  // Apply charge
+  if (selectedCharge && selectedCharge.groups) {
+    if (selectedCharge.groups.includes('total')) {
+      if (selectedCharge.unit === '%') {
+        charge = (subtotal * selectedCharge.value) / 100;
+      } else if (selectedCharge.unit === '$') {
+        charge = selectedCharge.value;
+      }
+    } else {
+      products.forEach(product => {
+        if (selectedCharge.groups.includes(product.group)) {
+          if (selectedCharge.unit === '%') {
+            charge += (product.basePrice * selectedCharge.value * product.quantity) / 100;
+          } else if (selectedCharge.unit === '$') {
+            charge += selectedCharge.value * product.quantity;
+          }
+        }
+      });
+    }
+  }
+
+  // Calculate tax and total
+  const taxRate = 0.13; // Example tax rate
+  const tax = ((subtotal - discount) + charge) * taxRate;
+  const total = (subtotal - discount) + charge + tax;
+
+  // Update UI
+  document.getElementById("subTotalNumber").innerText = `$${subtotal.toFixed(2)}`;
+  if (discount > 0) {
+    document.getElementById('discountBox').classList.remove('hidden');
+    document.getElementById("discounNumber").innerText = `$${discount.toFixed(2)}`;
+  }
+  if (charge > 0) {
+    document.getElementById('additionChargeBox').classList.remove('hidden');
+    document.getElementById("additionChargeNumber").innerText = `$${charge.toFixed(2)}`;
+  }
+  document.getElementById("taxNumber").innerText = `$${tax.toFixed(2)}`;
+  document.getElementById("totalNumber").innerText = `$${total.toFixed(2)}`;
 }
 
 
 
 //=================================================================//
-
-
-const menuItems = [
-  {
-    id: 1,
-    name: "Margherita Pizza",
-    category: "Pizza",
-    price: 8.99,
-    description: "Classic margherita pizza with fresh tomatoes, mozzarella cheese, and basil.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?pizza"
-  },
-  {
-    id: 2,
-    name: "Pepperoni Pizza",
-    category: "Pizza",
-    price: 9.99,
-    description: "Pepperoni pizza with mozzarella cheese and tomato sauce.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?pepperoni,pizza"
-  },
-  {
-    id: 3,
-    name: "BBQ Chicken Pizza",
-    category: "Pizza",
-    price: 11.99,
-    description: "BBQ chicken pizza with mozzarella cheese, red onions, and cilantro.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?bbq,chicken,pizza"
-  },
-  {
-    id: 4,
-    name: "Caesar Salad",
-    category: "Salad",
-    price: 6.99,
-    description: "Fresh romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?caesar,salad"
-  },
-  {
-    id: 5,
-    name: "Greek Salad",
-    category: "Salad",
-    price: 7.99,
-    description: "Greek salad with cucumbers, tomatoes, olives, feta cheese, and Greek dressing.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?greek,salad"
-  },
-  {
-    id: 6,
-    name: "Grilled Chicken Sandwich",
-    category: "Sandwich",
-    price: 8.49,
-    description: "Grilled chicken sandwich with lettuce, tomato, and mayo on a toasted bun.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?grilled,chicken,sandwich"
-  },
-  {
-    id: 7,
-    name: "Club Sandwich",
-    category: "Sandwich",
-    price: 9.49,
-    description: "Club sandwich with turkey, bacon, lettuce, tomato, and mayo on toasted bread.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?club,sandwich"
-  },
-  {
-    id: 8,
-    name: "Cheeseburger",
-    category: "Burger",
-    price: 10.99,
-    description: "Juicy cheeseburger with lettuce, tomato, pickles, and special sauce on a sesame seed bun.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?cheeseburger"
-  },
-  {
-    id: 9,
-    name: "Veggie Burger",
-    category: "Burger",
-    price: 9.99,
-    description: "Delicious veggie burger with lettuce, tomato, pickles, and special sauce on a whole wheat bun.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?veggie,burger"
-  },
-  {
-    id: 10,
-    name: "Spaghetti Bolognese",
-    category: "Pasta",
-    price: 12.99,
-    description: "Classic spaghetti Bolognese with homemade meat sauce and Parmesan cheese.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?spaghetti,bolognese"
-  },
-  {
-    id: 11,
-    name: "Fettuccine Alfredo",
-    category: "Pasta",
-    price: 13.99,
-    description: "Creamy fettuccine Alfredo with Parmesan cheese and parsley.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?fettuccine,alfredo"
-  },
-  {
-    id: 12,
-    name: "Chocolate Cake",
-    category: "Dessert",
-    price: 5.99,
-    description: "Rich and moist chocolate cake with chocolate frosting.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?chocolate,cake"
-  },
-  {
-    id: 13,
-    name: "Cheesecake",
-    category: "Dessert",
-    price: 6.99,
-    description: "Creamy cheesecake with a graham cracker crust and strawberry topping.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?cheesecake"
-  },
-  {
-    id: 14,
-    name: "French Fries",
-    category: "Side",
-    price: 2.99,
-    description: "Crispy golden French fries.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?french,fries"
-  },
-  {
-    id: 15,
-    name: "Onion Rings",
-    category: "Side",
-    price: 3.99,
-    description: "Crispy fried onion rings.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?onion,rings"
-  },
-  {
-    id: 16,
-    name: "Chicken Wings",
-    category: "Appetizer",
-    price: 7.99,
-    description: "Spicy chicken wings with a side of ranch dressing.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?chicken,wings"
-  },
-  {
-    id: 17,
-    name: "Garlic Bread",
-    category: "Side",
-    price: 3.99,
-    description: "Garlic bread topped with melted butter and herbs.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?garlic,bread"
-  },
-  {
-    id: 18,
-    name: "Fish Tacos",
-    category: "Main Course",
-    price: 12.99,
-    description: "Crispy fish tacos with cabbage slaw and lime crema.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?fish,tacos"
-  },
-  {
-    id: 19,
-    name: "Lemonade",
-    category: "Beverage",
-    price: 2.99,
-    description: "Refreshing lemonade made with fresh lemons.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?lemonade"
-  },
-  {
-    id: 20,
-    name: "Iced Tea",
-    category: "Beverage",
-    price: 2.49,
-    description: "Cool and refreshing iced tea.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?iced,tea"
-  },
-  {
-    id: 21,
-    name: "Mocha Latte",
-    category: "Beverage",
-    price: 4.99,
-    description: "Rich mocha latte with whipped cream.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?mocha,latte"
-  },
-  {
-    id: 22,
-    name: "Pancakes",
-    category: "Breakfast",
-    price: 5.99,
-    description: "Fluffy pancakes served with maple syrup.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?pancakes"
-  },
-  {
-    id: 23,
-    name: "Omelette",
-    category: "Breakfast",
-    price: 6.99,
-    description: "Three-egg omelette with your choice of fillings.",
-    available: true,
-    imageUrl: "https://source.unsplash.com/random/?omelette"
-  }
-];
 
 const dots = document.querySelectorAll('.dot');
 const keys = document.querySelectorAll('.key');
