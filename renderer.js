@@ -33,7 +33,7 @@ function showMenuCategories(menuCategories) {
     categoryItems.forEach((item) => {
       const itemObj = JSON.stringify(item);
       itemContainer.innerHTML += `
-        <div class="category_menu_item" data-item='${itemObj}' onclick="selectProduct('${category}', this)">
+        <div class="category_menu_item" data-item='${itemObj}' onclick="selectProduct(this)">
           <div class="imgCon">
             <img src="${item.imageUrl}" alt="${item.name}">
           </div>  
@@ -69,33 +69,6 @@ function showMenuCategories(menuCategories) {
     categoryHeading.innerText = `${menuCategories[0].category} Menu`;
     categoryContainer.firstChild.classList.add('active');
   }
-}
-
-// Function to update the localStorage with the selected products and their add-ons
-function updateLocalStorage() {
-  const menuItems = document.querySelectorAll('.selected_menu .menu_item');
-  const products = [];
-
-  menuItems.forEach(menuItem => {
-    const name = menuItem.querySelector('.menu_item_product_name').textContent;
-    const basePrice = parseFloat(menuItem.querySelector('.menu_item_product_price').textContent.replace('$', '')) / parseInt(menuItem.querySelector('.menu_numbers').value);
-    const quantity = parseInt(menuItem.querySelector('.menu_numbers').value);
-    const addonNames = menuItem.querySelector('.menu_item_sub_product_names').textContent.split(', ').filter(name => name !== "");
-    const discountElement = menuItem.querySelector('.discount_badge .discount_text');
-    const discount = discountElement ? discountElement.textContent : '0%';
-
-    const addons = addonNames.map(name => {
-      const addon = Array.from(document.querySelectorAll(`.addon`)).find(el => el.querySelector('.name').textContent === name);
-      return {
-        name: addon.querySelector('.name').textContent,
-        price: parseFloat(addon.querySelector('.price').textContent.replace(/[()$]/g, ''))
-      };
-    });
-
-    products.push({ name, basePrice, quantity, addons, discount });
-  });
-
-  localStorage.setItem('selectedProducts', JSON.stringify(products));
 }
 
 function updateQuickLinks(show, hide1, hide2) {
@@ -471,8 +444,18 @@ function showSalePersonAuthScreen() {
   document.querySelector(".loginContainer").classList.remove("hidden");
 }
 
+let lastOrderId = 0;
 
-function selectProduct(categoryName, element) {
+function generateSequentialOrderId() {
+  // Increment the last ID, and wrap around if necessary
+  lastOrderId = (lastOrderId + 1) % 10000;
+  
+  // Return as a zero-padded string
+  return lastOrderId.toString().padStart(4, '0');
+}
+
+
+function selectProduct(element) {
   let dataObj = element.getAttribute('data-item');
   dataObj = JSON.parse(dataObj);
   const addons = dataObj.addons;
@@ -480,59 +463,8 @@ function selectProduct(categoryName, element) {
   document.querySelector('.right_aside').classList.remove('hidden');
   const menuItemsContainer = document.querySelector('.selected_menu');
 
-  if (addons && addons.length > 0) {
-    const addonModelListSection = document.getElementById("addonItems");
-    addonModelListSection.innerHTML = "";
-    addons.forEach(addon => {
-      addonModelListSection.innerHTML += `
-        <button class="addon" data-name="${addon.name}">
-            <span class="name">${addon.name}</span>
-            <span class="price">($${addon.price})</span>
-        </button>
-      `;
-    });
-
-    document.querySelector('.add_on').classList.remove('hidden');
-
-    const addonButtons = addonModelListSection.querySelectorAll('button');
-    addonButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        button.classList.toggle('active');
-      });
-    });
-
-    document.querySelector('.add_on_bottom .save').addEventListener('click', () => {
-      const selectedAddons = [];
-      addonButtons.forEach(button => {
-        if (button.classList.contains('active')) {
-          const name = button.querySelector('.name').textContent;
-          const price = parseFloat(button.querySelector('.price').textContent.replace(/[()$]/g, ''));
-          selectedAddons.push({ name, price });
-        }
-      });
-
-      // Update the menu item HTML with the selected add-ons
-      const addonNames = selectedAddons.map(addon => addon.name).join(', ');
-      const addonPrices = selectedAddons.map(addon => addon.price);
-      const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
-
-      menuItemElement.querySelector('.menu_item_sub_product_names').textContent = addonNames;
-      menuPriceElement.textContent = `$${(dataObj.price * quantity + totalAddonPrice).toFixed(2)}`;
-
-      document.querySelector('.add_on').classList.add('hidden');
-
-      // Update localStorage and order summary after adding addons
-      // updateLocalStorage();
-      updateOrderSummary();
-    });
-
-    document.querySelector('.add_on_bottom .cancel').addEventListener('click', () => {
-      document.querySelector('.add_on').classList.add('hidden');
-    });
-  }
-
   const menuItemHTML = `
-    <div class="menu_item">
+    <div class="menu_item" data-selected-product="${dataObj.name}" data-quantity="${quantity}">
       <div class="menu_item_name">
         <span class="menu_item_product_name">${dataObj.name}</span>
         <span class="menu_item_product_price">$${(dataObj.price * quantity).toFixed(2)}</span>
@@ -580,8 +512,7 @@ function selectProduct(categoryName, element) {
       const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
       menuPriceElement.textContent = `$${(dataObj.price * count + totalAddonPrice).toFixed(2)}`;
 
-      // Update localStorage and order summary after changing quantity
-      // updateLocalStorage();
+      menuItemElement.setAttribute('data-quantity', count);
       updateOrderSummary();
     }
   }
@@ -591,9 +522,6 @@ function selectProduct(categoryName, element) {
     if (menuItems.length === 0) {
       document.querySelector('.right_aside').classList.add('hidden');
     }
-
-    // Update localStorage and order summary after removing an item
-    // updateLocalStorage();
     updateOrderSummary();
   }
 
@@ -613,11 +541,59 @@ function selectProduct(categoryName, element) {
     updateItemCount(menuNumbersInput.value);
   });
 
-  // Update localStorage and order summary after adding a new product
-  // updateLocalStorage();
+  if (addons && addons.length > 0) {
+    const addonModelListSection = document.getElementById("addonItems");
+    addonModelListSection.innerHTML = "";
+    addons.forEach(addon => {
+      addonModelListSection.innerHTML += `
+        <button class="addon" data-name="${addon.name}">
+            <span class="name">${addon.name}</span>
+            <span class="price">($${addon.price})</span>
+        </button>
+      `;
+    });
+
+    document.querySelector('.add_on').classList.remove('hidden');
+
+    const addonButtons = addonModelListSection.querySelectorAll('button');
+    addonButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        button.classList.toggle('active');
+      });
+    });
+
+    document.querySelector('.add_on_bottom .save').addEventListener('click', () => {
+      const selectedAddons = [];
+      addonButtons.forEach(button => {
+        if (button.classList.contains('active')) {
+          const name = button.querySelector('.name').textContent;
+          const price = parseFloat(button.querySelector('.price').textContent.replace(/[()$]/g, ''));
+          selectedAddons.push({ name, price });
+        }
+      });
+
+      // Update the menu item HTML with the selected add-ons
+      const addonNames = selectedAddons.map(addon => addon.name).join(', ');
+      const addonPrices = selectedAddons.map(addon => addon.price);
+      const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
+
+      menuItemElement.querySelector('.menu_item_sub_product_names').textContent = addonNames;
+      menuPriceElement.textContent = `$${(dataObj.price * quantity + totalAddonPrice).toFixed(2)}`;
+
+      menuItemElement.setAttribute('data-selected-addons', JSON.stringify(selectedAddons));
+      menuItemElement.setAttribute('data-quantity', quantity);
+
+      document.querySelector('.add_on').classList.add('hidden');
+      updateOrderSummary();
+    });
+
+    document.querySelector('.add_on_bottom .cancel').addEventListener('click', () => {
+      document.querySelector('.add_on').classList.add('hidden');
+    });
+  }
+
   updateOrderSummary();
 }
-
 
 function showDiscounts() {
   const discounts = [
@@ -709,11 +685,10 @@ function showDiscounts() {
 
 function showAdditionalChargesModel() {
   const charges = [
-    { name: 'Broccoli Staff', type: 'subtotal', value: '50', unit: '%', selected: false, categories: [], groups: [] },
-    { name: 'Summer Sale', type: 'subtotal', value: '20', unit: '%', selected: false, categories: [], groups: [] },
-    { name: 'Fly Dubai', type: 'category', value: '5', unit: '$', selected: false, categories: ['fine'], groups: [] },
-    { name: 'Better homes', type: 'subtotal', value: '10', unit: '%', selected: false, categories: [], groups: [] },
-    { name: 'Group Charge', type: 'group', value: '15', unit: '%', selected: false, categories: ['fruits'], groups: ['citrus'] },
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', selected: false, groups: ["total"] },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', selected: false, groups: ["total"] },
+    { name: 'Fly Dubai', type: 'item', value: '5', unit: '$', selected: false, groups: ["fine"] },
+    { name: 'Better homes', type: 'total', value: '10', unit: '%', selected: false, groups: ["total"] },
   ];
 
   const chargesModel = document.getElementById('chargeModel');
@@ -764,8 +739,7 @@ function showAdditionalChargesModel() {
     const selectedCharge = charges.find(data => data.selected);
     console.log('Selected charge:', selectedCharge);
     chargesModel.classList.add('hidden');
-    // Apply the selected charge to the order (update order summary, localStorage, etc.)
-    localStorage.setItem("selectedCharges", JSON.stringify(selectedCharge));
+    document.body.setAttribute('data-charge', JSON.stringify(selectedCharge));
     updateOrderSummary(null, selectedCharge);
   });
 
@@ -777,10 +751,10 @@ function showAdditionalChargesModel() {
 
 function showCouponModel() {
   const coupons = [
-    { name: 'Broccoli Staff', type: 'subtotal', value: '50', unit: '%', code: "1234", selected: false, categories: [], groups: [] },
-    { name: 'Summer Sale', type: 'subtotal', value: '20', unit: '%', code: "1235", selected: false, categories: [], groups: [] },
-    { name: 'Holiday Discount', type: 'category', value: '5', unit: '$', code: "1236", selected: false, categories: ['fine'], groups: [] },
-    { name: 'Loyalty Discount', type: 'subtotal', value: '10', unit: '%', code: "1237", selected: false, categories: [], groups: [] },
+    { name: 'Broccoli Staff', type: 'total', value: '50', unit: '%', code: "1234", selected: false, groups: ["total"] },
+    { name: 'Summer Sale', type: 'total', value: '20', unit: '%', code: "1235", selected: false, groups: ["total"] },
+    { name: 'Holiday Discount', type: 'item', value: '5', unit: '$', code: "1236", selected: false, groups: ["fine"] },
+    { name: 'Loyalty Discount', type: 'total', value: '10', unit: '%', code: "1237", selected: false, groups: ["total"] },
   ];
 
   let couponModel = document.getElementById("couponCodeModel");
@@ -793,8 +767,7 @@ function showCouponModel() {
       if (selectedCoupon) {
         console.log('Selected Coupon:', selectedCoupon);
         couponModel.classList.add('hidden');
-        // Apply the selected coupon to the order (update order summary, localStorage, etc.)
-        localStorage.setItem("selectedDiscount", JSON.stringify(selectedCoupon));
+        document.body.setAttribute('data-discount', JSON.stringify(selectedCoupon));
         updateOrderSummary(selectedCoupon);
       } else {
         alert("Invalid Code");
@@ -811,78 +784,88 @@ function showCouponModel() {
   });
 }
 
-function updateOrderSummary(selectedDiscountObj = null, selectedChargesObj = null) {
-  const products = JSON.parse(localStorage.getItem('selectedProducts')) || [];
-  const selectedDiscount = selectedDiscountObj || JSON.parse(localStorage.getItem('selectedDiscount')) || null;
-  const selectedCharge = selectedChargesObj || JSON.parse(localStorage.getItem('selectedCharges')) || null;
-  let subtotal = 0;
-  let discount = 0;
-  let charge = 0;
 
-  // Calculate the subtotal
-  products.forEach(product => {
-    subtotal += product.basePrice * product.quantity;
+function updateOrderSummary(selectedDiscount = null, selectedCharge = null) {
+  const orderItems = Array.from(document.querySelectorAll('.selected_menu .menu_item')).map(item => {
+    const name = item.getAttribute('data-selected-product');
+    const price = parseFloat(item.querySelector('.menu_item_product_price').textContent.replace('$', ''));
+    const quantity = parseInt(item.getAttribute('data-quantity'));
+    const addons = item.getAttribute('data-selected-addons') ? JSON.parse(item.getAttribute('data-selected-addons')) : [];
+
+    return { name, price, quantity, addons };
   });
 
-  // Apply discount
-  if (selectedDiscount && selectedDiscount.groups) {
-    if (selectedDiscount.groups.includes('total')) {
+  let subtotal = orderItems.reduce((acc, item) => acc + item.price, 0);
+  let discountAmount = 0;
+  let chargeAmount = 0;
+
+  if (selectedDiscount) {
+    if (selectedDiscount.type === 'subtotal') {
       if (selectedDiscount.unit === '%') {
-        discount = (subtotal * selectedDiscount.value) / 100;
+        discountAmount = subtotal * (parseFloat(selectedDiscount.value) / 100);
       } else if (selectedDiscount.unit === '$') {
-        discount = selectedDiscount.value;
+        discountAmount = parseFloat(selectedDiscount.value);
       }
-    } else {
-      products.forEach(product => {
-        if (selectedDiscount.groups.includes(product.group)) {
+    } else if (selectedDiscount.type === 'category') {
+      orderItems.forEach(item => {
+        if (selectedDiscount.categories.includes(item.category)) {
           if (selectedDiscount.unit === '%') {
-            discount += (product.basePrice * selectedDiscount.value * product.quantity) / 100;
+            discountAmount += item.price * item.quantity * (parseFloat(selectedDiscount.value) / 100);
           } else if (selectedDiscount.unit === '$') {
-            discount += selectedDiscount.value * product.quantity;
+            discountAmount += parseFloat(selectedDiscount.value);
+          }
+        }
+      });
+    } else if (selectedDiscount.type === 'group') {
+      orderItems.forEach(item => {
+        if (selectedDiscount.categories.includes(item.category) && selectedDiscount.groups.includes(item.group)) {
+          if (selectedDiscount.unit === '%') {
+            discountAmount += item.price * item.quantity * (parseFloat(selectedDiscount.value) / 100);
+          } else if (selectedDiscount.unit === '$') {
+            discountAmount += parseFloat(selectedDiscount.value);
           }
         }
       });
     }
   }
 
-  // Apply charge
-  if (selectedCharge && selectedCharge.groups) {
-    if (selectedCharge.groups.includes('total')) {
+  if (selectedCharge) {
+    if (selectedCharge.type === 'subtotal') {
       if (selectedCharge.unit === '%') {
-        charge = (subtotal * selectedCharge.value) / 100;
+        chargeAmount = subtotal * (parseFloat(selectedCharge.value) / 100);
       } else if (selectedCharge.unit === '$') {
-        charge = selectedCharge.value;
+        chargeAmount = parseFloat(selectedCharge.value);
       }
-    } else {
-      products.forEach(product => {
-        if (selectedCharge.groups.includes(product.group)) {
+    } else if (selectedCharge.type === 'category') {
+      orderItems.forEach(item => {
+        if (selectedCharge.categories.includes(item.category)) {
           if (selectedCharge.unit === '%') {
-            charge += (product.basePrice * selectedCharge.value * product.quantity) / 100;
+            chargeAmount += item.price * item.quantity * (parseFloat(selectedCharge.value) / 100);
           } else if (selectedCharge.unit === '$') {
-            charge += selectedCharge.value * product.quantity;
+            chargeAmount += parseFloat(selectedCharge.value);
+          }
+        }
+      });
+    } else if (selectedCharge.type === 'group') {
+      orderItems.forEach(item => {
+        if (selectedCharge.categories.includes(item.category) && selectedCharge.groups.includes(item.group)) {
+          if (selectedCharge.unit === '%') {
+            chargeAmount += item.price * item.quantity * (parseFloat(selectedCharge.value) / 100);
+          } else if (selectedCharge.unit === '$') {
+            chargeAmount += parseFloat(selectedCharge.value);
           }
         }
       });
     }
   }
 
-  // Calculate tax and total
-  const taxRate = 0.13; // Example tax rate
-  const tax = ((subtotal - discount) + charge) * taxRate;
-  const total = (subtotal - discount) + charge + tax;
+  const total = subtotal - discountAmount + chargeAmount;
 
-  // Update UI
-  document.getElementById("subTotalNumber").innerText = `$${subtotal.toFixed(2)}`;
-  if (discount > 0) {
-    document.getElementById('discountBox').classList.remove('hidden');
-    document.getElementById("discounNumber").innerText = `$${discount.toFixed(2)}`;
-  }
-  if (charge > 0) {
-    document.getElementById('additionChargeBox').classList.remove('hidden');
-    document.getElementById("additionChargeNumber").innerText = `$${charge.toFixed(2)}`;
-  }
-  document.getElementById("taxNumber").innerText = `$${tax.toFixed(2)}`;
-  document.getElementById("totalNumber").innerText = `$${total.toFixed(2)}`;
+  // Update DOM elements to display the order summary
+  document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('discount').textContent = `$${discountAmount.toFixed(2)}`;
+  document.getElementById('charges').textContent = `$${chargeAmount.toFixed(2)}`;
+  document.getElementById('total').textContent = `$${total.toFixed(2)}`;
 }
 
 
