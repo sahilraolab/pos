@@ -33,7 +33,7 @@ function showMenuCategories(menuCategories) {
     categoryItems.forEach((item) => {
       const itemObj = JSON.stringify(item);
       itemContainer.innerHTML += `
-        <div class="category_menu_item" data-item='${itemObj}' onclick="selectProduct('${category}', this)">
+        <div class="category_menu_item" data-item='${itemObj}' onclick="selectProduct(this)">
           <div class="imgCon">
             <img src="${item.imageUrl}" alt="${item.name}">
           </div>  
@@ -472,20 +472,19 @@ function showSalePersonAuthScreen() {
 }
 
 
-function selectProduct(categoryName, element) {
+function selectProduct(element) {
   let dataObj = element.getAttribute('data-item');
   dataObj = JSON.parse(dataObj);
-  const addons = dataObj.addons;
-  let quantity = 1;
+  dataObj.quantity = 1;
   document.querySelector('.right_aside').classList.remove('hidden');
   const menuItemsContainer = document.querySelector('.selected_menu');
 
-  if (addons && addons.length > 0) {
+  if (dataObj.addons && dataObj.addons.length > 0) {
     const addonModelListSection = document.getElementById("addonItems");
     addonModelListSection.innerHTML = "";
-    addons.forEach(addon => {
+    dataObj.addons.forEach(addon => {
       addonModelListSection.innerHTML += `
-        <button class="addon" data-name="${addon.name}">
+        <button class="addon">
             <span class="name">${addon.name}</span>
             <span class="price">($${addon.price})</span>
         </button>
@@ -517,13 +516,19 @@ function selectProduct(categoryName, element) {
       const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
 
       menuItemElement.querySelector('.menu_item_sub_product_names').textContent = addonNames;
-      menuPriceElement.textContent = `$${(dataObj.price * quantity + totalAddonPrice).toFixed(2)}`;
+      menuPriceElement.textContent = `$${(dataObj.price * dataObj.quantity + totalAddonPrice).toFixed(2)}`;
 
       document.querySelector('.add_on').classList.add('hidden');
 
-      // Update localStorage and order summary after adding addons
-      // updateLocalStorage();
-      updateOrderSummary();
+      if (selectedAddons && selectedAddons.length > 0) {
+        dataObj.selectedAddons = selectedAddons;
+      } else {
+        dataObj.selectedAddons = null;
+      }
+
+
+      // Update the data-item attribute with the latest data including selected addons
+      menuItemElement.children[0].setAttribute('data-item', JSON.stringify(dataObj));
     });
 
     document.querySelector('.add_on_bottom .cancel').addEventListener('click', () => {
@@ -532,10 +537,10 @@ function selectProduct(categoryName, element) {
   }
 
   const menuItemHTML = `
-    <div class="menu_item">
+    <div class="menu_item" data-item='${JSON.stringify(dataObj)}'>
       <div class="menu_item_name">
         <span class="menu_item_product_name">${dataObj.name}</span>
-        <span class="menu_item_product_price">$${(dataObj.price * quantity).toFixed(2)}</span>
+        <span class="menu_item_product_price">$${(dataObj.price * dataObj.quantity).toFixed(2)}</span>
       </div>
       <div class="menu_item_number__price">
         <span class="menu_item_sub_product_names"></span>
@@ -545,7 +550,7 @@ function selectProduct(categoryName, element) {
               <path d="M2.25012 8.99997H15.7501" stroke="#2B2B2B" stroke-width="1.125" stroke-linecap="round" />
             </svg>
           </button>
-          <input type="text" class="menu_numbers" value="${quantity}">
+          <input type="text" class="menu_numbers" value="${dataObj.quantity}">
           <button class="add">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9.00012 2.24997V15.75" stroke="white" stroke-width="1.125" stroke-linecap="round" />
@@ -574,12 +579,11 @@ function selectProduct(categoryName, element) {
     } else {
       menuNumbersInput.value = count;
       const addonPrices = menuItemElement.querySelector('.menu_item_sub_product_names').textContent.split(', ').map(name => {
-        const addon = addons.find(a => a.name === name);
+        const addon = dataObj.addons ? dataObj.addons.find(a => a.name === name) : 0;
         return addon ? addon.price : 0;
       });
       const totalAddonPrice = addonPrices.reduce((acc, price) => acc + price, 0);
-      menuPriceElement.textContent = `$${(dataObj.price * count + totalAddonPrice).toFixed(2)}`;
-
+      menuPriceElement.textContent = `$${((dataObj.price + totalAddonPrice) * count).toFixed(2)}`;
       // Update localStorage and order summary after changing quantity
       // updateLocalStorage();
       updateOrderSummary();
