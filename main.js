@@ -18,7 +18,7 @@ function createWindow() {
 
 
   // Load your HTML file that contains the print functionality
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
   mainWindow.webContents.on('did-finish-load', () => {
     // Set the zoom level to 100% (zoom level 0)
