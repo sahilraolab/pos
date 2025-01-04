@@ -195,7 +195,6 @@ body {
     display: flex;
     align-items: center;
     padding: 0 1rem;
-    height: 100%;
     background-color: #FFFFFF;
     border-radius: 1rem;
     justify-content: center;
@@ -206,6 +205,7 @@ body {
     background-color: transparent;
     margin-right: .5rem;
     outline: none;
+    height: 50px;
 }
 
 .menu_btns {
@@ -482,14 +482,14 @@ body {
     margin-bottom: 1rem;
 }
 
-.menu_bills {
+.summary_row {
     display: flex;
     width: 100%;
     justify-content: space-between;
     margin: .2rem 0;
 }
 
-.menu_bills>span {
+.summary_row>span {
     font-size: .9rem;
     font-weight: 400;
     color: #929292;
@@ -501,7 +501,7 @@ body {
     margin: .5rem 0;
 }
 
-.menu_total>span {
+.summary_total>span {
     font-weight: 500;
     font-size: 1.1rem;
     color: #2B2B2B;
@@ -570,7 +570,7 @@ body {
 }
 
 .customer_details_form>input,
-.customer_details_form>textarea {
+.customer_details_form>textarea, .customer_details_form>select {
     padding: .5rem;
     border-radius: .5rem;
     border: 1px solid #C2C2C2;
@@ -796,3 +796,11 @@ body {
     cursor: pointer;
     transition: background 0.3s;
 }
+
+
+.ongoing_orders{
+    display: flex;
+    flex-direction: column;
+}
+
+
