@@ -56,6 +56,47 @@ app.on('activate', function () {
 
 
 
+
+/* ==============================================================
+            DATABASE APIS START HERE
+============================================================== */
+
+const ordersDatabase = [];
+
+// Handle saving orders
+ipcMain.handle('save-order', async (event, orderDetails) => {
+  try {
+    // Save order details (you can replace this with actual database logic)
+    ordersDatabase.push(orderDetails);
+    console.log("+++++++++++++")
+    return { success: true, message: 'Order saved successfully' };
+  } catch (error) {
+    return { success: false, error: 'Failed to save order' };
+  }
+});
+
+// Handle fetching orders
+ipcMain.handle('fetch-orders', async (event) => {
+  try {
+    // Fetch orders from database (replace with actual database logic)
+    return { success: true, data: ordersDatabase };
+  } catch (error) {
+    return { success: false, error: 'Failed to fetch orders' };
+  }
+});
+
+
+
+/* ==============================================================
+            DATABASE APIS END HERE
+============================================================== */
+
+
+
+
+
+
+
 /* ==============================================================
           KDS CONNECT WITH IP
    ============================================================== */

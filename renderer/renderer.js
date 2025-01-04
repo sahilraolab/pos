@@ -38,6 +38,28 @@ function sendDummyOrder() {
   window.api.send('dummy-order', dummyOrder);
 }
 
+// Function to send order details to main.js
+async function saveOrderDetails(orderDetails) {
+  const result = await window.api.send('save-order', orderDetails);
+  console.log('Order saved:', result);
+}
+
+// Function to fetch orders from main.js
+async function fetchOrders() {
+  try {
+    const result = await window.api.send('fetch-orders');
+    if (result.success) {
+      console.log('Fetched Orders:', result.data);
+    } else {
+      console.error('Error fetching orders:', result.error);
+    }
+  } catch (error) {
+    console.error('An unexpected error occurred:', error);
+  }
+}
+
+// Call the function to fetch and display orders in the console
+fetchOrders();
 
 
 //=================================================================//

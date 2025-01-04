@@ -26,7 +26,6 @@
     "asar": true
   },
   "dependencies": {
-    "better-sqlite3": "^11.6.0",
     "serialport": "^12.0.0"
   }
 }

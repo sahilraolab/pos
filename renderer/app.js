@@ -1073,9 +1073,33 @@ function handleQuickBillPayment() {
     showLoader();
     const success = handleCustomerDetailsForm();
     if (success) {
-        const formData = JSON.parse(localStorage.getItem('userFormData'));
-        formData.orderId = generateUniqueOrderID();
-        localStorage.setItem('userFormData', JSON.stringify(formData));
+        let orderId = generateUniqueOrderID();
+        let orderType = localStorage.getItem("openedOrderTypeLink");
+        let userInfo = JSON.parse(localStorage.getItem('userFormData'));
+        let discount = JSON.parse(localStorage.getItem('selectedDiscount'));
+        let coupon = JSON.parse(localStorage.getItem('addedCoupon'));
+        let additionCharges = JSON.parse(localStorage.getItem('selectedCharges'));
+        const selectedMenuItems = document.querySelectorAll('.selected_menu_item');
+        let selectedMenuList = [];
+        selectedMenuItems.forEach(item => {
+            const dataItemString = item.querySelector('.menu_item').getAttribute('data-item');
+            const parsedDataItem = JSON.parse(dataItemString); 
+            selectedMenuList.push(parsedDataItem); 
+        });
+        const orderDetails = {
+            orderId,
+            orderType,
+            userInfo,
+            discount,
+            coupon,
+            additionCharges,
+            selectedMenuList,
+            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+            orderDate: new Date().toISOString(),
+            orderTime: new Date().toLocaleTimeString(),
+        }
+        console.log(orderDetails);
+        saveOrderDetails(orderDetails);
         document.getElementById('paymentModel').classList.remove('hidden');
         document.getElementById('totalBillAmtSpan').innerText = JSON.parse(localStorage.getItem('orderSummary'))?.total;
     }
@@ -1207,7 +1231,7 @@ function handleSplitPayment() {
     updateDisplay();
 }
 
-function handleSettleBill(){
+function handleSettleBill() {
     showLoader();
     document.getElementById('paymentModel').classList.add('hidden');
     deleteQuickBillItems();
