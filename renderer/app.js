@@ -1,20 +1,34 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    const orderDetails = {
-        orderId : "",
-        orderType : "",
-        userInfo : "",
-        discount : "",
-        coupon : "",
-        additionCharges : "",
-        orderSummary : "",
-        selectedMenuList : [],
+    const quickOrderDetails = {
+        orderId: "",
+        orderType: "",
+        userInfo: "",
+        discount: "",
+        coupon: "",
+        additionCharges: "",
+        orderSummary: "",
+        selectedMenuList: [],
+        status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+        orderDate: new Date().toISOString(),
+        orderTime: new Date().toLocaleTimeString(),
+    }
+    const pickUpOrderDetails = {
+        orderId: "",
+        orderType: "",
+        userInfo: "",
+        discount: "",
+        coupon: "",
+        additionCharges: "",
+        orderSummary: "",
+        selectedMenuList: [],
         status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
         orderDate: new Date().toISOString(),
         orderTime: new Date().toLocaleTimeString(),
     }
 
-    localStorage.setItem("orderDetails", JSON.stringify(orderDetails));
+    localStorage.setItem("quickOrderDetails", JSON.stringify(quickOrderDetails));
+    localStorage.setItem("pickUpOrderDetails", JSON.stringify(pickUpOrderDetails));
 
 
     showDashboardScreen();
@@ -147,6 +161,10 @@ function showQuickBillScreen() {
     localStorage.setItem("openedOrderTypeLink", "quickBill");
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
+    document.querySelector('.menu_bills_btn').innerHTML = `
+        <button onclick="deleteItems()">Item</button>
+        <button onclick="placeQuickBillOrder()">Place Order</button>
+    `;
     hideLoader();
 }
 
@@ -172,6 +190,10 @@ function showPickupScreen() {
     localStorage.setItem("openedOrderTypeLink", "pickUp");
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
+    document.querySelector('.menu_bills_btn').innerHTML = `
+        <button onclick="deleteItems()">Item</button>
+        <button onclick="placePickupOrder()">Place Order</button>
+    `;
     hideLoader();
 }
 
@@ -197,6 +219,10 @@ function showDineIn() {
     localStorage.setItem("openedOrderTypeLink", "dineIn");
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
+    document.querySelector('.menu_bills_btn').innerHTML = `
+    <button onclick="deleteItems()">Item</button>
+    <button onclick="placeDineInOrder()">Place Order</button>
+`;
     hideLoader();
 }
 
@@ -310,13 +336,13 @@ function getValidAddons(addons, item) {
 
 // Updates the order details in local storage
 function updateOrderStorage(orderDetails) {
-    localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+    localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
     updateOrderSummary();
 }
 
 // Fetches the selected menu from localStorage and renders it in the UI
 function renderSelectedMenu() {
-    const orderDetails = JSON.parse(localStorage.getItem('orderDetails')) || { selectedMenuList: [] };
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] };
     const menuItemsContainer = document.querySelector(".selected_menu");
     menuItemsContainer.innerHTML = ""; // Clear existing items
 
@@ -402,21 +428,15 @@ function renderSelectedMenu() {
 
 // Handles the selection of a product
 async function selectProduct(element) {
-    const orderDetails = JSON.parse(localStorage.getItem('orderDetails')) || { selectedMenuList: [] };
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] };
 
     let dataObj = element.getAttribute("data-item");
     dataObj = JSON.parse(dataObj);
     dataObj.quantity = 1;
     dataObj.totalPrice = dataObj.price; // Initialize total price with the base price
     document.querySelector(".right_aside").classList.remove("hidden");
-
-    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
-    if (openedOrderTypeLink === "quickBill") {
-        document.querySelector('.menu_bills_btn').innerHTML = `
-            <button onclick="deleteItems()">Item</button>
-            <button onclick="placeQuickBillOrder()">Place Order</button>
-        `;
-    }
+    document.querySelector(".selected_menu").classList.remove("hidden");
+    document.querySelector(".customer_details").classList.add("hidden");
 
     if (dataObj.addons && dataObj.addons.length > 0) {
         const addons = await fetchAddons(); // Replace with your API fetch logic
@@ -464,6 +484,9 @@ async function selectProduct(element) {
 
         document.querySelector(".add_on_bottom .cancel").addEventListener("click", () => {
             document.querySelector(".add_on").classList.add("hidden");
+            if(orderDetails.selectedMenuList && orderDetails.selectedMenuList.length == 0){
+                deleteItems();
+            }
         });
     } else {
         orderDetails.selectedMenuList.push(dataObj);
@@ -538,7 +561,7 @@ function showDiscounts() {
 
     const discountModal = document.getElementById("discountModal");
     const discountList = document.getElementById("discountList");
-    const orderDetails = JSON.parse(localStorage.getItem('orderDetails'));
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
 
     if (orderDetails.discount) {
         discounts.forEach((discount) => {
@@ -609,13 +632,13 @@ function showDiscounts() {
             // No discount selected, remove the existing discount
             // localStorage.removeItem("selectedDiscount");
             orderDetails.discount = "";
-            localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+            localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
             console.log("Discount removed.");
         } else {
             // Apply the selected discount
             // localStorage.setItem("selectedDiscount", JSON.stringify(selectedDiscount));
             orderDetails.discount = selectedDiscount;
-            localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+            localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
             console.log("Selected discount:", selectedDiscount);
         }
 
@@ -694,7 +717,7 @@ function showAdditionalChargesModel() {
 
     const chargesModel = document.getElementById("chargesModel");
     const chargesList = document.getElementById("chargeList");
-    const orderDetails = JSON.parse(localStorage.getItem('orderDetails'));
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
 
     // Preselect saved charge
     if (orderDetails.additionCharges) {
@@ -759,12 +782,12 @@ function showAdditionalChargesModel() {
         if (!selectedCharge) {
             // localStorage.removeItem("selectedCharges");
             orderDetails.additionCharges = "";
-            localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+            localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
             console.log("No charge selected. Previous charges cleared.");
         } else {
             // localStorage.setItem("selectedCharges", JSON.stringify(selectedCharge));
             orderDetails.additionCharges = selectedCharge;
-            localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+            localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
             console.log("Selected charge:", selectedCharge);
         }
 
@@ -844,7 +867,7 @@ function showCouponModel() {
 
     let couponModel = document.getElementById("couponCodeModel");
     const inputElement = document.getElementById("couponCode");
-    const orderDetails = JSON.parse(localStorage.getItem('orderDetails'));
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
 
     couponModel.classList.remove("hidden");
     if (orderDetails.coupon) {
@@ -866,7 +889,7 @@ function showCouponModel() {
                     //     JSON.stringify(coupons[3])
                     // );
                     orderDetails.coupon = coupons[3];
-                    localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+                    localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
                     updateOrderSummary();
                 } else {
                     alert("Invalid Code, Codes are case sensitive");
@@ -883,14 +906,14 @@ function showCouponModel() {
             couponModel.classList.add("hidden");
             // localStorage.removeItem("addedCoupon");
             orderDetails.coupon = "";
-            localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+            localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
             updateOrderSummary();
         });
 }
 
 function updateOrderSummary() {
     // Placeholder for product data, replace with your actual data source
-    const orderDetails = JSON.parse(localStorage.getItem('orderDetails'));
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
     const orderSummary = {
         subtotal: 0,
         tax: 0,
@@ -995,17 +1018,36 @@ function updateOrderSummary() {
 
     // localStorage.setItem('orderSummary', JSON.stringify(orderSummary));
     orderDetails.orderSummary = orderSummary;
-    localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+    localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
 }
 
-function deleteItems() {
+function deleteItems(all) {
     showLoader();
-    const orderDetails = JSON.parse(localStorage.getItem('orderDetails'));
-    orderDetails.selectedMenuList = [];
-    localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
+    if (all) {
+        const _orderDetails = {
+            orderId: "",
+            orderType: "",
+            userInfo: "",
+            discount: "",
+            coupon: "",
+            additionCharges: "",
+            orderSummary: "",
+            selectedMenuList: [],
+            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+            orderDate: new Date().toISOString(),
+            orderTime: new Date().toLocaleTimeString(),
+        }
+        localStorage.setItem('quickOrderDetails', JSON.stringify(_orderDetails));
+    } else {
+        orderDetails.selectedMenuList = [];
+        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
+    }
     document.querySelectorAll('.selected_menu_item').forEach((element) => {
         element.remove(); // Removes the element from the DOM
     });
+    document.querySelector(".selected_menu").classList.remove("hidden");
+    document.querySelector(".customer_details").classList.add("hidden");
     document.querySelector(".right_aside").classList.add("hidden");
     updateOrderSummary();
     hideLoader();
@@ -1025,7 +1067,7 @@ function placeQuickBillOrder() {
 
 function handleCustomerDetailsForm() {
     // const form = document.querySelector(".customer_details_form");
-    const orderDetails = JSON.parse(localStorage.getItem('orderDetails'));
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
     const nameInput = document.getElementById("fullName");
     const emailInput = document.getElementById("email");
     const phoneInput = document.getElementById("phone");
@@ -1043,7 +1085,7 @@ function handleCustomerDetailsForm() {
 
     orderDetails.userInfo = formData;
 
-    localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+    localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
 
     // Validate the full name field
     if (!formData.fullName) {
@@ -1074,14 +1116,12 @@ function handleQuickBillPayment() {
     showLoader();
     const success = handleCustomerDetailsForm();
     if (success) {
-        const orderDetails = JSON.parse(localStorage.getItem('orderDetails'));
+        const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
         let orderId = generateUniqueOrderID();
         let orderType = localStorage.getItem("openedOrderTypeLink");
         orderDetails.orderId = orderId;
         orderDetails.orderType = orderType;
-        localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
-        console.log(orderDetails);
-        saveOrderDetails(orderDetails);
+        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
         document.getElementById('paymentModel').classList.remove('hidden');
         document.getElementById('totalBillAmtSpan').innerText = JSON.parse(localStorage.getItem('orderSummary'))?.total;
     }
@@ -1215,8 +1255,12 @@ function handleSplitPayment() {
 
 function handleSettleBill() {
     showLoader();
+    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
+    const success = saveOrderDetails(orderDetails);
+    if (success) {
+        deleteItems(true);
+    }
     document.getElementById('paymentModel').classList.add('hidden');
-    deleteQuickBillItems();
     hideLoader();
 }
 

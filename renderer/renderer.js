@@ -41,7 +41,7 @@ function sendDummyOrder() {
 // Function to send order details to main.js
 async function saveOrderDetails(orderDetails) {
   const result = await window.api.send('save-order', orderDetails);
-  console.log('Order saved:', result);
+  return result.success;
 }
 
 // Function to fetch orders from main.js
