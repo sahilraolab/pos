@@ -878,12 +878,12 @@
                         <div style="display: flex; flex-direction: column; gap: 5px;">
                             <label for="" style="font-size: 15px;">Tip Amount</label>
                             <input type="text" placeholder="Tip amount"
-                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400;">
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400;" onkeyup="handleTipAmt(event)">
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 5px;">
                             <label for="" style="font-size: 15px;">Payment Refernce No</label>
                             <input type="text" placeholder="Refernce no"
-                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400; text-transform: uppercase;">
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400; text-transform: uppercase;" onchange="handlePaymentReferenceNumber(event)">
                         </div>
                     </div>
                     <!-- split & due payment -->
@@ -903,7 +903,7 @@
                     <!-- total & paid & return amts -->
                     <div style="display: flex; gap: 20px; align-items: center;">
                         <p style="font-size: 20px; color: #19191C; font-weight: 600;">
-                            Total Amount : <span id="totalBillAmtSpan">100.99</span>
+                            Total Amount : <span id="totalBillAmtSpan"></span>
                         </p>
                         <div class="" style="display: flex; flex-direction: column; gap: 5px;">
                             <label for="" style="font-size: 15px;">Customer Paid Amount</label>
@@ -938,9 +938,9 @@
                     </div>
                 </div>
                 <div style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 20px;">
-                    <button class="cancel"
+                    <button class="cancel" onclick="cancelPaymentModel()"
                         style="background: transparent; color: #DF6229; font-size: 1.2rem; border: 2px solid #DF6229; padding: .9rem 1.9rem; border-radius: 30px;">Cancel</button>
-                    <button class="apply"
+                    <button class="apply" onclick="printBill()"
                         style="font-size: 1.2rem; color: white; border: none; padding: 1rem 2rem; background: linear-gradient(#EFA280, #DF6229); border-radius: 30px;">Print
                         Bill</button>
                     <button class="apply" onclick="handleSettleBill()"

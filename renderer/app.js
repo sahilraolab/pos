@@ -9,6 +9,12 @@ document.addEventListener("DOMContentLoaded", () => {
         additionCharges: "",
         orderSummary: "",
         selectedMenuList: [],
+        paymentDetails: {
+            tip: 0,
+            reference: null,
+            cash: 0,
+            card: 0,
+        },
         status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
         orderDate: new Date().toISOString(),
         orderTime: new Date().toLocaleTimeString(),
@@ -22,6 +28,12 @@ document.addEventListener("DOMContentLoaded", () => {
         additionCharges: "",
         orderSummary: "",
         selectedMenuList: [],
+        paymentDetails: {
+            tip: 0,
+            reference: null,
+            cash: 0,
+            card: 0,
+        },
         status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
         orderDate: new Date().toISOString(),
         orderTime: new Date().toLocaleTimeString(),
@@ -39,6 +51,12 @@ document.addEventListener("DOMContentLoaded", () => {
         tableDetails: {
             floor: "",
             table: "",
+        },
+        paymentDetails: {
+            tip: 0,
+            reference: null,
+            cash: 0,
+            card: 0,
         },
         status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
         orderDate: new Date().toISOString(),
@@ -104,8 +122,8 @@ function onRightAsideVisible() {
     if (orderDetails.userInfo && orderDetails.orderId) {
         const customerInfo = document.querySelector('.customer_info');
         customerInfo.innerHTML = `
-            <p>${orderDetails.userInfo.fullName}</p>
-            <p>Order ID #<span>${orderDetails.orderId}</span></p>
+            <p style="font-size: 25px; font-weight: 450; color: #19191C;">${orderDetails.userInfo.fullName}</p>
+            <p style=" font-size: 15px; color: #19191C; font-weight: 400; border-bottom: 3px solid #F4F4F4; padding-bottom: 10px;">Order ID #<span>${orderDetails.orderId}</span></p>
         `;
 
         customerInfo.classList.remove('hidden');
@@ -679,6 +697,12 @@ function updateOrderDetails(orderDetails) {
             additionCharges: "",
             orderSummary: "",
             selectedMenuList: [],
+            paymentDetails: {
+                tip: 0,
+                reference: null,
+                cash: 0,
+                card: 0,
+            },
             status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
             orderDate: new Date().toISOString(),
             orderTime: new Date().toLocaleTimeString(),
@@ -692,6 +716,12 @@ function updateOrderDetails(orderDetails) {
             additionCharges: "",
             orderSummary: "",
             selectedMenuList: [],
+            paymentDetails: {
+                tip: 0,
+                reference: null,
+                cash: 0,
+                card: 0,
+            },
             status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
             orderDate: new Date().toISOString(),
             orderTime: new Date().toLocaleTimeString(),
@@ -705,6 +735,12 @@ function updateOrderDetails(orderDetails) {
             additionCharges: "",
             orderSummary: "",
             selectedMenuList: [],
+            paymentDetails: {
+                tip: 0,
+                reference: null,
+                cash: 0,
+                card: 0,
+            },
             tableDetails: {
                 floor: "",
                 table: "",
@@ -1245,17 +1281,6 @@ function showCouponModel() {
         });
 }
 
-function placeQuickBillOrder() {
-    showLoader();
-    document.querySelector('.selected_menu').classList.add('hidden');
-    document.querySelector('.customer_details').classList.remove('hidden');
-    document.querySelector('.menu_bills_btn').innerHTML =
-        `
-        <button style="" onclick="handleQuickBillPayment()">Payment</button>
-    `;
-    document.querySelector('.menu_bills_btn').style.justifyContent = "center";
-    hideLoader();
-}
 
 function handleCustomerDetailsForm() {
     // const form = document.querySelector(".customer_details_form");
@@ -1315,15 +1340,77 @@ function handleCustomerDetailsForm() {
     }
 }
 
+// function getOrderDetails() {
+//     const orderType = localStorage.getItem('openedOrderTypeLink');
+//     const keyMap = {
+//         quickBill: 'quickOrderDetails',
+//         pickUp: 'pickUpOrderDetails',
+//         dineIn: 'dineInOrderDetails',
+//     };
+//     return JSON.parse(localStorage.getItem(keyMap[orderType]));
+// }
+
+// function validateAmount(amount) {
+//     return !isNaN(amount) && amount >= 0;
+// }
+
+// function updateTotalBill(amount) {
+//     const totalBillSpan = document.getElementById('totalBillAmtSpan');
+//     totalBillSpan.innerText = parseFloat(amount).toFixed(2);
+// }
+
+// const ORDER_TYPE_KEYS = {
+//     QUICK_BILL: "quickBill",
+//     PICK_UP: "pickUp",
+//     DINE_IN: "dineIn",
+// };
+
 
 function handleQuickBillPayment() {
     showLoader();
     const success = handleCustomerDetailsForm();
     if (success) {
+        document.querySelector('.selected_menu').classList.remove('hidden');
+        document.querySelector('.customer_details').classList.add('hidden');
+        onRightAsideVisible();
+        const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+        const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
         document.getElementById('paymentModel').classList.remove('hidden');
-        document.getElementById('totalBillAmtSpan').innerText = JSON.parse(localStorage.getItem('orderSummary'))?.total;
+        document.getElementById('totalBillAmtSpan').innerText = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
     }
     hideLoader();
+}
+
+function cancelPaymentModel() {
+    document.getElementById('paymentModel').classList.add('hidden');
+}
+
+function printBill() {
+    alert("printed bill")
+}
+
+function handleTipAmt(event) {
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) :
+        openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) :
+            (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
+    orderDetails.paymentDetails.tip = parseFloat(event.target.value);
+    document.getElementById('totalBillAmtSpan').innerText = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
+    document.getElementById('paidAmtInput').value = "";
+    if (openedOrderTypeLink === "quickBill") {
+        // console.log(openedOrderTypeLink);
+        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+    } else if (openedOrderTypeLink === "pickUp") {
+        // console.log(openedOrderTypeLink);
+        localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+    } else {
+        // console.log(openedOrderTypeLink);
+        localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
+    }
+    if (!document.getElementById('splitPaymentContainer').classList.toString().includes("hidden")) {
+        handleSplitPayment();
+    }
+    calculateReturnAmount();
 }
 
 
@@ -1339,11 +1426,13 @@ function choosePaymentMethod(type) {
 
 function calculateReturnAmount(event) {
     // Get the entered amount from the event
-    const paidAmountInput = event.target;
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
+    const paidAmountInput = document.getElementById('paidAmtInput');
     const returnAmountBox = document.getElementById('returnAmtBox');
 
     // Example bill amount (this can be dynamically updated as needed)
-    const billAmount = JSON.parse(localStorage.getItem('orderSummary'))?.total;
+    const billAmount = parseFloat(orderDetails.orderSummary.total + orderDetails?.paymentDetails?.tip).toFixed(2);
 
     // Calculate and display the return amount
     const paidAmount = parseFloat(paidAmountInput.value);
@@ -1356,26 +1445,14 @@ function calculateReturnAmount(event) {
             returnAmountBox.textContent = `$${returnAmount.toFixed(2)}`;
             returnAmountBox.style.color = "#000000"; // Set active text color
         } else {
-            returnAmountBox.textContent = "Insufficient Payment";
-            returnAmountBox.style.color = "red"; // Set error text color
+            returnAmountBox.textContent = "Return Amount";
+            returnAmountBox.style.color = "#C2C2C2"; // Reset color
         }
     } else {
         returnAmountBox.textContent = "Return Amount";
         returnAmountBox.style.color = "#C2C2C2"; // Reset color
     }
 
-    // Function to copy return amount when the box is clicked
-    returnAmountBox.addEventListener('click', () => {
-        const textToCopy = returnAmountBox.textContent;
-
-        if (textToCopy && textToCopy !== "Return Amount" && textToCopy !== "Insufficient Payment") {
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert(`Copied: ${textToCopy}`);
-            }).catch(err => {
-                console.error("Failed to copy text: ", err);
-            });
-        }
-    });
 }
 
 function splitPayment() {
@@ -1392,10 +1469,12 @@ function splitPayment() {
 }
 
 function handleSplitPayment() {
-    let totalAmount = JSON.parse(localStorage.getItem('orderSummary'))?.total;
-    let cashAmount = 0;
-    let cardAmount = 0;
-    let remainingAmount = totalAmount;
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
+    let totalAmount = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
+    let cashAmount = parseFloat(orderDetails.paymentDetails.cash).toFixed(2);
+    let cardAmount = parseFloat(orderDetails.paymentDetails.card).toFixed(2);
+    let remainingAmount = Number(totalAmount);
 
     const paymentAmountInput = document.getElementById('paymentAmount');
     const addPaymentButton = document.getElementById('addPayment');
@@ -1403,10 +1482,10 @@ function handleSplitPayment() {
     const paymentMethodsContainer = document.getElementById('paymentMethodsContainer');
     const paymentSplitMethodsContainer = document.getElementById('paymentSplitMethodsContainer');
 
-    addPaymentButton.addEventListener('click', function () {
+    addPaymentButton.addEventListener('click', function (event) {
+        event.preventDefault();
         const paymentAmount = parseFloat(paymentAmountInput.value) || 0;
-
-        if (paymentAmount > 0 && paymentAmount <= remainingAmount) {
+        if (paymentAmount > 0 && paymentAmount <= remainingAmount.toFixed(2)) {
             remainingAmount -= paymentAmount;
             updateDisplay();
 
@@ -1416,48 +1495,66 @@ function handleSplitPayment() {
                 .dataset.method;
 
             if (selectedMethod === 'Cash') {
-                cashAmount += paymentAmount;
+                cashAmount = addAmounts(cashAmount, paymentAmount);
+                orderDetails.paymentDetails.cash = cashAmount;
             } else if (selectedMethod === 'Card') {
-                cardAmount += paymentAmount;
+                cardAmount = addAmounts(cardAmount, paymentAmount);
+                orderDetails.paymentDetails.cash = cardAmount;
             }
+
+            console.log(cashAmount);
 
             updatePaymentMethodDisplay();
         } else {
-            paymentAmountInput.value = '';
-            alert("Remaining Amount : 0.00");
+            paymentAmountInput.value = "";
+            alert(`Remaining Amount : ${Math.abs(remainingAmount.toFixed(2))}`);
         }
     });
 
+    function addAmounts(amount1, amount2) {
+        return parseFloat((Number(amount1) + Number(amount2)));
+    }
+
     function updateDisplay() {
-        remainingAmountDisplay.textContent = remainingAmount.toFixed(2);
+        remainingAmountDisplay.textContent = Math.abs(remainingAmount.toFixed(2));
     }
 
     function updatePaymentMethodDisplay() {
         Array.from(paymentSplitMethodsContainer.children).forEach(button => {
             const method = button.dataset.method;
             let amount = 0;
-
             if (method === 'Cash') {
                 amount = cashAmount;
             } else if (method === 'Card') {
                 amount = cardAmount;
             }
-
-            button.textContent = `${method}: ${amount.toFixed(2)}`;
+            button.textContent = `${method}: ${amount}`;
         });
     }
 
     // Initialize
     updateDisplay();
+
+    // if (openedOrderTypeLink === "quickBill") {
+    //     // console.log(openedOrderTypeLink);
+    //     localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+    // } else if (openedOrderTypeLink === "pickUp") {
+    //     // console.log(openedOrderTypeLink);
+    //     localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+    // } else {
+    //     // console.log(openedOrderTypeLink);
+    //     localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
+    // }
 }
 
 function handleSettleBill() {
     showLoader();
-    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
-    const success = saveOrderDetails(orderDetails);
-    if (success) {
-        deleteItems(true);
-    }
+    // const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
+    // const success = saveOrderDetails(orderDetails);
+    // if (success) {
+    //     deleteItems(true);
+    // }
+    alert('bill setteled successfully');
     document.getElementById('paymentModel').classList.add('hidden');
     hideLoader();
 }
