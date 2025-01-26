@@ -1350,9 +1350,9 @@ function handleCustomerDetailsForm() {
 //     return JSON.parse(localStorage.getItem(keyMap[orderType]));
 // }
 
-// function validateAmount(amount) {
-//     return !isNaN(amount) && amount >= 0;
-// }
+function validateAmount(amount) {
+    return !isNaN(amount) && amount >= 0;
+}
 
 // function updateTotalBill(amount) {
 //     const totalBillSpan = document.getElementById('totalBillAmtSpan');
@@ -1389,24 +1389,30 @@ function printBill() {
     alert("printed bill")
 }
 
+
 function handleTipAmt(event) {
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
-    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) :
-        openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) :
-            (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
-    orderDetails.paymentDetails.tip = parseFloat(event.target.value);
-    document.getElementById('totalBillAmtSpan').innerText = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
+    const orderDetails =
+        openedOrderTypeLink === "quickBill"
+            ? JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }
+            : openedOrderTypeLink === "pickUp"
+                ? JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }
+                : JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] };
+
+    orderDetails.paymentDetails.tip = Number(event.target.value);
+    document.getElementById('totalBillAmtSpan').innerText = Number(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
     document.getElementById('paidAmtInput').value = "";
+
     if (openedOrderTypeLink === "quickBill") {
-        // console.log(openedOrderTypeLink);
-        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
     } else if (openedOrderTypeLink === "pickUp") {
-        // console.log(openedOrderTypeLink);
-        localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+        localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails));
     } else {
-        // console.log(openedOrderTypeLink);
-        localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
+        localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails));
     }
+
+    // Recalculate and update remaining amount
+
     if (!document.getElementById('splitPaymentContainer').classList.toString().includes("hidden")) {
         handleSplitPayment();
     }
@@ -1432,7 +1438,7 @@ function calculateReturnAmount(event) {
     const returnAmountBox = document.getElementById('returnAmtBox');
 
     // Example bill amount (this can be dynamically updated as needed)
-    const billAmount = parseFloat(orderDetails.orderSummary.total + orderDetails?.paymentDetails?.tip).toFixed(2);
+    const billAmount = parseFloat(orderDetails.orderSummary.total + orderDetails?.paymentDetails?.tip);
 
     // Calculate and display the return amount
     const paidAmount = parseFloat(paidAmountInput.value);
@@ -1470,11 +1476,17 @@ function splitPayment() {
 
 function handleSplitPayment() {
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
-    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
-    let totalAmount = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
-    let cashAmount = parseFloat(orderDetails.paymentDetails.cash).toFixed(2);
-    let cardAmount = parseFloat(orderDetails.paymentDetails.card).toFixed(2);
-    let remainingAmount = Number(totalAmount);
+    const orderDetails =
+        openedOrderTypeLink === "quickBill"
+            ? JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }
+            : openedOrderTypeLink === "pickUp"
+                ? JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }
+                : JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] };
+
+    let totalAmount = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip);
+    let cashAmount = parseFloat(orderDetails.paymentDetails.cash);
+    let cardAmount = parseFloat(orderDetails.paymentDetails.card);
+    let remainingAmount = totalAmount - (cashAmount + cardAmount);
 
     const paymentAmountInput = document.getElementById('paymentAmount');
     const addPaymentButton = document.getElementById('addPayment');
@@ -1482,12 +1494,15 @@ function handleSplitPayment() {
     const paymentMethodsContainer = document.getElementById('paymentMethodsContainer');
     const paymentSplitMethodsContainer = document.getElementById('paymentSplitMethodsContainer');
 
-    addPaymentButton.addEventListener('click', function (event) {
+    // Remove any existing event listener to prevent multiple triggers
+    addPaymentButton.replaceWith(addPaymentButton.cloneNode(true));
+    const newAddPaymentButton = document.getElementById('addPayment');
+
+    newAddPaymentButton.addEventListener('click', function (event) {
         event.preventDefault();
         const paymentAmount = parseFloat(paymentAmountInput.value) || 0;
-        if (paymentAmount > 0 && paymentAmount <= remainingAmount.toFixed(2)) {
+        if (paymentAmount > 0 && paymentAmount <= Number(remainingAmount.toFixed(2))) {
             remainingAmount -= paymentAmount;
-            updateDisplay();
 
             // Check if Cash or Card is selected and update respective amounts
             const selectedMethod = Array.from(paymentMethodsContainer.children)
@@ -1499,24 +1514,33 @@ function handleSplitPayment() {
                 orderDetails.paymentDetails.cash = cashAmount;
             } else if (selectedMethod === 'Card') {
                 cardAmount = addAmounts(cardAmount, paymentAmount);
-                orderDetails.paymentDetails.cash = cardAmount;
+                orderDetails.paymentDetails.card = cardAmount; // Fixed typo: Was updating `cash` for Card
             }
 
-            console.log(cashAmount);
-
             updatePaymentMethodDisplay();
+            updateDisplay();
         } else {
             paymentAmountInput.value = "";
-            alert(`Remaining Amount : ${Math.abs(remainingAmount.toFixed(2))}`);
+            alert(`Remaining Amount : ${remainingAmount.toFixed(2)}`);
         }
     });
 
     function addAmounts(amount1, amount2) {
-        return parseFloat((Number(amount1) + Number(amount2)));
+        return parseFloat((Number(amount1) + Number(amount2)).toFixed(2));
     }
 
     function updateDisplay() {
-        remainingAmountDisplay.textContent = Math.abs(remainingAmount.toFixed(2));
+        totalAmount = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip); // Recalculate total amount
+        remainingAmount = totalAmount - (cashAmount + cardAmount); // Recalculate remaining amount
+        remainingAmountDisplay.textContent = remainingAmount.toFixed(2);
+
+        if (openedOrderTypeLink === "quickBill") {
+            localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
+        } else if (openedOrderTypeLink === "pickUp") {
+            localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails));
+        } else {
+            localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails));
+        }
     }
 
     function updatePaymentMethodDisplay() {
@@ -1528,23 +1552,12 @@ function handleSplitPayment() {
             } else if (method === 'Card') {
                 amount = cardAmount;
             }
-            button.textContent = `${method}: ${amount}`;
+            button.textContent = `${method}: ${amount.toFixed(2)}`;
         });
     }
 
     // Initialize
     updateDisplay();
-
-    // if (openedOrderTypeLink === "quickBill") {
-    //     // console.log(openedOrderTypeLink);
-    //     localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
-    // } else if (openedOrderTypeLink === "pickUp") {
-    //     // console.log(openedOrderTypeLink);
-    //     localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
-    // } else {
-    //     // console.log(openedOrderTypeLink);
-    //     localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
-    // }
 }
 
 function handleSettleBill() {
