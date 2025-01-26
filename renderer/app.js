@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const quickOrderDetails = {
         orderId: "",
         userInfo: null,
+        orderType: "quickBill",
         discount: "",
         coupon: "",
         additionCharges: "",
@@ -14,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const pickUpOrderDetails = {
         orderId: "",
+        orderType: "pickUp",
         userInfo: null,
         discount: "",
         coupon: "",
@@ -27,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const dineInOrderDetails = {
         orderId: "",
+        orderType: "dineIn",
         userInfo: null,
         discount: "",
         coupon: "",
@@ -94,7 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function onRightAsideVisible() {
-    console.log("right is now visible!");
     showLoader();
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
     const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
@@ -109,12 +111,16 @@ function onRightAsideVisible() {
         customerInfo.classList.remove('hidden');
     } else {
         document.querySelector('.menu_bills_btn').innerHTML = `
-        <button onclick="deleteItems()">Item</button>
+        <button onclick="updateOrderDetails()">Item</button>
         <button onclick="handlePlaceOrder()">Place Order</button>
         `;
+        document.querySelector('.menu_bills_btn').style.justifyContent = "normal";
+        document.querySelector('.selected_menu').classList.remove('hidden');
+        document.querySelector('.customer_details').classList.add('hidden');
     }
 
     const menuItemsContainer = document.querySelector(".menu_item_list");
+
     menuItemsContainer.innerHTML = ""; // Clear existing items
 
     orderDetails.selectedMenuList.forEach((dataObj) => {
@@ -159,7 +165,7 @@ function onRightAsideVisible() {
             if (isNaN(count) || count < 1) {
                 menuItemsContainer.removeChild(menuItemElement);
                 orderDetails.selectedMenuList = orderDetails.selectedMenuList.filter(item => item.name !== dataObj.name);
-                updateOrderStorage(orderDetails);
+                updateOrderDetails(orderDetails);
             } else {
                 // Update quantity in the data object
                 dataObj.quantity = count;
@@ -175,7 +181,7 @@ function onRightAsideVisible() {
 
                 // Update the price display
                 menuPriceElement.textContent = `$${dataObj.totalPrice.toFixed(2)}`;
-                updateOrderStorage(orderDetails); // Save changes to localStorage
+                updateOrderDetails(orderDetails); // Save changes to localStorage
             }
         }
 
@@ -202,7 +208,6 @@ function deleteItems() {
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
     const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
     orderDetails.selectedMenuList = []; // Clear the selected items list
-    updateOrderStorage(orderDetails);  // Save the changes
 }
 
 function handlePlaceOrder() {
@@ -223,7 +228,7 @@ function handlePlaceOrder() {
     }
 }
 
-function handleBackToMenuList(){
+function handleBackToMenuList() {
     showLoader();
     document.querySelector('.selected_menu').classList.remove('hidden');
     document.querySelector('.customer_details').classList.add('hidden');
@@ -336,14 +341,15 @@ function showQuickBillScreen() {
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
     const quickOrderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
+    console.log(quickOrderDetails);
     if (quickOrderDetails && quickOrderDetails.selectedMenuList && quickOrderDetails.selectedMenuList.length > 0) {
         // Data to show on right sidebar
         // document.querySelector(".right_aside").classList.remove("hidden");
+        updateOrderDetails(quickOrderDetails);
         // document.querySelector(".selected_menu").classList.remove("hidden");
         // document.querySelector(".customer_details").classList.add("hidden");
-        renderSelectedMenu();
-        updateOrderSummary();
     } else {
+        updateOrderDetails();
         // document.querySelector(".right_aside").classList.add("hidden");
         // document.querySelector(".selected_menu").classList.add("hidden");
         // document.querySelector(".customer_details").classList.add("hidden");
@@ -364,11 +370,6 @@ function showPickupScreen() {
         document.getElementById(openedNavigationSection).classList.add("hidden");
     }
     if (openedOrderTypeLink) {
-        if (openedOrderTypeLink != "pickUp") {
-            document.querySelectorAll('.selected_menu_item').forEach((element) => {
-                element.remove(); // Removes the element from the DOM
-            });
-        }
         document.getElementById(openedOrderTypeLink).classList.remove("active");
     }
     // Open the dashboard section, active the dashboard link and quick bill link
@@ -379,15 +380,16 @@ function showPickupScreen() {
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
     const pickUpOrderDetails = JSON.parse(localStorage.getItem('pickUpOrderDetails'));
+    console.log(pickUpOrderDetails);
     if (pickUpOrderDetails && pickUpOrderDetails.selectedMenuList && pickUpOrderDetails.selectedMenuList.length > 0) {
         // Data to show on right sidebar
         // document.querySelector(".right_aside").classList.remove("hidden");
+        updateOrderDetails(pickUpOrderDetails);
         // document.querySelector(".selected_menu").classList.remove("hidden");
         // document.querySelector(".customer_details").classList.add("hidden");
-        renderSelectedMenu();
-        updateOrderSummary();
     } else {
         // document.querySelector(".right_aside").classList.add("hidden");
+        updateOrderDetails();
         // document.querySelector(".selected_menu").classList.add("hidden");
         // document.querySelector(".customer_details").classList.add("hidden");
     }
@@ -417,15 +419,16 @@ function showDineIn() {
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
     const dineInOrderDetails = JSON.parse(localStorage.getItem('dineInOrderDetails'));
+    console.log(dineInOrderDetails);
     if (dineInOrderDetails && dineInOrderDetails.selectedMenuList && dineInOrderDetails.selectedMenuList.length > 0) {
         // Data to show on right sidebar
         // document.querySelector(".right_aside").classList.remove("hidden");
+        updateOrderDetails(dineInOrderDetails);
         // document.querySelector(".selected_menu").classList.remove("hidden");
         // document.querySelector(".customer_details").classList.add("hidden");
-        renderSelectedMenu();
-        updateOrderSummary();
     } else {
         // document.querySelector(".right_aside").classList.add("hidden");
+        updateOrderDetails();
         // document.querySelector(".selected_menu").classList.add("hidden");
         // document.querySelector(".customer_details").classList.add("hidden");
     }
@@ -540,115 +543,206 @@ function getValidAddons(addons, item) {
     });
 }
 
-// Updates the order details in local storage
-function updateOrderStorage(orderDetails) {
+
+function updateOrderDetails(orderDetails) {
+
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
-    if (openedOrderTypeLink === "quickBill") {
-        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
-    } else if (openedOrderTypeLink === "pickUp") {
-        localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
-    } else {
-        localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
-    }
-    if(orderDetails.selectedMenuList && orderDetails.selectedMenuList.length > 0){
+
+    if (orderDetails && orderDetails.selectedMenuList && orderDetails.selectedMenuList.length > 0) {
+
+        const orderSummary = {
+            subtotal: 0,
+            tax: 0,
+            discount: 0, // Optional discount value
+            additionalCharges: 0, // Optional additional charges value
+            coupon: 0, // Optional coupon value
+            total: 0
+        };
+
+        orderDetails.selectedMenuList.forEach((item) => {
+            const itemPrice = item.price * item.quantity;
+            const addonPrices = item.selectedAddons
+                ? item.selectedAddons.reduce((sum, addon) => sum + addon.price, 0)
+                : 0;
+            orderSummary.subtotal += itemPrice + addonPrices;
+        });
+
+        // Apply tax
+        const TAX_RATE = 0.1; // 10% tax, modify as needed
+        orderSummary.tax = orderSummary.subtotal * TAX_RATE;
+
+        // Retrieve discount from localStorage
+        // const discountData = JSON.parse(localStorage.getItem("selectedDiscount")); // Assuming discount is stored as JSON
+        const discountData = orderDetails.discount;
+        if (discountData) {
+            if (discountData.fixed) {
+                orderSummary.discount = parseFloat(discountData.value); // Fixed discount
+            } else {
+                // Percentage discount
+                const percentageDiscount = (discountData.value / 100) * orderSummary.subtotal;
+                orderSummary.discount = percentageDiscount;
+            }
+        }
+
+        // Retrieve charges from localStorage
+        // const chargesData = JSON.parse(localStorage.getItem("selectedCharges")); // Assuming discount is stored as JSON
+        const chargesData = orderDetails.additionCharges;
+        if (chargesData) {
+            if (chargesData.fixed) {
+                orderSummary.additionalCharges = parseFloat(chargesData.value); // Fixed discount
+            } else {
+                // Percentage discount
+                const percentageCharge = (chargesData.value / 100) * orderSummary.subtotal;
+                orderSummary.additionalCharges = percentageCharge;
+            }
+        }
+
+        // Retrieve coupon from localStorage
+        // const couponData = JSON.parse(localStorage.getItem("addedCoupon")); // Assuming coupon is stored as JSON
+        const couponData = orderDetails.coupon;
+        if (couponData) {
+            if (couponData.fixed) {
+                orderSummary.coupon = parseFloat(couponData.value); // Fixed coupon discount
+            } else {
+                // Percentage coupon discount
+                const percentageDiscount = (couponData.value / 100) * orderSummary.subtotal;
+                orderSummary.coupon = percentageDiscount;
+            }
+        }
+
+        // Calculate total
+        orderSummary.total =
+            orderSummary.subtotal +
+            orderSummary.tax +
+            orderSummary.additionalCharges -
+            (orderSummary.discount + orderSummary.coupon);
+
+
+        // Update the order summary section in the UI
+        const summaryContainer = document.querySelector(".order_summary");
+        if (summaryContainer) {
+            summaryContainer.innerHTML = `
+            <div class="summary_row">
+                <span>Subtotal:</span>
+                <span>$${orderSummary.subtotal.toFixed(2)}</span>
+            </div>
+            <div class="summary_row">
+                <span>Tax (10%):</span>
+                <span>$${orderSummary.tax.toFixed(2)}</span>
+            </div>
+            <div class="summary_row">
+                <span>Discount:</span>
+                <span>-$${orderSummary.discount.toFixed(2)}</span>
+            </div>
+            ${orderSummary.coupon > 0 ?
+                    `<div class="summary_row">
+                    <span>${orderDetails.coupon.name}:</span>
+                    <span>-$${orderSummary.coupon.toFixed(2)}</span>
+                </div>` : ''
+                }
+            <div class="summary_row">
+                <span>Additional Charges:</span>
+                <span>+$${orderSummary.additionalCharges.toFixed(2)}</span>
+            </div>
+            <div class="dotted_line"></div>
+            <div class="summary_row summary_total">
+                <span>Total:</span>
+                <span>$${orderSummary.total < 0 ? 0.00 : orderSummary.total.toFixed(2)}</span>
+            </div>
+        `;
+        }
+
+        // localStorage.setItem('orderSummary', JSON.stringify(orderSummary));
+        orderDetails.orderSummary = orderSummary;
         document.querySelector(".right_aside").classList.remove("hidden");
-        updateOrderSummary();
+
+        if (openedOrderTypeLink === "quickBill") {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+        } else if (openedOrderTypeLink === "pickUp") {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+        } else {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
+        }
+
     } else {
         document.querySelector(".right_aside").classList.add("hidden");
+
+        const quickOrderDetails = {
+            orderId: "",
+            userInfo: null,
+            orderType: "quickBill",
+            discount: "",
+            coupon: "",
+            additionCharges: "",
+            orderSummary: "",
+            selectedMenuList: [],
+            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+            orderDate: new Date().toISOString(),
+            orderTime: new Date().toLocaleTimeString(),
+        }
+        const pickUpOrderDetails = {
+            orderId: "",
+            orderType: "pickUp",
+            userInfo: null,
+            discount: "",
+            coupon: "",
+            additionCharges: "",
+            orderSummary: "",
+            selectedMenuList: [],
+            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+            orderDate: new Date().toISOString(),
+            orderTime: new Date().toLocaleTimeString(),
+        }
+        const dineInOrderDetails = {
+            orderId: "",
+            orderType: "dineIn",
+            userInfo: null,
+            discount: "",
+            coupon: "",
+            additionCharges: "",
+            orderSummary: "",
+            selectedMenuList: [],
+            tableDetails: {
+                floor: "",
+                table: "",
+            },
+            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+            orderDate: new Date().toISOString(),
+            orderTime: new Date().toLocaleTimeString(),
+        }
+
+        if (openedOrderTypeLink === "quickBill") {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('quickOrderDetails', JSON.stringify(quickOrderDetails))
+        } else if (openedOrderTypeLink === "pickUp") {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('pickUpOrderDetails', JSON.stringify(pickUpOrderDetails))
+        } else {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('dineInOrderDetails', JSON.stringify(dineInOrderDetails))
+        }
     }
+
 }
 
-// Fetches the selected menu from localStorage and renders it in the UI
-// function renderSelectedMenu() {
-//     const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] };
-//     const menuItemsContainer = document.querySelector(".selected_menu");
-//     menuItemsContainer.innerHTML = ""; // Clear existing items
-
-//     orderDetails.selectedMenuList.forEach((dataObj) => {
-//         const menuItemHTML = `
-//             <div class="menu_item">
-//               <div class="menu_item_name">
-//                 <span class="menu_item_product_name">${dataObj.name}</span>
-//                 <span class="menu_item_product_price">$${dataObj.totalPrice.toFixed(2)}</span>
-//               </div>
-//               <div class="menu_item_number__price">
-//                 <span class="menu_item_sub_product_names">${dataObj.selectedAddons?.map(addon => addon.name).join(', ') || ''}</span>
-//                 <div>
-//                   <button class="sub">
-//                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-//                       <path d="M2.25012 8.99997H15.7501" stroke="#2B2B2B" stroke-width="1.125" stroke-linecap="round" />
-//                     </svg>
-//                   </button>
-//                   <input type="text" class="menu_numbers" value="${dataObj.quantity}">
-//                   <button class="add">
-//                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-//                       <path d="M9.00012 2.24997V15.75" stroke="white" stroke-width="1.125" stroke-linecap="round" />
-//                       <path d="M2.25012 8.99997H15.7501" stroke="white" stroke-width="1.125" stroke-linecap="round" />
-//                     </svg>
-//                   </button>
-//                 </div>
-//               </div>
-//             </div>
-//         `;
-
-//         const menuItemElement = document.createElement("div");
-//         menuItemElement.classList.add('selected_menu_item');
-//         menuItemElement.innerHTML = menuItemHTML;
-//         menuItemsContainer.appendChild(menuItemElement);
-
-//         const subButton = menuItemElement.querySelector(".sub");
-//         const addButton = menuItemElement.querySelector(".add");
-//         const menuNumbersInput = menuItemElement.querySelector(".menu_numbers");
-//         const menuPriceElement = menuItemElement.querySelector(".menu_item_product_price");
-
-//         function updateItemCount(newCount) {
-//             let count = parseInt(newCount);
-//             if (isNaN(count) || count < 1) {
-//                 menuItemsContainer.removeChild(menuItemElement);
-//                 orderDetails.selectedMenuList = orderDetails.selectedMenuList.filter(item => item.name !== dataObj.name);
-//                 if (document.querySelectorAll('.selected_menu_item')?.length === 0) {
-//                     deleteItems();
-//                 } else {
-//                     updateOrderSummary();
-//                 }
-//             } else {
-//                 // Update quantity in the data object
-//                 dataObj.quantity = count;
-
-//                 // Update the input field value
-//                 menuNumbersInput.value = count;
-
-//                 // Calculate the total addon price
-//                 const totalAddonPrice = dataObj.selectedAddons?.reduce((acc, addon) => acc + addon.price, 0) || 0;
-
-//                 // Update the total price in the data object
-//                 dataObj.totalPrice = (dataObj.price + totalAddonPrice) * count;
-
-//                 // Update the price display
-//                 menuPriceElement.textContent = `$${dataObj.totalPrice.toFixed(2)}`;
-//                 updateOrderStorage(orderDetails); // Save changes to localStorage
-//             }
-//         }
-
-//         subButton.addEventListener("click", () => {
-//             updateItemCount(menuNumbersInput.value - 1);
-//         });
-
-//         addButton.addEventListener("click", () => {
-//             updateItemCount(menuNumbersInput.value - 1 + 2);
-//         });
-
-//         menuNumbersInput.addEventListener("input", () => {
-//             updateItemCount(menuNumbersInput.value);
-//         });
-//     });
-// }
 
 // Global function to handle "save" button clicks
 function handleSave(event) {
     event.preventDefault();
-
+    const openedOrderTypeLink = localStorage.getItem("openedOrderTypeLink");
+    let orderDetails;
+    if (openedOrderTypeLink === "quickBill") {
+        orderDetails = JSON.parse(localStorage.getItem("quickOrderDetails")) || { selectedMenuList: [] }
+    } else if (openedOrderTypeLink === "pickUp") {
+        orderDetails = JSON.parse(localStorage.getItem("pickUpOrderDetails")) || { selectedMenuList: [] }
+    } else {
+        orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails")) || { selectedMenuList: [] }
+    }
     const selectedAddons = [];
+
     const addonButtons = document.querySelectorAll("#addonItems button");
     addonButtons.forEach((button) => {
         if (button.classList.contains("active")) {
@@ -663,29 +757,22 @@ function handleSave(event) {
     dataObj.totalPrice = dataObj.price * dataObj.quantity + totalAddonPrice;
     dataObj.selectedAddons = selectedAddons.length > 0 ? selectedAddons : null;
 
-    const openedOrderTypeLink = localStorage.getItem("openedOrderTypeLink");
-    const orderDetails =
-        openedOrderTypeLink === "quickBill"
-            ? JSON.parse(localStorage.getItem("quickOrderDetails")) || { selectedMenuList: [] }
-            : openedOrderTypeLink === "pickUp"
-                ? JSON.parse(localStorage.getItem("pickUpOrderDetails")) || { selectedMenuList: [] }
-                : JSON.parse(localStorage.getItem("dineInOrderDetails")) || { selectedMenuList: [] };
-
     document.querySelector(".add_on").classList.add("hidden");
     orderDetails.selectedMenuList.push(dataObj);
-    updateOrderStorage(orderDetails); // Save changes to localStorage
+    updateOrderDetails(orderDetails); // Save changes to localStorage
 }
 
 // Handles the selection of a product
 async function selectProduct(element) {
     const openedOrderTypeLink = localStorage.getItem("openedOrderTypeLink");
-    const orderDetails =
-        openedOrderTypeLink === "quickBill"
-            ? JSON.parse(localStorage.getItem("quickOrderDetails")) || { selectedMenuList: [] }
-            : openedOrderTypeLink === "pickUp"
-                ? JSON.parse(localStorage.getItem("pickUpOrderDetails")) || { selectedMenuList: [] }
-                : JSON.parse(localStorage.getItem("dineInOrderDetails")) || { selectedMenuList: [] };
-
+    let orderDetails;
+    if (openedOrderTypeLink === "quickBill") {
+        orderDetails = JSON.parse(localStorage.getItem("quickOrderDetails")) || { selectedMenuList: [] }
+    } else if (openedOrderTypeLink === "pickUp") {
+        orderDetails = JSON.parse(localStorage.getItem("pickUpOrderDetails")) || { selectedMenuList: [] }
+    } else {
+        orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails")) || { selectedMenuList: [] }
+    }
     let dataObj = element.getAttribute("data-item");
     dataObj = JSON.parse(dataObj);
     dataObj.quantity = 1;
@@ -708,7 +795,7 @@ async function selectProduct(element) {
                 </button>
             `;
         });
-
+        document.querySelector('.addon_heading').innerText = dataObj.name;
         document.querySelector(".add_on").classList.remove("hidden");
 
         const addonButtons = addonModelListSection.querySelectorAll("button");
@@ -731,7 +818,7 @@ async function selectProduct(element) {
         });
     } else {
         orderDetails.selectedMenuList.push(dataObj);
-        updateOrderStorage(orderDetails);
+        updateOrderDetails(orderDetails);
     }
 }
 
@@ -875,18 +962,18 @@ function showDiscounts() {
             // No discount selected, remove the existing discount
             // localStorage.removeItem("selectedDiscount");
             orderDetails.discount = "";
-            localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
+            // localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
             console.log("Discount removed.");
         } else {
             // Apply the selected discount
             // localStorage.setItem("selectedDiscount", JSON.stringify(selectedDiscount));
             orderDetails.discount = selectedDiscount;
-            localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
+            // localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
             console.log("Selected discount:", selectedDiscount);
         }
 
         discountModal.classList.add("hidden");
-        updateOrderSummary(); // Your function to handle selected discount
+        updateOrderDetails(orderDetails); // Your function to handle selected discount
     });
 
     document.querySelector(".discount_bottom .cancel").addEventListener("click", () => {
@@ -1027,17 +1114,17 @@ function showAdditionalChargesModel() {
         if (!selectedCharge) {
             // localStorage.removeItem("selectedCharges");
             orderDetails.additionCharges = "";
-            localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
+            // localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
             console.log("No charge selected. Previous charges cleared.");
         } else {
             // localStorage.setItem("selectedCharges", JSON.stringify(selectedCharge));
             orderDetails.additionCharges = selectedCharge;
-            localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
+            // localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
             console.log("Selected charge:", selectedCharge);
         }
 
         chargesModel.classList.add("hidden");
-        updateOrderSummary();
+        updateOrderDetails(orderDetails);
     });
 
     // Cancel button functionality
@@ -1136,8 +1223,8 @@ function showCouponModel() {
                     //     JSON.stringify(coupons[3])
                     // );
                     orderDetails.coupon = coupons[3];
-                    localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
-                    updateOrderSummary();
+                    // localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
+                    updateOrderDetails(orderDetails);
                 } else {
                     alert("Invalid Code, Codes are case sensitive");
                 }
@@ -1153,153 +1240,10 @@ function showCouponModel() {
             couponModel.classList.add("hidden");
             // localStorage.removeItem("addedCoupon");
             orderDetails.coupon = "";
-            localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
-            updateOrderSummary();
+            // localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
+            updateOrderDetails(orderDetails);
         });
 }
-
-function updateOrderSummary() {
-    // Placeholder for product data, replace with your actual data source
-    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
-    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
-
-    const orderSummary = {
-        subtotal: 0,
-        tax: 0,
-        discount: 0, // Optional discount value
-        additionalCharges: 0, // Optional additional charges value
-        coupon: 0, // Optional coupon value
-        total: 0
-    };
-
-    orderDetails.selectedMenuList.forEach((item) => {
-        const itemPrice = item.price * item.quantity;
-        const addonPrices = item.selectedAddons
-            ? item.selectedAddons.reduce((sum, addon) => sum + addon.price, 0)
-            : 0;
-        orderSummary.subtotal += itemPrice + addonPrices;
-    });
-
-    // Apply tax
-    const TAX_RATE = 0.1; // 10% tax, modify as needed
-    orderSummary.tax = orderSummary.subtotal * TAX_RATE;
-
-    // Retrieve discount from localStorage
-    // const discountData = JSON.parse(localStorage.getItem("selectedDiscount")); // Assuming discount is stored as JSON
-    const discountData = orderDetails.discount;
-    if (discountData) {
-        if (discountData.fixed) {
-            orderSummary.discount = parseFloat(discountData.value); // Fixed discount
-        } else {
-            // Percentage discount
-            const percentageDiscount = (discountData.value / 100) * orderSummary.subtotal;
-            orderSummary.discount = percentageDiscount;
-        }
-    }
-
-    // Retrieve charges from localStorage
-    // const chargesData = JSON.parse(localStorage.getItem("selectedCharges")); // Assuming discount is stored as JSON
-    const chargesData = orderDetails.additionCharges;
-    if (chargesData) {
-        if (chargesData.fixed) {
-            orderSummary.additionalCharges = parseFloat(chargesData.value); // Fixed discount
-        } else {
-            // Percentage discount
-            const percentageCharge = (chargesData.value / 100) * orderSummary.subtotal;
-            orderSummary.additionalCharges = percentageCharge;
-        }
-    }
-
-    // Retrieve coupon from localStorage
-    // const couponData = JSON.parse(localStorage.getItem("addedCoupon")); // Assuming coupon is stored as JSON
-    const couponData = orderDetails.coupon;
-    if (couponData) {
-        if (couponData.fixed) {
-            orderSummary.coupon = parseFloat(couponData.value); // Fixed coupon discount
-        } else {
-            // Percentage coupon discount
-            const percentageDiscount = (couponData.value / 100) * orderSummary.subtotal;
-            orderSummary.coupon = percentageDiscount;
-        }
-    }
-
-    // Calculate total
-    orderSummary.total =
-        orderSummary.subtotal +
-        orderSummary.tax +
-        orderSummary.additionalCharges -
-        (orderSummary.discount + orderSummary.coupon);
-
-
-    // Update the order summary section in the UI
-    const summaryContainer = document.querySelector(".order_summary");
-    if (summaryContainer) {
-        summaryContainer.innerHTML = `
-            <div class="summary_row">
-                <span>Subtotal:</span>
-                <span>$${orderSummary.subtotal.toFixed(2)}</span>
-            </div>
-            <div class="summary_row">
-                <span>Tax (10%):</span>
-                <span>$${orderSummary.tax.toFixed(2)}</span>
-            </div>
-            <div class="summary_row">
-                <span>Discount:</span>
-                <span>-$${orderSummary.discount.toFixed(2)}</span>
-            </div>
-            ${orderSummary.coupon > 0 ?
-                `<div class="summary_row">
-                    <span>${orderDetails.coupon.name}:</span>
-                    <span>-$${orderSummary.coupon.toFixed(2)}</span>
-                </div>` : ''
-            }
-            <div class="summary_row">
-                <span>Additional Charges:</span>
-                <span>+$${orderSummary.additionalCharges.toFixed(2)}</span>
-            </div>
-            <div class="dotted_line"></div>
-            <div class="summary_row summary_total">
-                <span>Total:</span>
-                <span>$${orderSummary.total < 0 ? 0.00 : orderSummary.total.toFixed(2)}</span>
-            </div>
-        `;
-    }
-
-    // localStorage.setItem('orderSummary', JSON.stringify(orderSummary));
-    orderDetails.orderSummary = orderSummary;
-    localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
-}
-
-// function deleteItems(all) {
-//     showLoader();
-//     const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
-//     if (all) {
-//         const _orderDetails = {
-//             orderId: "",
-//             userInfo: "",
-//             discount: "",
-//             coupon: "",
-//             additionCharges: "",
-//             orderSummary: "",
-//             selectedMenuList: [],
-//             status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-//             orderDate: new Date().toISOString(),
-//             orderTime: new Date().toLocaleTimeString(),
-//         }
-//         localStorage.setItem('quickOrderDetails', JSON.stringify(_orderDetails));
-//     } else {
-//         orderDetails.selectedMenuList = [];
-//         localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
-//     }
-//     document.querySelectorAll('.selected_menu_item').forEach((element) => {
-//         element.remove(); // Removes the element from the DOM
-//     });
-//     document.querySelector(".selected_menu").classList.remove("hidden");
-//     document.querySelector(".customer_details").classList.add("hidden");
-//     // document.querySelector(".right_aside").classList.add("hidden");
-//     updateOrderSummary();
-//     hideLoader();
-// }
 
 function placeQuickBillOrder() {
     showLoader();
@@ -1315,7 +1259,8 @@ function placeQuickBillOrder() {
 
 function handleCustomerDetailsForm() {
     // const form = document.querySelector(".customer_details_form");
-    const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
     const nameInput = document.getElementById("fullName");
     const emailInput = document.getElementById("email");
     const phoneInput = document.getElementById("phone");
@@ -1335,7 +1280,16 @@ function handleCustomerDetailsForm() {
     let orderId = generateUniqueOrderID();
     orderDetails.orderId = orderId;
 
-    localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails));
+    if (openedOrderTypeLink === "quickBill") {
+        // console.log(openedOrderTypeLink);
+        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+    } else if (openedOrderTypeLink === "pickUp") {
+        // console.log(openedOrderTypeLink);
+        localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+    } else {
+        // console.log(openedOrderTypeLink);
+        localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
+    }
 
     // Validate the full name field
     if (!formData.fullName) {
