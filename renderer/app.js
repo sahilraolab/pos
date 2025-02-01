@@ -15,9 +15,13 @@ document.addEventListener("DOMContentLoaded", () => {
             cash: 0,
             card: 0,
         },
+        tableDetails: {
+            floor: "",
+            table: "",
+        },
         status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-        orderDate: new Date().toISOString(),
-        orderTime: new Date().toLocaleTimeString(),
+        
+        
     }
     const pickUpOrderDetails = {
         orderId: "",
@@ -34,9 +38,13 @@ document.addEventListener("DOMContentLoaded", () => {
             cash: 0,
             card: 0,
         },
+        tableDetails: {
+            floor: "",
+            table: "",
+        },
         status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-        orderDate: new Date().toISOString(),
-        orderTime: new Date().toLocaleTimeString(),
+        
+        
     }
 
     const dineInOrderDetails = {
@@ -59,8 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
             card: 0,
         },
         status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-        orderDate: new Date().toISOString(),
-        orderTime: new Date().toLocaleTimeString(),
     }
 
     localStorage.setItem("quickOrderDetails", JSON.stringify(quickOrderDetails));
@@ -182,7 +188,23 @@ function onRightAsideVisible() {
             let count = parseInt(newCount);
             if (isNaN(count) || count < 1) {
                 menuItemsContainer.removeChild(menuItemElement);
-                orderDetails.selectedMenuList = orderDetails.selectedMenuList.filter(item => item.name !== dataObj.name);
+                // orderDetails.selectedMenuList = orderDetails.selectedMenuList.filter(item => {
+                //     return !(item.name === dataObj.name &&
+                //         JSON.stringify(item.selectedAddons) === JSON.stringify(dataObj.selectedAddons) &&
+                //         item.quantity === dataObj.quantity &&
+                //         item.totalPrice === dataObj.totalPrice);
+                // });
+                const index = orderDetails.selectedMenuList.findIndex(item =>
+                    item.name === dataObj.name &&
+                    JSON.stringify(item.selectedAddons) === JSON.stringify(dataObj.selectedAddons) &&
+                    item.quantity === dataObj.quantity &&
+                    item.totalPrice === dataObj.totalPrice
+                );
+
+                if (index !== -1) {
+                    orderDetails.selectedMenuList.splice(index, 1); // Remove only the first matching item
+                }
+
                 updateOrderDetails(orderDetails);
             } else {
                 // Update quantity in the data object
@@ -703,9 +725,13 @@ function updateOrderDetails(orderDetails) {
                 cash: 0,
                 card: 0,
             },
+            tableDetails: {
+                floor: "",
+                table: "",
+            },
             status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            orderDate: new Date().toISOString(),
-            orderTime: new Date().toLocaleTimeString(),
+            
+            
         }
         const pickUpOrderDetails = {
             orderId: "",
@@ -722,9 +748,13 @@ function updateOrderDetails(orderDetails) {
                 cash: 0,
                 card: 0,
             },
+            tableDetails: {
+                floor: "",
+                table: "",
+            },
             status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            orderDate: new Date().toISOString(),
-            orderTime: new Date().toLocaleTimeString(),
+            
+            
         }
         const dineInOrderDetails = {
             orderId: "",
@@ -746,8 +776,8 @@ function updateOrderDetails(orderDetails) {
                 table: "",
             },
             status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            orderDate: new Date().toISOString(),
-            orderTime: new Date().toLocaleTimeString(),
+            
+            
         }
 
         if (openedOrderTypeLink === "quickBill") {
@@ -1562,13 +1592,98 @@ function handleSplitPayment() {
 
 function handleSettleBill() {
     showLoader();
-    // const orderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
-    // const success = saveOrderDetails(orderDetails);
-    // if (success) {
-    //     deleteItems(true);
-    // }
-    alert('bill setteled successfully');
-    document.getElementById('paymentModel').classList.add('hidden');
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails =
+        openedOrderTypeLink === "quickBill"
+            ? JSON.parse(localStorage.getItem('quickOrderDetails'))
+            : openedOrderTypeLink === "pickUp"
+                ? JSON.parse(localStorage.getItem('pickUpOrderDetails'))
+                : JSON.parse(localStorage.getItem('dineInOrderDetails'))
+    const success = saveOrderDetails(orderDetails);
+    if (success) {
+        const quickOrderDetails = {
+            orderId: "",
+            userInfo: null,
+            orderType: "quickBill",
+            discount: "",
+            coupon: "",
+            additionCharges: "",
+            orderSummary: "",
+            selectedMenuList: [],
+            paymentDetails: {
+                tip: 0,
+                reference: null,
+                cash: 0,
+                card: 0,
+            },
+            tableDetails: {
+                floor: "",
+                table: "",
+            },
+            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+            
+            
+        }
+        const pickUpOrderDetails = {
+            orderId: "",
+            orderType: "pickUp",
+            userInfo: null,
+            discount: "",
+            coupon: "",
+            additionCharges: "",
+            orderSummary: "",
+            selectedMenuList: [],
+            paymentDetails: {
+                tip: 0,
+                reference: null,
+                cash: 0,
+                card: 0,
+            },
+            tableDetails: {
+                floor: "",
+                table: "",
+            },
+            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+            
+            
+        }
+        const dineInOrderDetails = {
+            orderId: "",
+            orderType: "dineIn",
+            userInfo: null,
+            discount: "",
+            coupon: "",
+            additionCharges: "",
+            orderSummary: "",
+            selectedMenuList: [],
+            paymentDetails: {
+                tip: 0,
+                reference: null,
+                cash: 0,
+                card: 0,
+            },
+            tableDetails: {
+                floor: "",
+                table: "",
+            },
+            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+            
+            
+        }
+
+        if (openedOrderTypeLink === "quickBill") {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('quickOrderDetails', JSON.stringify(quickOrderDetails))
+        } else if (openedOrderTypeLink === "pickUp") {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('pickUpOrderDetails', JSON.stringify(pickUpOrderDetails))
+        } else {
+            // console.log(openedOrderTypeLink);
+            localStorage.setItem('dineInOrderDetails', JSON.stringify(dineInOrderDetails))
+        }
+        document.querySelector(".right_aside").classList.add("hidden");
+        document.getElementById('paymentModel').classList.add('hidden');
+    }
     hideLoader();
 }
 

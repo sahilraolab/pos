@@ -40,7 +40,9 @@ function sendDummyOrder() {
 
 // Function to send order details to main.js
 async function saveOrderDetails(orderDetails) {
+  console.log(orderDetails);
   const result = await window.api.send('save-order', orderDetails);
+  console.log(result);
   return result.success;
 }
 
