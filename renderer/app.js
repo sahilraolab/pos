@@ -1,73 +1,69 @@
+const quickOrderDetails = {
+    orderId: "",
+    userInfo: null,
+    orderType: "quickBill",
+    discount: "",
+    coupon: "",
+    additionCharges: "",
+    orderSummary: "",
+    selectedMenuList: [],
+    paymentDetails: {
+        tip: 0,
+        reference: null,
+        cash: 0,
+        card: 0,
+    },
+    tableDetails: {
+        floor: "",
+        table: "",
+    },
+    status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+}
+const pickUpOrderDetails = {
+    orderId: "",
+    orderType: "pickUp",
+    userInfo: null,
+    discount: "",
+    coupon: "",
+    additionCharges: "",
+    orderSummary: "",
+    selectedMenuList: [],
+    paymentDetails: {
+        tip: 0,
+        reference: null,
+        cash: 0,
+        card: 0,
+    },
+    tableDetails: {
+        floor: "",
+        table: "",
+    },
+    status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+}
+
+const dineInOrderDetails = {
+    orderId: "",
+    orderType: "dineIn",
+    userInfo: null,
+    discount: "",
+    coupon: "",
+    additionCharges: "",
+    orderSummary: "",
+    selectedMenuList: [],
+    tableDetails: {
+        floor: "",
+        table: "",
+    },
+    paymentDetails: {
+        tip: 0,
+        reference: null,
+        cash: 0,
+        card: 0,
+    },
+    status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-
-    const quickOrderDetails = {
-        orderId: "",
-        userInfo: null,
-        orderType: "quickBill",
-        discount: "",
-        coupon: "",
-        additionCharges: "",
-        orderSummary: "",
-        selectedMenuList: [],
-        paymentDetails: {
-            tip: 0,
-            reference: null,
-            cash: 0,
-            card: 0,
-        },
-        tableDetails: {
-            floor: "",
-            table: "",
-        },
-        status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-        
-        
-    }
-    const pickUpOrderDetails = {
-        orderId: "",
-        orderType: "pickUp",
-        userInfo: null,
-        discount: "",
-        coupon: "",
-        additionCharges: "",
-        orderSummary: "",
-        selectedMenuList: [],
-        paymentDetails: {
-            tip: 0,
-            reference: null,
-            cash: 0,
-            card: 0,
-        },
-        tableDetails: {
-            floor: "",
-            table: "",
-        },
-        status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-        
-        
-    }
-
-    const dineInOrderDetails = {
-        orderId: "",
-        orderType: "dineIn",
-        userInfo: null,
-        discount: "",
-        coupon: "",
-        additionCharges: "",
-        orderSummary: "",
-        selectedMenuList: [],
-        tableDetails: {
-            floor: "",
-            table: "",
-        },
-        paymentDetails: {
-            tip: 0,
-            reference: null,
-            cash: 0,
-            card: 0,
-        },
-        status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-    }
 
     localStorage.setItem("quickOrderDetails", JSON.stringify(quickOrderDetails));
     localStorage.setItem("pickUpOrderDetails", JSON.stringify(pickUpOrderDetails));
@@ -125,13 +121,30 @@ function onRightAsideVisible() {
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
     const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
 
-    if (orderDetails.userInfo && orderDetails.orderId) {
+    if (orderDetails.userInfo && orderDetails.orderId && (orderDetails.orderType === openedOrderTypeLink)) {
         const customerInfo = document.querySelector('.customer_info');
         customerInfo.innerHTML = `
             <p style="font-size: 25px; font-weight: 450; color: #19191C;">${orderDetails.userInfo.fullName}</p>
             <p style=" font-size: 15px; color: #19191C; font-weight: 400; border-bottom: 3px solid #F4F4F4; padding-bottom: 10px;">Order ID #<span>${orderDetails.orderId}</span></p>
         `;
 
+        if(openedOrderTypeLink === "quickBill"){
+            document.querySelector('.menu_bills_btn').innerHTML = `
+            <button style="" onclick="handleQuickBillPayment()">Payment</button>
+            `;
+            document.querySelector('.menu_bills_btn').style.justifyContent = "center";
+        } 
+        // else if (openedOrderTypeLink === "pickUp"){
+        // } 
+        else {
+            document.querySelector('.menu_bills_btn').innerHTML = `
+            <button style="" onclick="printBill()">Print Bill</button>
+            <button style="" onclick="makePayment()">Payment</button>
+            `;
+            document.querySelector('.menu_bills_btn').style.justifyContent = "normal";
+        }
+        document.querySelector('.selected_menu').classList.remove('hidden');
+        document.querySelector('.customer_details').classList.add('hidden');
         customerInfo.classList.remove('hidden');
     } else {
         document.querySelector('.menu_bills_btn').innerHTML = `
@@ -141,6 +154,7 @@ function onRightAsideVisible() {
         document.querySelector('.menu_bills_btn').style.justifyContent = "normal";
         document.querySelector('.selected_menu').classList.remove('hidden');
         document.querySelector('.customer_details').classList.add('hidden');
+        document.querySelector('.customer_info').classList.add('hidden');
     }
 
     const menuItemsContainer = document.querySelector(".menu_item_list");
@@ -255,6 +269,16 @@ function handlePlaceOrder() {
     document.querySelector('.customer_details').classList.remove('hidden');
 
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
+    console.log(orderDetails);
+    if (orderDetails) {
+        const userInfo = orderDetails.userInfo;
+        document.getElementById("fullName").value = userInfo?.fullName || "";
+        document.getElementById("email").value = userInfo?.email || "";
+        document.getElementById("phone").value = userInfo?.phone || "";
+        document.getElementById("kotNote").value = userInfo?.kotNote || "";
+    }
+
     if (openedOrderTypeLink === "quickBill") {
         document.querySelector('.menu_bills_btn').innerHTML = `
             <button style="" onclick="handleQuickBillPayment()">Payment</button>
@@ -263,8 +287,166 @@ function handlePlaceOrder() {
     } else {
         document.querySelector('.menu_bills_btn').innerHTML = `
             <button style="" onclick="saveKot()">Save KOT</button>
-            <button style="" onclick="saveAndPrintKot()">Save & Print KOT</button>
+            <button style="" onclick="saveKot(true)">Save & Print KOT</button>
         `;
+    }
+}
+
+function saveKot(print){
+    const success = handleCustomerDetailsForm();
+    if (success) {
+        document.querySelector('.selected_menu').classList.remove('hidden');
+        document.querySelector('.customer_details').classList.add('hidden');
+        document.querySelector('.menu_bills_btn').innerHTML = `
+        <button style="" onclick="printBill()">Print Bill</button>
+        <button style="" onclick="makePayment()">Payment</button>
+        `;
+        onRightAsideVisible();
+        if(print){
+            // print it
+        }
+        // const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+        // const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
+        // document.getElementById('paymentModel').classList.remove('hidden');
+        // document.getElementById('totalBillAmtSpan').innerText = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
+    }
+}
+
+function printBill(){
+    
+}
+
+function makePayment(){
+    showLoader();
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
+    makePaymentModel(orderDetails.orderSummary, orderDetails.paymentDetails)
+    document.getElementById('paymentModel').classList.remove('hidden');
+    hideLoader();
+}
+
+function makePaymentModel(orderSummary,paymentDetails){
+    console.log(paymentDetails);
+    console.log(orderSummary);
+    document.getElementById('paymentModel').innerHTML = `
+    <div>
+            <div class="additional_charges_top">
+                <h3 style="font-size: 1.5rem; font-weight: 600;">Choose Payment Mode</h3>
+            </div>
+            <div style="padding: 2rem;">
+                <div class="">
+                    <!-- payment types cash/card -->
+                    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 2rem;"
+                        id="paymentMethodsContainer">
+                        <button data-method="Cash" id="cashPaymentType" class="light-btn active"
+                            onclick="choosePaymentMethod('CASH')">
+                            <span>Cash</span>
+                            <svg width="31" height="20" viewBox="0 0 31 20" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M29.8975 1.71499C29.7896 1.64765 29.6663 1.60889 29.5392 1.60233C29.4122 1.59577 29.2855 1.62163 29.1712 1.67749C23.7137 4.34249 19.835 3.10124 15.7288 1.78749C11.52 0.441236 7.16875 -0.950014 1.17125 1.97999C1.04498 2.04157 0.938544 2.13737 0.864067 2.25649C0.789591 2.37561 0.750067 2.51325 0.75 2.65374V17.6537C0.750061 17.7809 0.782464 17.906 0.844162 18.0172C0.90586 18.1284 0.994828 18.2221 1.1027 18.2895C1.21057 18.3569 1.3338 18.3957 1.46081 18.4024C1.58782 18.409 1.71444 18.3832 1.82875 18.3275C7.28625 15.6625 11.165 16.9037 15.2712 18.2175C17.6462 18.9787 20.0787 19.755 22.8237 19.755C24.93 19.755 27.225 19.2975 29.8237 18.025C29.95 17.9634 30.0565 17.8676 30.1309 17.7485C30.2054 17.6294 30.2449 17.4917 30.245 17.3512V2.35124C30.2456 2.22446 30.214 2.0996 30.1532 1.98834C30.0925 1.87707 30.0045 1.78302 29.8975 1.71499ZM28.75 16.875C23.5125 19.2762 19.7288 18.0662 15.7288 16.7862C13.3475 16.0225 10.9213 15.25 8.17625 15.25C6.365 15.25 4.41625 15.5875 2.25 16.49V3.12499C7.4875 0.723737 11.2712 1.93374 15.2712 3.21374C19.2225 4.47999 23.3012 5.78499 28.75 3.51374V16.875ZM15.5 6.24999C14.7583 6.24999 14.0333 6.46992 13.4166 6.88197C12.7999 7.29403 12.3193 7.8797 12.0355 8.56492C11.7516 9.25015 11.6774 10.0041 11.8221 10.7316C11.9667 11.459 12.3239 12.1272 12.8483 12.6516C13.3728 13.1761 14.041 13.5332 14.7684 13.6779C15.4958 13.8226 16.2498 13.7484 16.9351 13.4645C17.6203 13.1807 18.206 12.7001 18.618 12.0834C19.0301 11.4667 19.25 10.7417 19.25 9.99999C19.25 9.00542 18.8549 8.0516 18.1517 7.34834C17.4484 6.64507 16.4946 6.24999 15.5 6.24999ZM15.5 12.25C15.055 12.25 14.62 12.118 14.25 11.8708C13.88 11.6236 13.5916 11.2722 13.4213 10.861C13.251 10.4499 13.2064 9.99749 13.2932 9.56103C13.38 9.12458 13.5943 8.72366 13.909 8.409C14.2237 8.09433 14.6246 7.88004 15.061 7.79322C15.4975 7.7064 15.9499 7.75096 16.361 7.92126C16.7722 8.09155 17.1236 8.37994 17.3708 8.74995C17.618 9.11996 17.75 9.55498 17.75 9.99999C17.75 10.5967 17.5129 11.169 17.091 11.591C16.669 12.0129 16.0967 12.25 15.5 12.25ZM6.25 5.99999V12C6.25 12.1989 6.17098 12.3897 6.03033 12.5303C5.88968 12.671 5.69891 12.75 5.5 12.75C5.30109 12.75 5.11032 12.671 4.96967 12.5303C4.82902 12.3897 4.75 12.1989 4.75 12V5.99999C4.75 5.80107 4.82902 5.61031 4.96967 5.46966C5.11032 5.329 5.30109 5.24999 5.5 5.24999C5.69891 5.24999 5.88968 5.329 6.03033 5.46966C6.17098 5.61031 6.25 5.80107 6.25 5.99999ZM24.75 14V7.99999C24.75 7.80107 24.829 7.61031 24.9697 7.46966C25.1103 7.329 25.3011 7.24999 25.5 7.24999C25.6989 7.24999 25.8897 7.329 26.0303 7.46966C26.171 7.61031 26.25 7.80107 26.25 7.99999V14C26.25 14.1989 26.171 14.3897 26.0303 14.5303C25.8897 14.671 25.6989 14.75 25.5 14.75C25.3011 14.75 25.1103 14.671 24.9697 14.5303C24.829 14.3897 24.75 14.1989 24.75 14Z"
+                                    fill="url(#paint0_linear_5315_1523)" />
+                                <defs>
+                                    <linearGradient id="paint0_linear_5315_1523" x1="15.4975" y1="0.25" x2="15.4975"
+                                        y2="19.755" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#EFA280" />
+                                        <stop offset="1" stop-color="#DF6229" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </button>
+                        <button data-method="Card" class="light-btn" id="cardPaymentType"
+                            onclick="choosePaymentMethod('CARD')">
+                            <span>Card</span>
+                            <svg width="29" height="20" viewBox="0 0 29 20" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M26.5 0.25H2.5C2.03587 0.25 1.59075 0.434375 1.26256 0.762563C0.934375 1.09075 0.75 1.53587 0.75 2V18C0.75 18.4641 0.934375 18.9092 1.26256 19.2374C1.59075 19.5656 2.03587 19.75 2.5 19.75H26.5C26.9641 19.75 27.4092 19.5656 27.7374 19.2374C28.0656 18.9092 28.25 18.4641 28.25 18V2C28.25 1.53587 28.0656 1.09075 27.7374 0.762563C27.4092 0.434375 26.9641 0.25 26.5 0.25ZM2.5 1.75H26.5C26.5663 1.75 26.6299 1.77634 26.6768 1.82322C26.7237 1.87011 26.75 1.9337 26.75 2V5.25H2.25V2C2.25 1.9337 2.27634 1.87011 2.32322 1.82322C2.37011 1.77634 2.4337 1.75 2.5 1.75ZM26.5 18.25H2.5C2.4337 18.25 2.37011 18.2237 2.32322 18.1768C2.27634 18.1299 2.25 18.0663 2.25 18V6.75H26.75V18C26.75 18.0663 26.7237 18.1299 26.6768 18.1768C26.6299 18.2237 26.5663 18.25 26.5 18.25ZM24.25 15C24.25 15.1989 24.171 15.3897 24.0303 15.5303C23.8897 15.671 23.6989 15.75 23.5 15.75H19.5C19.3011 15.75 19.1103 15.671 18.9697 15.5303C18.829 15.3897 18.75 15.1989 18.75 15C18.75 14.8011 18.829 14.6103 18.9697 14.4697C19.1103 14.329 19.3011 14.25 19.5 14.25H23.5C23.6989 14.25 23.8897 14.329 24.0303 14.4697C24.171 14.6103 24.25 14.8011 24.25 15ZM16.25 15C16.25 15.1989 16.171 15.3897 16.0303 15.5303C15.8897 15.671 15.6989 15.75 15.5 15.75H13.5C13.3011 15.75 13.1103 15.671 12.9697 15.5303C12.829 15.3897 12.75 15.1989 12.75 15C12.75 14.8011 12.829 14.6103 12.9697 14.4697C13.1103 14.329 13.3011 14.25 13.5 14.25H15.5C15.6989 14.25 15.8897 14.329 16.0303 14.4697C16.171 14.6103 16.25 14.8011 16.25 15Z"
+                                    fill="black" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- type & reference -->
+                    <div style="display: flex; align-items: center; gap: 30px; margin-bottom: 2rem;">
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <label for="" style="font-size: 15px;">Tip Amount</label>
+                            <input type="text" placeholder="Tip amount"
+                                value="${paymentDetails.tip}"
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400;" onkeyup="handleTipAmt(event)">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <label for="" style="font-size: 15px;">Payment Refernce No</label>
+                            <input type="text" placeholder="Refernce no"
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400; text-transform: uppercase;" onchange="handlePaymentReferenceNumber(event)">
+                        </div>
+                    </div>
+                    <!-- split & due payment -->
+                    <div style="display: flex; align-items: center; gap: 30px; margin-bottom: 2rem;">
+                        <button
+                            style="display: flex;gap: 5px; align-items: center; cursor: pointer; border: none; background-color: transparent;"
+                            onclick="splitPayment()">
+                            <div class="split_payment_div"
+                                style="border: 1px solid #000000;height: 1rem;width: 1rem;border-radius: 50%;color: #000000;display: flex;align-items: center;justify-content: center;padding: 10px;font-size: 10px;">
+                            </div>
+                            <span for="" style="font-size: 15px;">Split Payment</span>
+                        </button>
+                        <!-- <div style="display: flex; align-items: center; gap: 5px;">
+                            <label for="" style="font-size: 15px;">Add as due payment</label>
+                        </div> -->
+                    </div>
+                    <!-- total & paid & return amts -->
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <p style="font-size: 20px; color: #19191C; font-weight: 600;">
+                            Total Amount : <span id="totalBillAmtSpan">${parseFloat(orderSummary.total + paymentDetails.tip).toFixed(2)}</span>
+                        </p>
+                        <div class="" style="display: flex; flex-direction: column; gap: 5px;">
+                            <label for="" style="font-size: 15px;">Customer Paid Amount</label>
+                            <input id="paidAmtInput" type="text" placeholder="Paid Amount"
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400;"
+                                oninput="calculateReturnAmount(event)">
+                        </div>
+                        <div class="" style="display: flex; flex-direction: column; gap: 5px;">
+                            <span for="" style="font-size: 15px;">Return Amount</span>
+                            <div id="returnAmtBox"
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400; color: #C2C2C2; cursor: pointer;">
+                                Return Amount
+                            </div>
+                        </div>
+                    </div>
+                    <div id="splitPaymentContainer" class="hidden">
+                        <div
+                            style="margin-top: 2rem; display: flex; gap: 20px; align-items: center; margin-bottom: 2rem;">
+                            <input type="number" id="paymentAmount" placeholder="0.00"
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2;">
+                            <button id="addPayment"
+                                style="font-size: 20px; color: white; border: none; padding: .8rem 1rem; background: linear-gradient(#EFA280, #DF6229); border-radius: 15px;">Add</button>
+                            <p style="font-size: 15px; color: #19191C;">Remaining Amount : <span
+                                    id="remainingAmount">0.00</span></p>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;" id="paymentSplitMethodsContainer">
+                            <button class="light-btn active" style="font-size: 10px; border-radius: 10px;"
+                                data-method="Cash">Cash: 0</button>
+                            <button class="light-btn active" style="font-size: 10px; border-radius: 10px;"
+                                data-method="Card">Card: 0</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 20px;">
+                    <button class="cancel" onclick="cancelPaymentModel()"
+                        style="background: transparent; color: #DF6229; font-size: 1.2rem; border: 2px solid #DF6229; padding: .9rem 1.9rem; border-radius: 30px;">Cancel</button>
+                    <button class="apply" onclick="printBill()"
+                        style="font-size: 1.2rem; color: white; border: none; padding: 1rem 2rem; background: linear-gradient(#EFA280, #DF6229); border-radius: 30px;">Print
+                        Bill</button>
+                    <button class="apply" onclick="handleSettleBill()"
+                        style="font-size: 1.2rem; color: white; border: none; padding: 1rem 2rem; background: linear-gradient(#EFA280, #DF6229); border-radius: 30px;">Settle
+                        Bill</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('paymentModel').classList.remove('hidden');
+    if(paymentDetails.card > 0 || paymentDetails.cash > 0){
+        splitPayment();
     }
 }
 
@@ -420,7 +602,6 @@ function showPickupScreen() {
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
     const pickUpOrderDetails = JSON.parse(localStorage.getItem('pickUpOrderDetails'));
-    console.log(pickUpOrderDetails);
     if (pickUpOrderDetails && pickUpOrderDetails.selectedMenuList && pickUpOrderDetails.selectedMenuList.length > 0) {
         // Data to show on right sidebar
         // document.querySelector(".right_aside").classList.remove("hidden");
@@ -709,76 +890,6 @@ function updateOrderDetails(orderDetails) {
 
     } else {
         document.querySelector(".right_aside").classList.add("hidden");
-
-        const quickOrderDetails = {
-            orderId: "",
-            userInfo: null,
-            orderType: "quickBill",
-            discount: "",
-            coupon: "",
-            additionCharges: "",
-            orderSummary: "",
-            selectedMenuList: [],
-            paymentDetails: {
-                tip: 0,
-                reference: null,
-                cash: 0,
-                card: 0,
-            },
-            tableDetails: {
-                floor: "",
-                table: "",
-            },
-            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            
-            
-        }
-        const pickUpOrderDetails = {
-            orderId: "",
-            orderType: "pickUp",
-            userInfo: null,
-            discount: "",
-            coupon: "",
-            additionCharges: "",
-            orderSummary: "",
-            selectedMenuList: [],
-            paymentDetails: {
-                tip: 0,
-                reference: null,
-                cash: 0,
-                card: 0,
-            },
-            tableDetails: {
-                floor: "",
-                table: "",
-            },
-            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            
-            
-        }
-        const dineInOrderDetails = {
-            orderId: "",
-            orderType: "dineIn",
-            userInfo: null,
-            discount: "",
-            coupon: "",
-            additionCharges: "",
-            orderSummary: "",
-            selectedMenuList: [],
-            paymentDetails: {
-                tip: 0,
-                reference: null,
-                cash: 0,
-                card: 0,
-            },
-            tableDetails: {
-                floor: "",
-                table: "",
-            },
-            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            
-            
-        }
 
         if (openedOrderTypeLink === "quickBill") {
             // console.log(openedOrderTypeLink);
@@ -1412,6 +1523,29 @@ function handleQuickBillPayment() {
 }
 
 function cancelPaymentModel() {
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails =
+        openedOrderTypeLink === "quickBill"
+            ? JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }
+            : openedOrderTypeLink === "pickUp"
+                ? JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }
+                : JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] };
+
+    orderDetails.paymentDetails = {
+        tip: 0,
+        reference: null,
+        cash: 0,
+        card: 0,
+    };
+
+    if (openedOrderTypeLink === "quickBill") {
+        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+    } else if (openedOrderTypeLink === "pickUp") {
+        localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+    } else {
+        localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
+    }
+
     document.getElementById('paymentModel').classList.add('hidden');
 }
 
@@ -1493,14 +1627,29 @@ function calculateReturnAmount(event) {
 
 function splitPayment() {
     const circle = document.querySelector(".split_payment_div");
-
-    if (circle.innerHTML === "") {
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails =
+        openedOrderTypeLink === "quickBill"
+            ? JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }
+            : openedOrderTypeLink === "pickUp"
+                ? JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }
+                : JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] };
+    if (circle.innerHTML == "✔") {
+        circle.innerHTML = "";
+        orderDetails.paymentDetails.card = 0;
+        orderDetails.paymentDetails.cash = 0;
+        if (openedOrderTypeLink === "quickBill") {
+            localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+        } else if (openedOrderTypeLink === "pickUp") {
+            localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+        } else {
+            localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
+        }
+        document.getElementById('splitPaymentContainer').classList.add('hidden');
+    } else {
         circle.innerHTML = "✔";
         document.getElementById('splitPaymentContainer').classList.remove('hidden');
         handleSplitPayment();
-    } else {
-        circle.innerHTML = "";
-        document.getElementById('splitPaymentContainer').classList.add('hidden');
     }
 }
 
@@ -1587,6 +1736,7 @@ function handleSplitPayment() {
     }
 
     // Initialize
+    updatePaymentMethodDisplay();
     updateDisplay();
 }
 
@@ -1599,86 +1749,23 @@ function handleSettleBill() {
             : openedOrderTypeLink === "pickUp"
                 ? JSON.parse(localStorage.getItem('pickUpOrderDetails'))
                 : JSON.parse(localStorage.getItem('dineInOrderDetails'))
+    orderDetails.status = 0;
+    if (openedOrderTypeLink === "quickBill") {
+        localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+    } else if (openedOrderTypeLink === "pickUp") {
+        localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+    } else {
+        localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
+    }
+
     const success = saveOrderDetails(orderDetails);
     if (success) {
-        const quickOrderDetails = {
-            orderId: "",
-            userInfo: null,
-            orderType: "quickBill",
-            discount: "",
-            coupon: "",
-            additionCharges: "",
-            orderSummary: "",
-            selectedMenuList: [],
-            paymentDetails: {
-                tip: 0,
-                reference: null,
-                cash: 0,
-                card: 0,
-            },
-            tableDetails: {
-                floor: "",
-                table: "",
-            },
-            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            
-            
-        }
-        const pickUpOrderDetails = {
-            orderId: "",
-            orderType: "pickUp",
-            userInfo: null,
-            discount: "",
-            coupon: "",
-            additionCharges: "",
-            orderSummary: "",
-            selectedMenuList: [],
-            paymentDetails: {
-                tip: 0,
-                reference: null,
-                cash: 0,
-                card: 0,
-            },
-            tableDetails: {
-                floor: "",
-                table: "",
-            },
-            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            
-            
-        }
-        const dineInOrderDetails = {
-            orderId: "",
-            orderType: "dineIn",
-            userInfo: null,
-            discount: "",
-            coupon: "",
-            additionCharges: "",
-            orderSummary: "",
-            selectedMenuList: [],
-            paymentDetails: {
-                tip: 0,
-                reference: null,
-                cash: 0,
-                card: 0,
-            },
-            tableDetails: {
-                floor: "",
-                table: "",
-            },
-            status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-            
-            
-        }
-
+     
         if (openedOrderTypeLink === "quickBill") {
-            // console.log(openedOrderTypeLink);
             localStorage.setItem('quickOrderDetails', JSON.stringify(quickOrderDetails))
         } else if (openedOrderTypeLink === "pickUp") {
-            // console.log(openedOrderTypeLink);
             localStorage.setItem('pickUpOrderDetails', JSON.stringify(pickUpOrderDetails))
         } else {
-            // console.log(openedOrderTypeLink);
             localStorage.setItem('dineInOrderDetails', JSON.stringify(dineInOrderDetails))
         }
         document.querySelector(".right_aside").classList.add("hidden");
