@@ -209,37 +209,143 @@
 
             <!-- DASHBOARD SCREEN -->
             <main class="main_content dashboard_content_center hidden" id="dashboardSection">
-
-                <div class="load_menu">
-                    <div class="menu_search">
-                        <input type="text" name="menuSearch" id="menuSearch" placeholder="Search menu...">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
-                                stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M22 22L20 20" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
+                <div class="tables_section">
+                    <div class="table_top">
+                        <div class="status_indication_main">
+                            <div>
+                                <span class="dot"
+                                    style="background-color: #3395F0; box-shadow: 1px 1px 5px #3395F0;"></span>
+                                <span class="name">Available</span>
+                            </div>
+                            <div>
+                                <span class="dot"
+                                    style="background-color: #FF5C00; box-shadow: 1px 1px 5px #FF5C00;"></span>
+                                <span class="name">Reserved</span>
+                            </div>
+                            <div>
+                                <span class="dot"
+                                    style="background-color: #13C91B; box-shadow: 1px 1px 5px #13C91B;"></span>
+                                <span class="name">Billed</span>
+                            </div>
+                            <div>
+                                <span class="dot"
+                                    style="background-color: #F0B433; box-shadow: 1px 1px 5px #F0B433;"></span>
+                                <span class="name">Available soon</span>
+                            </div>
+                        </div>
+                        <div class="status_indication_btn_search">
+                            <div class="status_indication_filter_main">
+                                <button class="active">All table</button>
+                                <button>Reserved</button>
+                                <button>Running order</button>
+                                <button>Available</button>
+                            </div>
+                            <div class="table_search">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
+                                        stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path d="M22 22L20 20" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                                <input type="text" placeholder="Search table..">
+                            </div>
+                        </div>
                     </div>
-                    <div class="menu_btns">
-                        <button>Add Customer</button>
-                        <button onclick="loadMenu()">Load Menu</button>
-                        <!-- <button>Select Table</button> -->
+                    <div class="table_aside">
+                        <button class="active">GF</button>
+                        <button>RTF</button>
+                        <button>RTF</button>
+                        <button>RTF</button>
+                        <button>RTF</button>
+                        <button class="active">RTF</button>
+                        <button>RTF</button>
+                        <button>TF1</button>
+                        <button>TF1</button>
+                        <button>TF1</button>
+                        <button>TF2</button>
+                        <button class="active">TF2</button>
+                        <button>TF2</button>
+                        <button>TF2</button>
+                    </div>
+                    <div class="dineTable-section" id="tables-section"></div>
+                    <div class="table_float_bottom">
+                        <div class="selected_table_details_main">
+                            <div class="leftSide">
+                                <div class="decor">
+                                    <svg width="16" height="20" viewBox="0 0 16 20" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M11.7454 2.50126C12.849 2.50126 13.4009 2.50126 13.8279 2.74202C14.1269 2.91057 14.3845 3.16724 14.5597 3.47099C14.81 3.90485 14.835 4.47099 14.8851 5.60325C15.0487 9.30108 15.0341 12.009 14.8636 15.7532C14.8169 16.7779 14.7936 17.2902 14.5691 17.7046C14.4149 17.9894 14.1743 18.2504 13.9075 18.4225C13.5194 18.6727 13.0414 18.7161 12.0852 18.8029C9.17308 19.0673 6.84471 19.0651 3.91978 18.7999C2.96461 18.7134 2.48703 18.6701 2.09939 18.4206C1.83297 18.2492 1.59239 17.9888 1.43791 17.7048C1.21315 17.2916 1.18868 16.7815 1.13973 15.7612C0.960877 12.0326 0.95209 9.32356 1.12278 5.59999C1.17467 4.46809 1.20061 3.90214 1.45104 3.46906C1.62645 3.16572 1.88383 2.90977 2.18267 2.7415C2.60933 2.50126 3.16069 2.50126 4.2634 2.50126M5.60724 4.00251H10.4045C11.1994 4.00251 11.8437 3.33037 11.8437 2.50125C11.8437 1.67213 11.1994 1 10.4045 1H5.60724C4.8124 1 4.16805 1.67213 4.16805 2.50125C4.16805 3.33037 4.8124 4.00251 5.60724 4.00251Z"
+                                            stroke="#FF5C00" stroke-width="1.5" />
+                                    </svg>
+                                </div>
+                                <div class="decor2">
+                                    <span style="font-size: 16px; font-weight: bold; color: #19191C;">Table</span>
+                                    <span style="font-size: 14px; color: #828487;">Order #102</span>
+                                </div>
+                            </div>
+                            <div class="rightSide">
+                                <div>
+                                    <button>
+                                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M2.08334 2.0835L7.91668 7.91683M7.91668 2.0835L2.08334 7.91683"
+                                                stroke="white" stroke-width="1.5" stroke-linecap="round" />
+                                        </svg>
+
+                                    </button>
+                                    <span>T-10</span>
+                                </div>
+                                <div>
+                                    <button>
+                                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M2.08334 2.0835L7.91668 7.91683M7.91668 2.0835L2.08334 7.91683"
+                                                stroke="white" stroke-width="1.5" stroke-linecap="round" />
+                                        </svg>
+
+                                    </button>
+                                    <span>T-10</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button style="background: linear-gradient(#EFA280, #DF6229); color: white; font-size: 16px; font-weight: bold; padding: 12px 18px; border-radius: 25px; border: none; outline: none; ">Place order</button>
                     </div>
                 </div>
-
-                <div class="" id="loadMenuItemsContainer">
-                    <div class="menu_category">
-                        <h3>Choose Category</h3>
-                        <div id="menuCategoryList"></div>
+                <div class="menu_container hidden">
+                    <div class="load_menu">
+                        <div class="menu_search">
+                            <input type="text" name="menuSearch" id="menuSearch" placeholder="Search menu...">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
+                                    stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M22 22L20 20" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="menu_btns">
+                            <button>Add Customer</button>
+                            <button onclick="loadMenu()">Load Menu</button>
+                            <!-- <button>Select Table</button> -->
+                        </div>
                     </div>
-
-                    <div class="choosen_category_menu_items">
-                        <h3></h3>
-                        <div id="selectedCategoryMenuList"></div>
+                    <div class="" id="loadMenuItemsContainer">
+                        <div class="menu_category">
+                            <h3>Choose Category</h3>
+                            <div id="menuCategoryList"></div>
+                        </div>
+                        <div class="choosen_category_menu_items">
+                            <h3></h3>
+                            <div id="selectedCategoryMenuList"></div>
+                        </div>
                     </div>
                 </div>
-
             </main>
 
             <main class="main_content ongoing_orders hidden" id="ongoingOrdersSection">
@@ -878,12 +984,14 @@
                         <div style="display: flex; flex-direction: column; gap: 5px;">
                             <label for="" style="font-size: 15px;">Tip Amount</label>
                             <input type="text" placeholder="Tip amount"
-                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400;" onkeyup="handleTipAmt(event)">
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400;"
+                                onkeyup="handleTipAmt(event)">
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 5px;">
                             <label for="" style="font-size: 15px;">Payment Refernce No</label>
                             <input type="text" placeholder="Refernce no"
-                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400; text-transform: uppercase;" onchange="handlePaymentReferenceNumber(event)">
+                                style="padding: 10px; font-size: 20px; border-radius: 10px; border: 2px solid #C2C2C2; font-weight: 400; text-transform: uppercase;"
+                                onchange="handlePaymentReferenceNumber(event)">
                         </div>
                     </div>
                     <!-- split & due payment -->
@@ -1137,7 +1245,7 @@
                     <path d="M1 1L15 15M15 1L1 15" stroke="#282930" stroke-width="1.5" stroke-linecap="round" />
                 </svg>
             </div>
-            <div style="padding: 2rem;">
+            <div style="padding: 2rem;" class="boxes">
                 <p style="font-size: 18px; font-weight: 500; color: #19191C; margin-bottom: 1rem;">Karan Rao, 9910971182
                 </p>
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">

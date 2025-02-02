@@ -114,6 +114,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Observe changes to the 'class' attribute of the element
     observer.observe(rightAside, { attributes: true });
 
+    const tableTop = document.querySelector('.table_top');
+    if (tableTop) {
+        const tableTopHeight = tableTop.getBoundingClientRect().height;
+        if (tableTopHeight) {
+            // document.querySelector('.table_aside').style.top = tableTopHeight + "px";
+            document.querySelector('.table_aside').style.bottom = tableTopHeight + "px";
+            document.querySelector('.dineTable-section').style.paddingTop = tableTopHeight + "px";
+            document.querySelector('.dineTable-section').style.paddingRight = ((document.querySelector('.table_aside').getBoundingClientRect().width - 1) + 20) + "px";
+            document.getElementById('dashboardSection').style.padding = 0;
+        }
+    }
+
 });
 
 function onRightAsideVisible() {
@@ -128,12 +140,12 @@ function onRightAsideVisible() {
             <p style=" font-size: 15px; color: #19191C; font-weight: 400; border-bottom: 3px solid #F4F4F4; padding-bottom: 10px;">Order ID #<span>${orderDetails.orderId}</span></p>
         `;
 
-        if(openedOrderTypeLink === "quickBill"){
+        if (openedOrderTypeLink === "quickBill") {
             document.querySelector('.menu_bills_btn').innerHTML = `
             <button style="" onclick="handleQuickBillPayment()">Payment</button>
             `;
             document.querySelector('.menu_bills_btn').style.justifyContent = "center";
-        } 
+        }
         // else if (openedOrderTypeLink === "pickUp"){
         // } 
         else {
@@ -292,7 +304,7 @@ function handlePlaceOrder() {
     }
 }
 
-function saveKot(print){
+function saveKot(print) {
     const success = handleCustomerDetailsForm();
     if (success) {
         document.querySelector('.selected_menu').classList.remove('hidden');
@@ -302,7 +314,7 @@ function saveKot(print){
         <button style="" onclick="makePayment()">Payment</button>
         `;
         onRightAsideVisible();
-        if(print){
+        if (print) {
             // print it
         }
         // const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
@@ -312,11 +324,11 @@ function saveKot(print){
     }
 }
 
-function printBill(){
-    
+function printBill() {
+
 }
 
-function makePayment(){
+function makePayment() {
     showLoader();
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
     const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
@@ -325,7 +337,7 @@ function makePayment(){
     hideLoader();
 }
 
-function makePaymentModel(orderSummary,paymentDetails){
+function makePaymentModel(orderSummary, paymentDetails) {
     console.log(paymentDetails);
     console.log(orderSummary);
     document.getElementById('paymentModel').innerHTML = `
@@ -445,7 +457,7 @@ function makePaymentModel(orderSummary,paymentDetails){
         </div>
     `;
     document.getElementById('paymentModel').classList.remove('hidden');
-    if(paymentDetails.card > 0 || paymentDetails.cash > 0){
+    if (paymentDetails.card > 0 || paymentDetails.cash > 0) {
         splitPayment();
     }
 }
@@ -619,7 +631,134 @@ function showPickupScreen() {
 
 function showDineIn() {
     showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link & quick bill link
+
+    // ============================
+
+    const tables = [
+        { tableId: "TBL-001", area: "Ground Floor", tableNumber: "G-1", seatingCapacity: 2, shape: "circle", status: "available" },
+        { tableId: "TBL-002", area: "Ground Floor", tableNumber: "G-2", seatingCapacity: 5, shape: "circle", status: "reserved" },
+        { tableId: "TBL-003", area: "First Floor", tableNumber: "F-1", seatingCapacity: 6, shape: "square", status: "billed" },
+        { tableId: "TBL-004", area: "Rooftop", tableNumber: "R-1", seatingCapacity: 20, shape: "rectangle", status: "available_soon" },
+        { tableId: "TBL-005", area: "Ground Floor", tableNumber: "G-3", seatingCapacity: 4, shape: "square", status: "available" },
+        { tableId: "TBL-006", area: "First Floor", tableNumber: "F-2", seatingCapacity: 3, shape: "circle", status: "reserved" },
+        { tableId: "TBL-007", area: "Rooftop", tableNumber: "R-2", seatingCapacity: 6, shape: "rectangle", status: "available" },
+        { tableId: "TBL-008", area: "Ground Floor", tableNumber: "G-4", seatingCapacity: 4, shape: "rectangle", status: "billed" },
+        { tableId: "TBL-009", area: "First Floor", tableNumber: "F-3", seatingCapacity: 5, shape: "circle", status: "available_soon" },
+        { tableId: "TBL-010", area: "Rooftop", tableNumber: "R-3", seatingCapacity: 7, shape: "square", status: "available" },
+        { tableId: "TBL-011", area: "Ground Floor", tableNumber: "G-5", seatingCapacity: 2, shape: "circle", status: "billed" },
+        { tableId: "TBL-012", area: "First Floor", tableNumber: "F-4", seatingCapacity: 4, shape: "square", status: "reserved" },
+        { tableId: "TBL-013", area: "Rooftop", tableNumber: "R-4", seatingCapacity: 6, shape: "circle", status: "available_soon" },
+        { tableId: "TBL-014", area: "Ground Floor", tableNumber: "G-6", seatingCapacity: 3, shape: "rectangle", status: "available" },
+        { tableId: "TBL-015", area: "First Floor", tableNumber: "F-5", seatingCapacity: 8, shape: "rectangle", status: "billed" },
+        { tableId: "TBL-016", area: "Rooftop", tableNumber: "R-5", seatingCapacity: 2, shape: "square", status: "reserved" },
+        { tableId: "TBL-017", area: "Ground Floor", tableNumber: "G-7", seatingCapacity: 7, shape: "circle", status: "available_soon" },
+        { tableId: "TBL-018", area: "First Floor", tableNumber: "F-6", seatingCapacity: 5, shape: "square", status: "available" },
+        { tableId: "TBL-019", area: "Rooftop", tableNumber: "R-6", seatingCapacity: 4, shape: "circle", status: "billed" },
+        { tableId: "TBL-020", area: "Ground Floor", tableNumber: "G-8", seatingCapacity: 6, shape: "rectangle", status: "available" }
+    ];
+    
+
+    const tablesSection = document.getElementById('tables-section');
+
+    function distributeSeats(seatingCapacity) {
+        let seats = { top: 0, bottom: 0, left: 0, right: 0 };
+
+        if (seatingCapacity === 1) {
+            seats.top = 1;
+            return seats;
+        }
+
+        const sides = ["top", "bottom", "left", "right"];
+        let sideIndex = 0;
+
+        for (let i = 0; i < seatingCapacity; i++) {
+            seats[sides[sideIndex]]++;
+            sideIndex = (sideIndex + 1) % 4; // Distribute in a cycle across sides
+        }
+
+        return seats;
+    }
+
+
+    function createTableElements() {
+        tables.forEach(table => {
+            const tableDiv = document.createElement('div');
+            tableDiv.classList.add('dineTable', table.shape, `status-${table.status}`);
+
+            const seatsDiv = document.createElement('div');
+            seatsDiv.classList.add('seats');
+
+            // Create four divs for sides
+            const topDiv = document.createElement('div');
+            const bottomDiv = document.createElement('div');
+            const leftDiv = document.createElement('div');
+            const rightDiv = document.createElement('div');
+
+            topDiv.classList.add('side', 'top');
+            bottomDiv.classList.add('side', 'bottom');
+            leftDiv.classList.add('side', 'left');
+            rightDiv.classList.add('side', 'right');
+
+            const seats = distributeSeats(table.seatingCapacity);
+
+            // Create seats dynamically and distribute across sides
+            for (let i = 0; i < seats.top; i++) {
+                const seat = document.createElement('div');
+                seat.classList.add('seat');
+                topDiv.appendChild(seat);
+            }
+
+            for (let i = 0; i < seats.bottom; i++) {
+                const seat = document.createElement('div');
+                seat.classList.add('seat');
+                bottomDiv.appendChild(seat);
+            }
+
+            for (let i = 0; i < seats.left; i++) {
+                const seat = document.createElement('div');
+                seat.classList.add('seat');
+                leftDiv.appendChild(seat);
+            }
+
+            for (let i = 0; i < seats.right; i++) {
+                const seat = document.createElement('div');
+                seat.classList.add('seat');
+                rightDiv.appendChild(seat);
+            }
+
+            // Append sides to seats container
+            seatsDiv.appendChild(topDiv);
+            seatsDiv.appendChild(bottomDiv);
+            seatsDiv.appendChild(leftDiv);
+            seatsDiv.appendChild(rightDiv);
+
+            // Add table info
+            const tableInfo = document.createElement('div');
+            tableInfo.classList.add('table-info');
+            tableInfo.innerHTML = `<p>${table.tableNumber}</p>`;
+            tableDiv.appendChild(tableInfo);
+
+            tableDiv.appendChild(seatsDiv);
+
+            tableDiv.addEventListener('click', () => selectTable(table, tableDiv));
+
+            tablesSection.appendChild(tableDiv);
+        });
+    }
+
+    function selectTable(table, tableDiv) {
+        if (table.status === 'available' || table.status === 'available_soon') {
+            tableDiv.classList.toggle('selected');
+            alert(`${table.tableNumber} selected!`);
+        } else {
+            alert(`${table.tableNumber} is not available.`);
+        }
+    }
+
+    createTableElements();
+
+    // ============================
+
     const openedNavigationLink = localStorage.getItem("openedNavigationLink");
     const openedNavigationSection = localStorage.getItem(
         "openedNavigationSection"
@@ -632,7 +771,6 @@ function showDineIn() {
     if (openedOrderTypeLink) {
         document.getElementById(openedOrderTypeLink).classList.remove("active");
     }
-    // Open the dashboard section, active the dashboard link and quick bill link
     document.getElementById("dineIn").classList.add("active");
     document.getElementById("dashboardLink").classList.add("active");
     document.getElementById("dashboardSection").classList.remove("hidden");
@@ -642,16 +780,9 @@ function showDineIn() {
     const dineInOrderDetails = JSON.parse(localStorage.getItem('dineInOrderDetails'));
     console.log(dineInOrderDetails);
     if (dineInOrderDetails && dineInOrderDetails.selectedMenuList && dineInOrderDetails.selectedMenuList.length > 0) {
-        // Data to show on right sidebar
-        // document.querySelector(".right_aside").classList.remove("hidden");
         updateOrderDetails(dineInOrderDetails);
-        // document.querySelector(".selected_menu").classList.remove("hidden");
-        // document.querySelector(".customer_details").classList.add("hidden");
     } else {
-        // document.querySelector(".right_aside").classList.add("hidden");
         updateOrderDetails();
-        // document.querySelector(".selected_menu").classList.add("hidden");
-        // document.querySelector(".customer_details").classList.add("hidden");
     }
     hideLoader();
 }
@@ -1760,7 +1891,7 @@ function handleSettleBill() {
 
     const success = saveOrderDetails(orderDetails);
     if (success) {
-     
+
         if (openedOrderTypeLink === "quickBill") {
             localStorage.setItem('quickOrderDetails', JSON.stringify(quickOrderDetails))
         } else if (openedOrderTypeLink === "pickUp") {

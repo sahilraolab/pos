@@ -570,7 +570,8 @@ body {
 }
 
 .customer_details_form>input,
-.customer_details_form>textarea, .customer_details_form>select {
+.customer_details_form>textarea,
+.customer_details_form>select {
     padding: .5rem;
     border-radius: .5rem;
     border: 1px solid #C2C2C2;
@@ -798,9 +799,334 @@ body {
 }
 
 
-.ongoing_orders{
+.ongoing_orders {
     display: flex;
     flex-direction: column;
 }
 
+.tables_section {
+    position: relative;
+    height: 100%;
+}
 
+.table_top {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background-color: white;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    border-bottom: 2px solid #E4E4E4;
+    z-index: 2;
+}
+
+.status_indication_main,
+.status_indication_filter_main,
+.status_indication_btn_search {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.status_indication_main>div {
+    display: flex;
+    align-items: center;
+}
+
+.status_indication_main>div>.name {
+    font-size: 14px;
+    font-weight: normal;
+    color: #19191C;
+}
+
+.status_indication_main>div>.dot {
+    width: .8rem;
+    height: .8rem;
+    margin-right: 5px;
+}
+
+
+.status_indication_filter_main>button {
+    padding: .4rem 1rem;
+    background-color: transparent;
+    border: .1rem solid #E4E4E4;
+    border-radius: 1rem;
+    color: #19191C;
+}
+
+.status_indication_filter_main>button.active {
+    border-color: #DF6229;
+    color: #DF6229;
+    background-color: #FFE8E1;
+}
+
+.table_search {
+    border-left: 2px solid #E4E4E4;
+    padding: .8rem;
+    display: flex;
+    align-items: center;
+}
+
+.table_search>input {
+    padding: .5rem;
+    border: none;
+    outline: none;
+}
+
+.table_aside {
+    position: fixed;
+    right: 0;
+    top: 20%;
+    overflow: scroll;
+    float: right;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding: 1rem;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.table_aside>button {
+    background-color: #FFF5EE;
+    color: #FF5C00;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 50%;
+    outline: none;
+    border: none;
+    padding: 1rem;
+}
+
+.table_aside>button.active {
+    background: linear-gradient(#EFA280, #DF6229);
+    color: white;
+}
+
+.table_float_bottom {
+    background-color: white;
+    position: fixed;
+    bottom: 2rem;
+    left: 10rem;
+    right: 10rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+}
+
+.selected_table_details_main {
+    display: flex;
+    align-items: center;
+}
+
+.selected_table_details_main>.leftSide {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-right: 1rem;
+    border-right: 2px solid #E4E4E4;
+}
+
+.selected_table_details_main>.leftSide>.decor {
+    background-color: #F8F9FD;
+    padding: .8rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+}
+
+.selected_table_details_main>.leftSide>.decor2 {
+    display: flex;
+    flex-direction: column;
+}
+
+.selected_table_details_main>.rightSide {
+    padding-left: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.selected_table_details_main>.rightSide>div {
+    display: flex;
+    padding: .6rem;
+    border-radius: 1rem;
+    border: 2px solid #E4E4E4;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #19191C;
+    position: relative;
+}
+
+.selected_table_details_main>.rightSide>div>button {
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    background-color: #EA4F3B;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    border: none;
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+
+
+/* ================================ */
+
+
+.dineTable-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8rem;
+    justify-content: center;
+    padding-bottom: 10rem;
+    padding-left: 1rem;
+
+}
+
+.dineTable {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+    position: relative;
+    background-color: white;
+    border-radius: 10px;
+}
+
+.dineTable:hover {
+    transform: scale(1.1);
+}
+
+.table-info{
+    background-color: #ECF6FF;
+    height: 4rem;
+    width: 4rem;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.table-info > p{
+    color: #3395F0;
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.circle {
+    border-radius: 50%;
+    /* background-color: #4CAF50; */
+    width: 120px;
+    height: 120px;
+    position: relative;
+}
+
+.square {
+    /* background-color: #2196F3; */
+    width: 120px;
+    height: 120px;
+    position: relative;
+}
+
+.rectangle {
+    width: 200px;
+    height: 120px;
+    /* background-color: #FF5722; */
+    position: relative;
+}
+
+.status-available {
+    /* background-color: #4CAF50; */
+}
+
+.status-reserved {
+    /* background-color: #FFC107; */
+}
+
+.status-billed {
+    /* background-color: #9E9E9E; */
+}
+
+.status-available_soon {
+    /* background-color: #FF9800; */
+}
+
+.selected {
+    border: 3px solid #FFD700;
+}
+
+.seats {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.side {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.top {
+    top: -1.5rem;
+    left: 0;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.bottom {
+    bottom: -1.5rem;
+    left: 0;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.left {
+    left: -1.5rem;
+    top: 0;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.right {
+    right: -1.5rem;
+    top: 0;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.seat {
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border-radius: 50%;
+    margin: 2px;
+}
