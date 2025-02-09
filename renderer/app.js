@@ -114,18 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Observe changes to the 'class' attribute of the element
     observer.observe(rightAside, { attributes: true });
 
-    const tableTop = document.querySelector('.table_top');
-    if (tableTop) {
-        const tableTopHeight = tableTop.getBoundingClientRect().height;
-        if (tableTopHeight) {
-            // document.querySelector('.table_aside').style.top = tableTopHeight + "px";
-            document.querySelector('.table_aside').style.bottom = tableTopHeight + "px";
-            document.querySelector('.dineTable-section').style.paddingTop = tableTopHeight + "px";
-            document.querySelector('.dineTable-section').style.paddingRight = ((document.querySelector('.table_aside').getBoundingClientRect().width - 1) + 20) + "px";
-            document.getElementById('dashboardSection').style.padding = 0;
-        }
-    }
-
 });
 
 function onRightAsideVisible() {
@@ -574,6 +562,9 @@ function showQuickBillScreen() {
     localStorage.setItem("openedOrderTypeLink", "quickBill");
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
+    document.querySelector(".tables_section").classList.add('hidden');
+    document.querySelector(".menu_container").classList.remove('hidden');
+    document.getElementById('dashboardSection').style.removeProperty('padding');
     const quickOrderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
     console.log(quickOrderDetails);
     if (quickOrderDetails && quickOrderDetails.selectedMenuList && quickOrderDetails.selectedMenuList.length > 0) {
@@ -614,6 +605,9 @@ function showPickupScreen() {
     localStorage.setItem("openedNavigationLink", "dashboardLink");
     localStorage.setItem("openedNavigationSection", "dashboardSection");
     const pickUpOrderDetails = JSON.parse(localStorage.getItem('pickUpOrderDetails'));
+    document.querySelector(".tables_section").classList.add('hidden');
+    document.querySelector(".menu_container").classList.remove('hidden');
+    document.getElementById('dashboardSection').style.removeProperty('padding');
     if (pickUpOrderDetails && pickUpOrderDetails.selectedMenuList && pickUpOrderDetails.selectedMenuList.length > 0) {
         // Data to show on right sidebar
         // document.querySelector(".right_aside").classList.remove("hidden");
@@ -656,24 +650,27 @@ function showDineIn() {
         { tableId: "TBL-019", area: "Rooftop", tableNumber: "R-6", seatingCapacity: 4, shape: "circle", status: "billed" },
         { tableId: "TBL-020", area: "Ground Floor", tableNumber: "G-8", seatingCapacity: 6, shape: "rectangle", status: "available" }
     ];
-    
+
 
     const tablesSection = document.getElementById('tables-section');
+    const areaButtons = document.querySelectorAll('.table_aside button');
 
-    function distributeSeats(seatingCapacity) {
+
+    function distributeSeats(shape) {
         let seats = { top: 0, bottom: 0, left: 0, right: 0 };
 
-        if (seatingCapacity === 1) {
-            seats.top = 1;
-            return seats;
-        }
-
-        const sides = ["top", "bottom", "left", "right"];
-        let sideIndex = 0;
-
-        for (let i = 0; i < seatingCapacity; i++) {
-            seats[sides[sideIndex]]++;
-            sideIndex = (sideIndex + 1) % 4; // Distribute in a cycle across sides
+        switch (shape) {
+            case "circle":
+                seats = { top: 1, bottom: 1, left: 1, right: 1 };
+                break;
+            case "square":
+                seats = { top: 1, bottom: 1, left: 1, right: 1 };
+                break;
+            case "rectangle":
+                seats = { top: 3, bottom: 3, left: 1, right: 1 };
+                break;
+            default:
+                break;
         }
 
         return seats;
@@ -681,7 +678,13 @@ function showDineIn() {
 
 
     function createTableElements() {
-        tables.forEach(table => {
+        // Sort tables: Rectangle first, then Square, then Circle
+        const sortedTables = tables.sort((a, b) => {
+            const shapeOrder = { rectangle: 1, square: 2, circle: 3 };
+            return shapeOrder[a.shape] - shapeOrder[b.shape];
+        });
+
+        sortedTables.forEach(table => {
             const tableDiv = document.createElement('div');
             tableDiv.classList.add('dineTable', table.shape, `status-${table.status}`);
 
@@ -699,7 +702,7 @@ function showDineIn() {
             leftDiv.classList.add('side', 'left');
             rightDiv.classList.add('side', 'right');
 
-            const seats = distributeSeats(table.seatingCapacity);
+            const seats = distributeSeats(table.shape);
 
             // Create seats dynamically and distribute across sides
             for (let i = 0; i < seats.top; i++) {
@@ -747,15 +750,34 @@ function showDineIn() {
     }
 
     function selectTable(table, tableDiv) {
+        const orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails"));
         if (table.status === 'available' || table.status === 'available_soon') {
             tableDiv.classList.toggle('selected');
-            alert(`${table.tableNumber} selected!`);
+            if (tableDiv.classList.toString().includes('selected')) {
+                orderDetails.tableDetails.push({
+                    floor: table.area,
+                    table: table.tableNumber,
+                    tableId: table.tableId,
+                })
+            } else {
+                orderDetails.tableDetails = orderDetails.tableDetails.filter(
+                    t => t.tableId !== table.tableId
+                );
+            }
+            localStorage.setItem("dineInOrderDetails", JSON.stringify(orderDetails));
         } else {
             alert(`${table.tableNumber} is not available.`);
         }
     }
 
+    function creteAreaSelection(){
+        table_aside
+    }
+
     createTableElements();
+
+    document.querySelector(".tables_section").classList.remove('hidden');
+    document.querySelector(".menu_container").classList.add('hidden');
 
     // ============================
 
@@ -783,6 +805,18 @@ function showDineIn() {
         updateOrderDetails(dineInOrderDetails);
     } else {
         updateOrderDetails();
+    }
+
+    const tableTop = document.querySelector('.table_top');
+    if (tableTop) {
+        const tableTopHeight = tableTop.getBoundingClientRect().height;
+        if (tableTopHeight) {
+            // document.querySelector('.table_aside').style.top = tableTopHeight + "px";
+            document.querySelector('.table_aside').style.bottom = tableTopHeight + "px";
+            document.querySelector('.dineTable-section').style.paddingTop = tableTopHeight + "px";
+            document.querySelector('.dineTable-section').style.paddingRight = ((document.querySelector('.table_aside').getBoundingClientRect().width - 1) + 20) + "px";
+            document.getElementById('dashboardSection').style.padding = 0;
+        }
     }
     hideLoader();
 }

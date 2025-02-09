@@ -993,9 +993,9 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 8rem;
-    justify-content: center;
+    justify-content: space-evenly;
     padding-bottom: 10rem;
-    padding-left: 1rem;
+    padding-left: 2rem;
 
 }
 
@@ -1019,8 +1019,7 @@ body {
     transform: scale(1.1);
 }
 
-.table-info{
-    background-color: #ECF6FF;
+.table-info {
     height: 4rem;
     width: 4rem;
     display: flex;
@@ -1030,22 +1029,19 @@ body {
     border-radius: 50%;
 }
 
-.table-info > p{
-    color: #3395F0;
+.table-info>p {
     font-size: 20px;
     font-weight: 400;
 }
 
 .circle {
     border-radius: 50%;
-    /* background-color: #4CAF50; */
     width: 120px;
     height: 120px;
     position: relative;
 }
 
 .square {
-    /* background-color: #2196F3; */
     width: 120px;
     height: 120px;
     position: relative;
@@ -1054,28 +1050,31 @@ body {
 .rectangle {
     width: 200px;
     height: 120px;
-    /* background-color: #FF5722; */
     position: relative;
 }
 
-.status-available {
-    /* background-color: #4CAF50; */
+.status-available>.table-info {
+    background-color: #ECF6FF;
+    color: #3395F0;
 }
 
-.status-reserved {
-    /* background-color: #FFC107; */
+.status-reserved>.table-info {
+    background-color: #FFF5EE;
+    color: #FF5C00;
 }
 
-.status-billed {
-    /* background-color: #9E9E9E; */
+.status-billed>.table-info {
+    background-color: #FFF9EB;
+    color: #F0B433;
 }
 
-.status-available_soon {
-    /* background-color: #FF9800; */
+.status-available_soon>.table-info {
+    background-color: #ECFEED;
+    color: #13C91B;
 }
 
 .selected {
-    border: 3px solid #FFD700;
+    border: 3px solid #FF5C00;
 }
 
 .seats {
@@ -1108,7 +1107,7 @@ body {
 }
 
 .left {
-    left: -1.5rem;
+    left: -2rem;
     top: 0;
     height: 100%;
     flex-direction: column;
@@ -1116,7 +1115,7 @@ body {
 }
 
 .right {
-    right: -1.5rem;
+    right: -2rem;
     top: 0;
     height: 100%;
     flex-direction: column;
@@ -1124,9 +1123,16 @@ body {
 }
 
 .seat {
-    width: 12px;
-    height: 12px;
+    width: 30px;
+    height: 8px;
     background-color: white;
-    border-radius: 50%;
-    margin: 2px;
+    border-radius: 5px;
+}
+
+.left > .seat {
+    transform: rotate(90deg);
+}
+
+.right > .seat {
+    transform: rotate(90deg);
 }
