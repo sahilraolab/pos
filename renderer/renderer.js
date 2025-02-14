@@ -40,25 +40,31 @@ function sendDummyOrder() {
 
 // Function to send order details to main.js
 async function saveOrderDetails(orderDetails) {
-  console.log(orderDetails);
-  const result = await window.api.send('save-order', orderDetails);
-  console.log(result);
-  return result.success;
+  try {
+    const result = await window.api.invoke('save-order', orderDetails); // Use invoke
+    console.log('Response from main:', result);
+    return result?.success ?? false;
+  } catch (error) {
+    console.error("Error saving order:", error);
+    return false;
+  }
 }
 
-// Function to fetch orders from main.js
+
 async function fetchOrders() {
   try {
-    const result = await window.api.send('fetch-orders');
-    if (result.success) {
+    const result = await window.api.invoke('fetch-orders'); // ✅ Use invoke instead of send
+
+    if (result?.success) {
       console.log('Fetched Orders:', result.data);
     } else {
-      console.error('Error fetching orders:', result.error);
+      console.error('Error fetching orders:', result?.error || 'Unknown error');
     }
   } catch (error) {
     console.error('An unexpected error occurred:', error);
   }
 }
+
 
 // Call the function to fetch and display orders in the console
 fetchOrders();

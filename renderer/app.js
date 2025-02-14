@@ -1,120 +1,4 @@
-const quickOrderDetails = {
-    orderId: "",
-    userInfo: null,
-    orderType: "quickBill",
-    discount: "",
-    coupon: "",
-    additionCharges: "",
-    orderSummary: "",
-    selectedMenuList: [],
-    paymentDetails: {
-        tip: 0,
-        reference: null,
-        cash: 0,
-        card: 0,
-    },
-    tableDetails: {
-        floor: "",
-        table: "",
-    },
-    status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-}
-const pickUpOrderDetails = {
-    orderId: "",
-    orderType: "pickUp",
-    userInfo: null,
-    discount: "",
-    coupon: "",
-    additionCharges: "",
-    orderSummary: "",
-    selectedMenuList: [],
-    paymentDetails: {
-        tip: 0,
-        reference: null,
-        cash: 0,
-        card: 0,
-    },
-    tableDetails: {
-        floor: "",
-        table: "",
-    },
-    status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-}
 
-const dineInOrderDetails = {
-    orderId: "",
-    orderType: "dineIn",
-    userInfo: null,
-    discount: "",
-    coupon: "",
-    additionCharges: "",
-    orderSummary: "",
-    selectedMenuList: [],
-    tableDetails: {
-        floor: "",
-        table: "",
-    },
-    paymentDetails: {
-        tip: 0,
-        reference: null,
-        cash: 0,
-        card: 0,
-    },
-    status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    localStorage.setItem("quickOrderDetails", JSON.stringify(quickOrderDetails));
-    localStorage.setItem("pickUpOrderDetails", JSON.stringify(pickUpOrderDetails));
-    localStorage.setItem("dineInOrderDetails", JSON.stringify(dineInOrderDetails));
-
-
-    showDashboardScreen();
-
-    // Right aside rezide functionality start
-    const rightAside = document.getElementById("rightAside");
-    const rightAsideHandle = document.getElementById("rightAsideHandle");
-
-    let isResizing = false;
-
-    rightAsideHandle.addEventListener("mousedown", function (e) {
-        isResizing = true;
-        document.addEventListener("mousemove", resize, false);
-        document.addEventListener("mouseup", stopResize, false);
-    });
-
-    function resize(e) {
-        if (isResizing) {
-            const newWidth = window.innerWidth - e.clientX;
-            rightAside.style.width = newWidth + "px";
-        }
-    }
-
-    function stopResize() {
-        isResizing = false;
-        document.removeEventListener("mousemove", resize, false);
-        document.removeEventListener("mouseup", stopResize, false);
-    }
-
-    // Right aside rezide functionality end
-
-    // Create a MutationObserver
-    const observer = new MutationObserver((mutationsList) => {
-        for (const mutation of mutationsList) {
-            if (mutation.type === "attributes" && mutation.attributeName === "class") {
-                // Check if the 'hidden' class is removed
-                if (!rightAside.classList.contains("hidden")) {
-                    onRightAsideVisible();
-                }
-            }
-        }
-    });
-
-    // Observe changes to the 'class' attribute of the element
-    observer.observe(rightAside, { attributes: true });
-
-});
 
 function onRightAsideVisible() {
     showLoader();
@@ -130,18 +14,18 @@ function onRightAsideVisible() {
 
         if (openedOrderTypeLink === "quickBill") {
             document.querySelector('.menu_bills_btn').innerHTML = `
-            <button style="" onclick="handleQuickBillPayment()">Payment</button>
+            <button style="width: 50%;" onclick="handleQuickBillPayment()">Payment</button>
             `;
-            document.querySelector('.menu_bills_btn').style.justifyContent = "center";
         }
-        // else if (openedOrderTypeLink === "pickUp"){
-        // } 
         else {
             document.querySelector('.menu_bills_btn').innerHTML = `
+            <button style="" onclick="newOrderCreation()">New</button>
             <button style="" onclick="printBill()">Print Bill</button>
             <button style="" onclick="makePayment()">Payment</button>
             `;
-            document.querySelector('.menu_bills_btn').style.justifyContent = "normal";
+            document.getElementById("dashboardSection").classList.add('disable');
+            document.querySelector(".selected_menu").classList.add('disable');
+            document.querySelector(".menu_offers").classList.add('disable');
         }
         document.querySelector('.selected_menu').classList.remove('hidden');
         document.querySelector('.customer_details').classList.add('hidden');
@@ -151,7 +35,6 @@ function onRightAsideVisible() {
         <button onclick="updateOrderDetails()">Item</button>
         <button onclick="handlePlaceOrder()">Place Order</button>
         `;
-        document.querySelector('.menu_bills_btn').style.justifyContent = "normal";
         document.querySelector('.selected_menu').classList.remove('hidden');
         document.querySelector('.customer_details').classList.add('hidden');
         document.querySelector('.customer_info').classList.add('hidden');
@@ -264,6 +147,21 @@ function deleteItems() {
     orderDetails.selectedMenuList = []; // Clear the selected items list
 }
 
+function newOrderCreation() {
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    // const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
+    if (openedOrderTypeLink === "quickBill") {
+        localStorage.setItem('quickOrderDetails', JSON.stringify(quickOrderDetails))
+        showQuickBillScreen();
+    } else if (openedOrderTypeLink === "pickUp") {
+        localStorage.setItem('pickUpOrderDetails', JSON.stringify(pickUpOrderDetails))
+        showPickupScreen();
+    } else {
+        localStorage.setItem('dineInOrderDetails', JSON.stringify(dineInOrderDetails));
+        showDineIn();
+    }
+}
+
 function handlePlaceOrder() {
     document.querySelector('.selected_menu').classList.add('hidden');
     document.querySelector('.customer_details').classList.remove('hidden');
@@ -281,15 +179,28 @@ function handlePlaceOrder() {
 
     if (openedOrderTypeLink === "quickBill") {
         document.querySelector('.menu_bills_btn').innerHTML = `
-            <button style="" onclick="handleQuickBillPayment()">Payment</button>
+            <button style="width: 50%;" onclick="handleQuickBillPayment()">Payment</button>
         `;
-        document.querySelector('.menu_bills_btn').style.justifyContent = "center";
     } else {
         document.querySelector('.menu_bills_btn').innerHTML = `
             <button style="" onclick="saveKot()">Save KOT</button>
             <button style="" onclick="saveKot(true)">Save & Print KOT</button>
         `;
+
     }
+}
+
+function handleDineInPlaceOrder() {
+    showLoader();
+    const orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails"));
+    if (orderDetails && orderDetails.tableDetails && orderDetails.tableDetails.length > 0) {
+        document.querySelector('.tables_section').classList.add('hidden');
+        document.querySelector('.menu_container').classList.remove('hidden');
+        document.getElementById('dashboardSection').style.removeProperty('padding');
+    } else {
+        alert("Select table first!")
+    }
+    hideLoader();
 }
 
 function saveKot(print) {
@@ -298,9 +209,19 @@ function saveKot(print) {
         document.querySelector('.selected_menu').classList.remove('hidden');
         document.querySelector('.customer_details').classList.add('hidden');
         document.querySelector('.menu_bills_btn').innerHTML = `
+        <button style="" onclick="newOrderCreation()">New</button>
         <button style="" onclick="printBill()">Print Bill</button>
         <button style="" onclick="makePayment()">Payment</button>
         `;
+
+        const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+        const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
+
+        console.log(orderDetails);
+
+        // save data in localstorage and sent to kot
+        saveOrderDetails(orderDetails);
+
         onRightAsideVisible();
         if (print) {
             // print it
@@ -458,366 +379,6 @@ function handleBackToMenuList() {
     <button onclick="deleteItems()">Item</button>
     <button onclick="handlePlaceOrder()">Place Order</button>
     `;
-    document.querySelector('.menu_bills_btn').style.justifyContent = "normal";
-    hideLoader();
-}
-
-function showDashboardScreen() {
-    showLoader();
-    const openedOrderTypeLink = localStorage.getItem("openedOrderTypeLink");
-    switch (openedOrderTypeLink) {
-        case "dineIn":
-            showDineIn();
-            break;
-        case "pickUp":
-            showPickupScreen();
-            break;
-        case "quickBill":
-            showQuickBillScreen();
-            break;
-
-        default:
-            showQuickBillScreen();
-            break;
-    }
-    loadMenu();
-}
-
-function showOngoingOrdersScreen() {
-    showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    // Show the new section and active the clicked link
-    document.getElementById("ongoingOrderLink").classList.add("active");
-    document.getElementById("ongoingOrdersSection").classList.remove("hidden");
-    localStorage.setItem("openedNavigationLink", "ongoingOrderLink");
-    localStorage.setItem("openedNavigationSection", "ongoingOrdersSection");
-    hideLoader();
-}
-
-function showBillsScreen() {
-    showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    // Show the new section and active the clicked link
-    document.getElementById("billsSectionLink").classList.add("active");
-    document.getElementById("billsSection").classList.remove("hidden");
-    localStorage.setItem("openedNavigationLink", "billsSectionLink");
-    localStorage.setItem("openedNavigationSection", "billsSection");
-    hideLoader();
-}
-
-function showSettingScreen() {
-    showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    // Show the new section and active the clicked link
-    document.getElementById("settingSectionLink").classList.add("active");
-    document.getElementById("settingSection").classList.remove("hidden");
-    localStorage.setItem("openedNavigationLink", "settingSectionLink");
-    localStorage.setItem("openedNavigationSection", "settingSection");
-    hideLoader();
-}
-
-function showQuickBillScreen() {
-    showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link & quick bill link
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    const openedOrderTypeLink = localStorage.getItem("openedOrderTypeLink");
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    if (openedOrderTypeLink) {
-        document.getElementById(openedOrderTypeLink).classList.remove("active");
-    }
-    // Open the dashboard section, active the dashboard link and quick bill link
-    document.getElementById("quickBill").classList.add("active");
-    document.getElementById("dashboardLink").classList.add("active");
-    document.getElementById("dashboardSection").classList.remove("hidden");
-    localStorage.setItem("openedOrderTypeLink", "quickBill");
-    localStorage.setItem("openedNavigationLink", "dashboardLink");
-    localStorage.setItem("openedNavigationSection", "dashboardSection");
-    document.querySelector(".tables_section").classList.add('hidden');
-    document.querySelector(".menu_container").classList.remove('hidden');
-    document.getElementById('dashboardSection').style.removeProperty('padding');
-    const quickOrderDetails = JSON.parse(localStorage.getItem('quickOrderDetails'));
-    console.log(quickOrderDetails);
-    if (quickOrderDetails && quickOrderDetails.selectedMenuList && quickOrderDetails.selectedMenuList.length > 0) {
-        // Data to show on right sidebar
-        // document.querySelector(".right_aside").classList.remove("hidden");
-        updateOrderDetails(quickOrderDetails);
-        // document.querySelector(".selected_menu").classList.remove("hidden");
-        // document.querySelector(".customer_details").classList.add("hidden");
-    } else {
-        updateOrderDetails();
-        // document.querySelector(".right_aside").classList.add("hidden");
-        // document.querySelector(".selected_menu").classList.add("hidden");
-        // document.querySelector(".customer_details").classList.add("hidden");
-    }
-    hideLoader();
-}
-
-function showPickupScreen() {
-    showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link & quick bill link
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    const openedOrderTypeLink = localStorage.getItem("openedOrderTypeLink");
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    if (openedOrderTypeLink) {
-        document.getElementById(openedOrderTypeLink).classList.remove("active");
-    }
-    // Open the dashboard section, active the dashboard link and quick bill link
-    document.getElementById("pickUp").classList.add("active");
-    document.getElementById("dashboardLink").classList.add("active");
-    document.getElementById("dashboardSection").classList.remove("hidden");
-    localStorage.setItem("openedOrderTypeLink", "pickUp");
-    localStorage.setItem("openedNavigationLink", "dashboardLink");
-    localStorage.setItem("openedNavigationSection", "dashboardSection");
-    const pickUpOrderDetails = JSON.parse(localStorage.getItem('pickUpOrderDetails'));
-    document.querySelector(".tables_section").classList.add('hidden');
-    document.querySelector(".menu_container").classList.remove('hidden');
-    document.getElementById('dashboardSection').style.removeProperty('padding');
-    if (pickUpOrderDetails && pickUpOrderDetails.selectedMenuList && pickUpOrderDetails.selectedMenuList.length > 0) {
-        // Data to show on right sidebar
-        // document.querySelector(".right_aside").classList.remove("hidden");
-        updateOrderDetails(pickUpOrderDetails);
-        // document.querySelector(".selected_menu").classList.remove("hidden");
-        // document.querySelector(".customer_details").classList.add("hidden");
-    } else {
-        // document.querySelector(".right_aside").classList.add("hidden");
-        updateOrderDetails();
-        // document.querySelector(".selected_menu").classList.add("hidden");
-        // document.querySelector(".customer_details").classList.add("hidden");
-    }
-    hideLoader();
-}
-
-function showDineIn() {
-    showLoader();
-
-    // ============================
-
-    const tables = [
-        { tableId: "TBL-001", area: "Ground Floor", tableNumber: "G-1", seatingCapacity: 2, shape: "circle", status: "available" },
-        { tableId: "TBL-002", area: "Ground Floor", tableNumber: "G-2", seatingCapacity: 5, shape: "circle", status: "reserved" },
-        { tableId: "TBL-003", area: "First Floor", tableNumber: "F-1", seatingCapacity: 6, shape: "square", status: "billed" },
-        { tableId: "TBL-004", area: "Rooftop", tableNumber: "R-1", seatingCapacity: 20, shape: "rectangle", status: "available_soon" },
-        { tableId: "TBL-005", area: "Ground Floor", tableNumber: "G-3", seatingCapacity: 4, shape: "square", status: "available" },
-        { tableId: "TBL-006", area: "First Floor", tableNumber: "F-2", seatingCapacity: 3, shape: "circle", status: "reserved" },
-        { tableId: "TBL-007", area: "Rooftop", tableNumber: "R-2", seatingCapacity: 6, shape: "rectangle", status: "available" },
-        { tableId: "TBL-008", area: "Ground Floor", tableNumber: "G-4", seatingCapacity: 4, shape: "rectangle", status: "billed" },
-        { tableId: "TBL-009", area: "First Floor", tableNumber: "F-3", seatingCapacity: 5, shape: "circle", status: "available_soon" },
-        { tableId: "TBL-010", area: "Rooftop", tableNumber: "R-3", seatingCapacity: 7, shape: "square", status: "available" },
-        { tableId: "TBL-011", area: "Ground Floor", tableNumber: "G-5", seatingCapacity: 2, shape: "circle", status: "billed" },
-        { tableId: "TBL-012", area: "First Floor", tableNumber: "F-4", seatingCapacity: 4, shape: "square", status: "reserved" },
-        { tableId: "TBL-013", area: "Rooftop", tableNumber: "R-4", seatingCapacity: 6, shape: "circle", status: "available_soon" },
-        { tableId: "TBL-014", area: "Ground Floor", tableNumber: "G-6", seatingCapacity: 3, shape: "rectangle", status: "available" },
-        { tableId: "TBL-015", area: "First Floor", tableNumber: "F-5", seatingCapacity: 8, shape: "rectangle", status: "billed" },
-        { tableId: "TBL-016", area: "Rooftop", tableNumber: "R-5", seatingCapacity: 2, shape: "square", status: "reserved" },
-        { tableId: "TBL-017", area: "Ground Floor", tableNumber: "G-7", seatingCapacity: 7, shape: "circle", status: "available_soon" },
-        { tableId: "TBL-018", area: "First Floor", tableNumber: "F-6", seatingCapacity: 5, shape: "square", status: "available" },
-        { tableId: "TBL-019", area: "Rooftop", tableNumber: "R-6", seatingCapacity: 4, shape: "circle", status: "billed" },
-        { tableId: "TBL-020", area: "Ground Floor", tableNumber: "G-8", seatingCapacity: 6, shape: "rectangle", status: "available" }
-    ];
-
-
-    const tablesSection = document.getElementById('tables-section');
-    const areaButtons = document.querySelectorAll('.table_aside button');
-
-
-    function distributeSeats(shape) {
-        let seats = { top: 0, bottom: 0, left: 0, right: 0 };
-
-        switch (shape) {
-            case "circle":
-                seats = { top: 1, bottom: 1, left: 1, right: 1 };
-                break;
-            case "square":
-                seats = { top: 1, bottom: 1, left: 1, right: 1 };
-                break;
-            case "rectangle":
-                seats = { top: 3, bottom: 3, left: 1, right: 1 };
-                break;
-            default:
-                break;
-        }
-
-        return seats;
-    }
-
-
-    function createTableElements() {
-        // Sort tables: Rectangle first, then Square, then Circle
-        const sortedTables = tables.sort((a, b) => {
-            const shapeOrder = { rectangle: 1, square: 2, circle: 3 };
-            return shapeOrder[a.shape] - shapeOrder[b.shape];
-        });
-
-        sortedTables.forEach(table => {
-            const tableDiv = document.createElement('div');
-            tableDiv.classList.add('dineTable', table.shape, `status-${table.status}`);
-
-            const seatsDiv = document.createElement('div');
-            seatsDiv.classList.add('seats');
-
-            // Create four divs for sides
-            const topDiv = document.createElement('div');
-            const bottomDiv = document.createElement('div');
-            const leftDiv = document.createElement('div');
-            const rightDiv = document.createElement('div');
-
-            topDiv.classList.add('side', 'top');
-            bottomDiv.classList.add('side', 'bottom');
-            leftDiv.classList.add('side', 'left');
-            rightDiv.classList.add('side', 'right');
-
-            const seats = distributeSeats(table.shape);
-
-            // Create seats dynamically and distribute across sides
-            for (let i = 0; i < seats.top; i++) {
-                const seat = document.createElement('div');
-                seat.classList.add('seat');
-                topDiv.appendChild(seat);
-            }
-
-            for (let i = 0; i < seats.bottom; i++) {
-                const seat = document.createElement('div');
-                seat.classList.add('seat');
-                bottomDiv.appendChild(seat);
-            }
-
-            for (let i = 0; i < seats.left; i++) {
-                const seat = document.createElement('div');
-                seat.classList.add('seat');
-                leftDiv.appendChild(seat);
-            }
-
-            for (let i = 0; i < seats.right; i++) {
-                const seat = document.createElement('div');
-                seat.classList.add('seat');
-                rightDiv.appendChild(seat);
-            }
-
-            // Append sides to seats container
-            seatsDiv.appendChild(topDiv);
-            seatsDiv.appendChild(bottomDiv);
-            seatsDiv.appendChild(leftDiv);
-            seatsDiv.appendChild(rightDiv);
-
-            // Add table info
-            const tableInfo = document.createElement('div');
-            tableInfo.classList.add('table-info');
-            tableInfo.innerHTML = `<p>${table.tableNumber}</p>`;
-            tableDiv.appendChild(tableInfo);
-
-            tableDiv.appendChild(seatsDiv);
-
-            tableDiv.addEventListener('click', () => selectTable(table, tableDiv));
-
-            tablesSection.appendChild(tableDiv);
-        });
-    }
-
-    function selectTable(table, tableDiv) {
-        const orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails"));
-        if (table.status === 'available' || table.status === 'available_soon') {
-            tableDiv.classList.toggle('selected');
-            if (tableDiv.classList.toString().includes('selected')) {
-                orderDetails.tableDetails.push({
-                    floor: table.area,
-                    table: table.tableNumber,
-                    tableId: table.tableId,
-                })
-            } else {
-                orderDetails.tableDetails = orderDetails.tableDetails.filter(
-                    t => t.tableId !== table.tableId
-                );
-            }
-            localStorage.setItem("dineInOrderDetails", JSON.stringify(orderDetails));
-        } else {
-            alert(`${table.tableNumber} is not available.`);
-        }
-    }
-
-    function creteAreaSelection(){
-        table_aside
-    }
-
-    createTableElements();
-
-    document.querySelector(".tables_section").classList.remove('hidden');
-    document.querySelector(".menu_container").classList.add('hidden');
-
-    // ============================
-
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    const openedOrderTypeLink = localStorage.getItem("openedOrderTypeLink");
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    if (openedOrderTypeLink) {
-        document.getElementById(openedOrderTypeLink).classList.remove("active");
-    }
-    document.getElementById("dineIn").classList.add("active");
-    document.getElementById("dashboardLink").classList.add("active");
-    document.getElementById("dashboardSection").classList.remove("hidden");
-    localStorage.setItem("openedOrderTypeLink", "dineIn");
-    localStorage.setItem("openedNavigationLink", "dashboardLink");
-    localStorage.setItem("openedNavigationSection", "dashboardSection");
-    const dineInOrderDetails = JSON.parse(localStorage.getItem('dineInOrderDetails'));
-    console.log(dineInOrderDetails);
-    if (dineInOrderDetails && dineInOrderDetails.selectedMenuList && dineInOrderDetails.selectedMenuList.length > 0) {
-        updateOrderDetails(dineInOrderDetails);
-    } else {
-        updateOrderDetails();
-    }
-
-    const tableTop = document.querySelector('.table_top');
-    if (tableTop) {
-        const tableTopHeight = tableTop.getBoundingClientRect().height;
-        if (tableTopHeight) {
-            // document.querySelector('.table_aside').style.top = tableTopHeight + "px";
-            document.querySelector('.table_aside').style.bottom = tableTopHeight + "px";
-            document.querySelector('.dineTable-section').style.paddingTop = tableTopHeight + "px";
-            document.querySelector('.dineTable-section').style.paddingRight = ((document.querySelector('.table_aside').getBoundingClientRect().width - 1) + 20) + "px";
-            document.getElementById('dashboardSection').style.padding = 0;
-        }
-    }
     hideLoader();
 }
 
@@ -1055,21 +616,26 @@ function updateOrderDetails(orderDetails) {
 
     } else {
         document.querySelector(".right_aside").classList.add("hidden");
-
+        const _orderId = generateUniqueOrderID();
         if (openedOrderTypeLink === "quickBill") {
-            // console.log(openedOrderTypeLink);
+            quickOrderDetails.orderId = _orderId
             localStorage.setItem('quickOrderDetails', JSON.stringify(quickOrderDetails))
         } else if (openedOrderTypeLink === "pickUp") {
-            // console.log(openedOrderTypeLink);
+            pickUpOrderDetails.orderId = _orderId
             localStorage.setItem('pickUpOrderDetails', JSON.stringify(pickUpOrderDetails))
         } else {
-            // console.log(openedOrderTypeLink);
-            localStorage.setItem('dineInOrderDetails', JSON.stringify(dineInOrderDetails))
+            dineInOrderDetails.orderId = _orderId
+            document.getElementById('dineInOrderId').innerText = `Order #${_orderId}`;
+            localStorage.setItem('dineInOrderDetails', JSON.stringify(dineInOrderDetails));
+            document.querySelector(".tables_section").classList.remove('hidden');
+            document.querySelector(".menu_container").classList.add('hidden');
+            document.getElementById('dashboardSection').style.padding = 0;
+            showSelectedTable();
+            createTableElements();
         }
     }
 
 }
-
 
 // Global function to handle "save" button clicks
 function handleSave(event) {
@@ -1163,7 +729,6 @@ async function selectProduct(element) {
         updateOrderDetails(orderDetails);
     }
 }
-
 
 function showDiscounts() {
     const discounts = [
@@ -1295,6 +860,10 @@ function showDiscounts() {
     });
 
     discountModal.classList.remove("hidden");
+
+    document.querySelector(".discount_bottom .apply").replaceWith(document.querySelector(".discount_bottom .apply").cloneNode(true));
+    document.querySelector(".discount_bottom .cancel").replaceWith(document.querySelector(".discount_bottom .cancel").cloneNode(true));
+
 
     document.querySelector(".discount_bottom .apply").addEventListener("click", (event) => {
         event.preventDefault();
@@ -1448,6 +1017,9 @@ function showAdditionalChargesModel() {
     // Show charges model
     chargesModel.classList.remove("hidden");
 
+    document.querySelector(".additional_charges_bottom .apply").replaceWith(document.querySelector(".additional_charges_bottom .apply").cloneNode(true));
+    document.querySelector(".additional_charges_bottom .cancel").replaceWith(document.querySelector(".additional_charges_bottom .cancel").cloneNode(true));
+
     // Apply button functionality
     document.querySelector(".additional_charges_bottom .apply").addEventListener("click", (event) => {
         event.preventDefault();
@@ -1545,6 +1117,9 @@ function showCouponModel() {
     const orderDetailsTypeName = openedOrderTypeLink === "quickBill" ? 'quickOrderDetails' : openedOrderTypeLink === "pickUp" ? "pickUpOrderDetails" : 'dineInOrderDetails';
     const orderDetails = JSON.parse(localStorage.getItem(orderDetailsTypeName));
 
+    document.querySelector(".apply_coupon_bottom .apply").replaceWith(document.querySelector(".additional_charges_bottom .apply").cloneNode(true));
+    document.querySelector(".apply_coupon_bottom .cancel").replaceWith(document.querySelector(".additional_charges_bottom .cancel").cloneNode(true));
+
     couponModel.classList.remove("hidden");
     if (orderDetails.coupon) {
         inputElement.value = orderDetails.coupon.code;
@@ -1587,7 +1162,6 @@ function showCouponModel() {
         });
 }
 
-
 function handleCustomerDetailsForm() {
     // const form = document.querySelector(".customer_details_form");
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
@@ -1608,8 +1182,6 @@ function handleCustomerDetailsForm() {
 
 
     orderDetails.userInfo = formData;
-    let orderId = generateUniqueOrderID();
-    orderDetails.orderId = orderId;
 
     if (openedOrderTypeLink === "quickBill") {
         // console.log(openedOrderTypeLink);
@@ -1646,31 +1218,9 @@ function handleCustomerDetailsForm() {
     }
 }
 
-// function getOrderDetails() {
-//     const orderType = localStorage.getItem('openedOrderTypeLink');
-//     const keyMap = {
-//         quickBill: 'quickOrderDetails',
-//         pickUp: 'pickUpOrderDetails',
-//         dineIn: 'dineInOrderDetails',
-//     };
-//     return JSON.parse(localStorage.getItem(keyMap[orderType]));
-// }
-
 function validateAmount(amount) {
     return !isNaN(amount) && amount >= 0;
 }
-
-// function updateTotalBill(amount) {
-//     const totalBillSpan = document.getElementById('totalBillAmtSpan');
-//     totalBillSpan.innerText = parseFloat(amount).toFixed(2);
-// }
-
-// const ORDER_TYPE_KEYS = {
-//     QUICK_BILL: "quickBill",
-//     PICK_UP: "pickUp",
-//     DINE_IN: "dineIn",
-// };
-
 
 function handleQuickBillPayment() {
     showLoader();
@@ -1718,7 +1268,6 @@ function printBill() {
     alert("printed bill")
 }
 
-
 function handleTipAmt(event) {
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
     const orderDetails =
@@ -1747,7 +1296,6 @@ function handleTipAmt(event) {
     }
     calculateReturnAmount();
 }
-
 
 function choosePaymentMethod(type) {
     if (type === "CASH") {
@@ -1923,9 +1471,7 @@ function handleSettleBill() {
         localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails))
     }
 
-    const success = saveOrderDetails(orderDetails);
-    if (success) {
-
+    saveOrderDetails(orderDetails).then(success => {
         if (openedOrderTypeLink === "quickBill") {
             localStorage.setItem('quickOrderDetails', JSON.stringify(quickOrderDetails))
         } else if (openedOrderTypeLink === "pickUp") {
@@ -1935,10 +1481,9 @@ function handleSettleBill() {
         }
         document.querySelector(".right_aside").classList.add("hidden");
         document.getElementById('paymentModel').classList.add('hidden');
-    }
+    });
     hideLoader();
 }
-
 
 function generateUniqueOrderID() {
     const timestamp = Date.now(); // Get current timestamp (milliseconds since Unix epoch)
@@ -1946,4 +1491,356 @@ function generateUniqueOrderID() {
     const orderID = `ORD-${timestamp}-${randomNum.toString().padStart(4, '0')}`; // Ensure 4-digit padding for random number
 
     return orderID;
+}
+
+
+function removeSelectedTable(id) {
+    showLoader();
+    const dineInOrderDetails = JSON.parse(localStorage.getItem('dineInOrderDetails'));
+    dineInOrderDetails.tableDetails = dineInOrderDetails.tableDetails.filter(t => {
+        const tableElement = document.getElementById(`${t.tableId}`);
+
+        if (tableElement && t.tableId == id) {
+            tableElement.classList.remove("selected"); // Remove 'selected' class if ID does not match
+        }
+
+        return t.tableId !== id; // Keep elements that don't match the given id
+    });
+    localStorage.setItem("dineInOrderDetails", JSON.stringify(dineInOrderDetails));
+    showSelectedTable();
+    hideLoader();
+}
+
+function showSelectedTable() {
+    // selected_tables_info
+    const orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails"));
+    const showSelectedTablesDiv = document.querySelector('.selected_tables_info');
+    showSelectedTablesDiv.innerHTML = "";
+    if (orderDetails && orderDetails.tableDetails && Array.isArray(orderDetails.tableDetails)) {
+        orderDetails.tableDetails.map((item) => {
+            showSelectedTablesDiv.innerHTML += `
+            <div>
+                <button onclick="removeSelectedTable('${item.tableId}')">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.08334 2.0835L7.91668 7.91683M7.91668 2.0835L2.08334 7.91683"
+                            stroke="white" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                </button>
+                <span>${item.table}</span>
+            </div>
+        `;
+        })
+    }
+}
+
+function createTableElements(filteredTables) {
+    const areaSet = new Set(JSON.parse(localStorage.getItem("selectedAreas")) || []);
+    const filteredAreas = [...areaSet];
+    const filteredStatus = document.querySelector(".status_indication_filter_main button.active")?.dataset.type
+    const tablesSection = document.querySelector('.dineTable-section');
+    const orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails"));
+
+    tablesSection.innerHTML = '';
+    let tablesData;
+    if (filteredTables) {
+        tablesData = filteredTables;
+    } else {
+        tablesData = tables;
+        document.querySelector(".table_search input").value = "";
+    }
+
+    const selectedTables = orderDetails?.tableDetails?.map(t => t.tableId) || [];
+
+    const sortedTables = tablesData
+        .filter(table => filteredAreas.includes(table.area)) // Filter by area
+        .filter(table => filteredStatus === "all" || table.status === filteredStatus); // Filter by status
+
+    // .sort((a, b) => {
+    //     const shapeOrder = { rectangle: 1, square: 2, circle: 3 };
+    //     return shapeOrder[a.shape] - shapeOrder[b.shape];
+    // });
+
+    sortedTables.forEach(table => {
+        const tableDiv = document.createElement('div');
+        tableDiv.classList.add('dineTable', table.shape, `status-${table.status}`);
+        tableDiv.id = table.tableId;
+
+        if (selectedTables.includes(table.tableId)) {
+            tableDiv.classList.add('selected');
+        }
+
+        const seatsDiv = document.createElement('div');
+        seatsDiv.classList.add('seats');
+
+        const topDiv = document.createElement('div');
+        const bottomDiv = document.createElement('div');
+        const leftDiv = document.createElement('div');
+        const rightDiv = document.createElement('div');
+
+        topDiv.classList.add('side', 'top');
+        bottomDiv.classList.add('side', 'bottom');
+        leftDiv.classList.add('side', 'left');
+        rightDiv.classList.add('side', 'right');
+
+        const seats = distributeSeats(table.shape);
+
+        for (let i = 0; i < seats.top; i++) {
+            const seat = document.createElement('div');
+            seat.classList.add('seat');
+            topDiv.appendChild(seat);
+        }
+
+        for (let i = 0; i < seats.bottom; i++) {
+            const seat = document.createElement('div');
+            seat.classList.add('seat');
+            bottomDiv.appendChild(seat);
+        }
+
+        for (let i = 0; i < seats.left; i++) {
+            const seat = document.createElement('div');
+            seat.classList.add('seat');
+            leftDiv.appendChild(seat);
+        }
+
+        for (let i = 0; i < seats.right; i++) {
+            const seat = document.createElement('div');
+            seat.classList.add('seat');
+            rightDiv.appendChild(seat);
+        }
+
+        seatsDiv.appendChild(topDiv);
+        seatsDiv.appendChild(bottomDiv);
+        seatsDiv.appendChild(leftDiv);
+        seatsDiv.appendChild(rightDiv);
+
+        const tableInfo = document.createElement('div');
+        tableInfo.classList.add('table-info');
+        tableInfo.innerHTML = `<p>${table.tableNumber}</p><span>Seats:${table.seatingCapacity}</span>`;
+        tableDiv.appendChild(tableInfo);
+
+        tableDiv.appendChild(seatsDiv);
+
+        tableDiv.addEventListener('click', () => selectTable(table, tableDiv));
+
+        tablesSection.appendChild(tableDiv);
+    });
+}
+
+function distributeSeats(shape) {
+    let seats = { top: 0, bottom: 0, left: 0, right: 0 };
+
+    switch (shape) {
+        case "circle":
+            seats = { top: 1, bottom: 1, left: 1, right: 1 };
+            break;
+        case "square":
+            seats = { top: 1, bottom: 1, left: 1, right: 1 };
+            break;
+        case "rectangle":
+            seats = { top: 3, bottom: 3, left: 1, right: 1 };
+            break;
+        default:
+            break;
+    }
+
+    return seats;
+}
+
+function selectTable(table, tableDiv) {
+    const orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails"));
+    if (table.status === 'available' || table.status === 'available_soon') {
+        tableDiv.classList.toggle('selected');
+        if (tableDiv.classList.toString().includes('selected')) {
+            orderDetails.tableDetails.push({
+                floor: table.area,
+                table: table.tableNumber,
+                tableId: table.tableId,
+            })
+        } else {
+            orderDetails.tableDetails = orderDetails.tableDetails.filter(
+                t => t.tableId !== table.tableId
+            );
+        }
+        localStorage.setItem("dineInOrderDetails", JSON.stringify(orderDetails));
+        showSelectedTable();
+    } else {
+        alert(`${table.tableNumber} is not available.`);
+    }
+}
+
+
+function toggleAreaSelection(button) {
+    let selectedAreas = new Set(JSON.parse(localStorage.getItem("selectedAreas")) || []);
+    const area = button.dataset.area;
+
+    if (selectedAreas.has(area)) {
+        selectedAreas.delete(area);
+        button.classList.remove("active");
+    } else {
+        selectedAreas.add(area);
+        button.classList.add("active");
+    }
+
+    // Save updated selection to localStorage
+    localStorage.setItem("selectedAreas", JSON.stringify([...selectedAreas]));
+
+    // Call the function with updated selected areas
+    createTableElements();
+}
+
+
+function creteAreaSelection() {
+    const areaSectionAside = document.querySelector('.table_aside');
+    const uniqueAreas = [...new Set(tables.map(table => table.area))];
+    uniqueAreas.forEach((area, index) => {
+        const button = document.createElement('button');
+
+        // Convert "Ground Floor" -> "GF", "First Floor" -> "FF", "Rooftop" -> "R"
+        const areaCode = area.split(' ').map(word => word[0]).join('').toUpperCase();
+
+        button.textContent = `${areaCode}`;
+        button.dataset.area = area;
+        button.addEventListener('click', () => toggleAreaSelection(button));
+        areaSectionAside.appendChild(button);
+    });
+
+    document.querySelectorAll('.table_aside button')[0].click();
+
+}
+
+
+function userHistoryFound() {
+    showLoader();
+    const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
+    const orderDetails =
+        openedOrderTypeLink === "quickBill"
+            ? JSON.parse(localStorage.getItem('quickOrderDetails'))
+            : openedOrderTypeLink === "pickUp"
+                ? JSON.parse(localStorage.getItem('pickUpOrderDetails'))
+                : JSON.parse(localStorage.getItem('dineInOrderDetails'))
+    const sampleData = {
+        "lastVisitedOn": "2025-02-01",
+        "mostOrderedItem": "Garlic Naan",
+        "userName": "Sahil rao",
+        "userEmail": "test@example.com",
+        "userPhone": "1234567890",
+        "totalOrders": 15,
+        "orderHistory": [
+            {
+                "orderId": "000012346",
+                "dateTime": "2025-02-01 12:15:20",
+                "amount": 250,
+                "orderItems": "Paneer Butter Masala, Garlic Naan 2pc, Sweet Lassi",
+                "outlet": "ABC Restaurant",
+                "orderType": "dinein"
+            },
+            {
+                "orderId": "000012347",
+                "dateTime": "2025-02-01 14:45:10",
+                "amount": 150,
+                "orderItems": "Veg Burger, French Fries, Cold Coffee",
+                "outlet": "Fast Bites",
+                "orderType": "quickbill"
+            },
+            {
+                "orderId": "000012348",
+                "dateTime": "2025-02-01 18:30:45",
+                "amount": 90,
+                "orderItems": "Masala Dosa, Filter Coffee",
+                "outlet": "South Spices",
+                "orderType": "pickup"
+            },
+            {
+                "orderId": "000012349",
+                "dateTime": "2025-02-01 20:10:05",
+                "amount": 320,
+                "orderItems": "Chicken Biryani, Raita, Butter Naan 2pc, Mango Shake",
+                "outlet": "Tandoori Nights",
+                "orderType": "dinein"
+            },
+            {
+                "orderId": "000012350",
+                "dateTime": "2025-02-02 09:00:00",
+                "amount": 80,
+                "orderItems": "Aloo Paratha 2pc, Masala Chai",
+                "outlet": "Desi Dhaba",
+                "orderType": "quickbill"
+            },
+            {
+                "orderId": "000012351",
+                "dateTime": "2025-02-02 13:20:30",
+                "amount": 200,
+                "orderItems": "Chole Bhature, Sweet Lassi",
+                "outlet": "Pind Punjab",
+                "orderType": "pickup"
+            },
+            {
+                "orderId": "000012352",
+                "dateTime": "2025-02-02 16:50:10",
+                "amount": 175,
+                "orderItems": "Veg Pizza, Garlic Bread, Soft Drink",
+                "outlet": "Pizza Hub",
+                "orderType": "dinein"
+            },
+            {
+                "orderId": "000012353",
+                "dateTime": "2025-02-02 19:25:55",
+                "amount": 400,
+                "orderItems": "Mutton Rogan Josh, Jeera Rice, Butter Naan 2pc",
+                "outlet": "Spice Villa",
+                "orderType": "quickbill"
+            }
+        ]
+    };
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+
+    if (email === "test@example.com" || phone === "1234567890") {
+        const customerHistoryModel = document.querySelector('.customer_history');
+        document.querySelector('.customer_history_user_info').innerText = `${sampleData.userName}, ${sampleData.userEmail ? sampleData.userEmail : sampleData.userPhone}`
+        customerHistoryModel.querySelector('.total_orders').innerText = sampleData.totalOrders;
+        customerHistoryModel.querySelector('.last_visit').innerText = daysAgo(sampleData.lastVisitedOn);
+        customerHistoryModel.querySelector('.mostly_ordered').innerText = sampleData.mostOrderedItem;
+        customerHistoryModel.querySelector('.order_history_list').innerHTML = "";
+        sampleData.orderHistory.forEach((item, index) => {
+            customerHistoryModel.querySelector('.order_history_list').innerHTML += `
+                 <tr>
+                    <td>${index}</td>
+                    <td>${item.orderId}</td>
+                    <td>${item.dateTime}</td>
+                    <td>$${item.amount}</td>
+                    <td>${item.orderItems}</td>
+                    <td>${item.outlet}</td>
+                    <td>${item.orderType}</td>
+                </tr>
+            `;
+        })
+
+        customerHistoryModel.classList.remove('hidden');
+    } else {
+        alert('No record found!');
+    }
+
+    hideLoader();
+}
+
+function daysAgo(dateString) {
+    const givenDate = new Date(dateString);
+    const currentDate = new Date();
+
+    // Calculate the difference in milliseconds
+    const diffInMs = currentDate - givenDate;
+
+    // Convert milliseconds to days
+    const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    // Return formatted string
+    return days === 1 ? "1 day ago" : `${days} days ago`;
+}
+
+
+function hideCustomerHistoryModel() {
+    const customerHistoryModel = document.querySelector('.customer_history');
+    customerHistoryModel.classList.add('hidden');
 }

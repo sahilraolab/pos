@@ -1,20 +1,67 @@
 document.addEventListener("DOMContentLoaded", function () {
   // const keys = document.querySelectorAll(".key");
-    // pin = "";
-    // keys.forEach((key) => {
-    //     key.addEventListener("click", () => {
-    //         if (key.classList.contains("delete")) {
-    //             pin = pin.slice(0, -1);
-    //         } else if (pin.length < 4) {
-    //             pin += key.textContent.trim();
-    //         }
-    //         updateDots();
+  // pin = "";
+  // keys.forEach((key) => {
+  //     key.addEventListener("click", () => {
+  //         if (key.classList.contains("delete")) {
+  //             pin = pin.slice(0, -1);
+  //         } else if (pin.length < 4) {
+  //             pin += key.textContent.trim();
+  //         }
+  //         updateDots();
 
-    //         if (pin.length === 4) {
-    //             verifyPin(pin);
-    //         }
-    //     });
-    // });
+  //         if (pin.length === 4) {
+  //             verifyPin(pin);
+  //         }
+  //     });
+  // });
+
+  const emailInput = document.getElementById("email");
+  const phoneInput = document.getElementById("phone");
+  const nameInput = document.getElementById("fullName");
+  const actionButton = document.querySelector(".userHistoryInfo"); // Update with actual class
+
+  // Disable button initially
+  actionButton.disabled = true;
+
+  // Mock POS records (Replace with actual API call or database lookup)
+  const posRecords = [
+    { email: "user@example.com", phone: "1234567890", fullName: "John Doe" },
+    { email: "test@example.com", phone: "9876543210", fullName: "Jane Smith" }
+  ];
+
+  let userModified = false; // Flag to track user edits
+
+  function checkRecordAndAutofill(inputType) {
+    if (userModified) return; // Skip autofill if user has modified input
+
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
+
+    const foundRecord = posRecords.find(record =>
+      (inputType === "email" && record.email === email) ||
+      (inputType === "phone" && record.phone === phone)
+    );
+
+    if (foundRecord) {
+      nameInput.value = foundRecord.fullName;
+      emailInput.value = foundRecord.email;
+      phoneInput.value = foundRecord.phone;
+      actionButton.disabled = false; // Enable button if a record is found
+      userModified = false;
+    } else {
+      actionButton.disabled = true; // Keep button disabled if no record found
+    }
+  }
+
+  // Listen for input events, so changes happen in real-time
+  emailInput.addEventListener("input", () => checkRecordAndAutofill("email"));
+  phoneInput.addEventListener("input", () => checkRecordAndAutofill("phone"));
+
+  // Button click alert
+  actionButton.addEventListener("click", userHistoryFound);
+
+
 });
 
 function checkInternetConnection() {
@@ -26,53 +73,6 @@ function checkInternetConnection() {
     return false;
   }
 }
-
-// Function to update the localStorage with the selected products and their add-ons
-function updateLocalStorage() {
-  const menuItems = document.querySelectorAll(".selected_menu .menu_item");
-  const products = [];
-
-  menuItems.forEach((menuItem) => {
-    const name = menuItem.querySelector(".menu_item_product_name").textContent;
-    const basePrice =
-      parseFloat(
-        menuItem
-          .querySelector(".menu_item_product_price")
-          .textContent.replace("$", "")
-      ) / parseInt(menuItem.querySelector(".menu_numbers").value);
-    const quantity = parseInt(menuItem.querySelector(".menu_numbers").value);
-    const addonNames = menuItem
-      .querySelector(".menu_item_sub_product_names")
-      .textContent.split(", ")
-      .filter((name) => name !== "");
-    const discountElement = menuItem.querySelector(
-      ".discount_badge .discount_text"
-    );
-    const discount = discountElement ? discountElement.textContent : "0%";
-
-    const addons = addonNames.map((name) => {
-      const addon = Array.from(document.querySelectorAll(`.addon`)).find(
-        (el) => el.querySelector(".name").textContent === name
-      );
-      return {
-        name: addon.querySelector(".name").textContent,
-        price: parseFloat(
-          addon.querySelector(".price").textContent.replace(/[()$]/g, "")
-        ),
-      };
-    });
-
-    products.push({ name, basePrice, quantity, addons, discount });
-  });
-
-  localStorage.setItem("selectedProducts", JSON.stringify(products));
-}
-
-// function updateQuickLinks(show, hide1, hide2) {
-//   document.getElementById(show).classList.add("active");
-//   document.getElementById(hide1).classList.remove("active");
-//   document.getElementById(hide2).classList.remove("active");
-// }
 
 function updateDots() {
   const dots = document.querySelectorAll(".dot");
@@ -417,214 +417,3 @@ function showSalePersonAuthScreen() {
   document.querySelector(".posloginContainer").classList.add("hidden");
   document.querySelector(".loginContainer").classList.remove("hidden");
 }
-
-// function showAdditionalChargesModel() {
-//   const charges = [
-//     {
-//       name: "Broccoli Staff",
-//       type: "subtotal",
-//       value: "50",
-//       unit: "%",
-//       selected: false,
-//       categories: [],
-//       groups: [],
-//     },
-//     {
-//       name: "Summer Sale",
-//       type: "subtotal",
-//       value: "20",
-//       unit: "%",
-//       selected: false,
-//       categories: [],
-//       groups: [],
-//     },
-//     {
-//       name: "Fly Dubai",
-//       type: "category",
-//       value: "5",
-//       unit: "$",
-//       selected: false,
-//       categories: ["fine"],
-//       groups: [],
-//     },
-//     {
-//       name: "Better homes",
-//       type: "subtotal",
-//       value: "10",
-//       unit: "%",
-//       selected: false,
-//       categories: [],
-//       groups: [],
-//     },
-//     {
-//       name: "Group Charge",
-//       type: "group",
-//       value: "15",
-//       unit: "%",
-//       selected: false,
-//       categories: ["fruits"],
-//       groups: ["citrus"],
-//     },
-//   ];
-
-//   const chargesModel = document.getElementById("chargeModel");
-//   const chargesList = document.getElementById("chargeList");
-
-//   chargesList.innerHTML = ""; // Clear previous charges
-
-//   charges.forEach((data, index) => {
-//     const chargeElement = document.createElement("div");
-//     chargeElement.innerHTML = `
-//         <div class="additional_charges_left ${
-//           data.selected ? "selected_section" : ""
-//         }">
-//           <div class="selected">
-//             <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-//               <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-//             </svg>
-//           </div>
-//           <div class="value">
-//             <span>${data.name}</span>
-//             <span>(on ${data.type})</span>
-//           </div>
-//         </div>
-//         <div class="additional_charges_badge">
-//           <span class="discount_text">${data.value}${data.unit}</span>
-//         </div>
-//       `;
-
-//     chargeElement.addEventListener("click", (event) => {
-//       charges.forEach((d, i) => {
-//         if (i !== index) {
-//           d.selected = false;
-//           const otherElement = chargesList.children[i].querySelector(
-//             ".additional_charges_left"
-//           );
-//           if (otherElement) {
-//             otherElement.classList.remove("selected_section");
-//           }
-//         }
-//       });
-
-//       data.selected = !data.selected;
-//       event.currentTarget
-//         .querySelector(".additional_charges_left")
-//         .classList.toggle("selected_section", data.selected);
-//     });
-
-//     chargesList.appendChild(chargeElement);
-//   });
-
-//   chargesModel.classList.remove("hidden");
-
-//   document
-//     .querySelector(".additional_charges_bottom .apply")
-//     .addEventListener("click", () => {
-//       const selectedCharge = charges.find((data) => data.selected);
-//       console.log("Selected charge:", selectedCharge);
-//       chargesModel.classList.add("hidden");
-//       // Apply the selected charge to the order (update order summary, localStorage, etc.)
-//       localStorage.setItem("selectedCharges", JSON.stringify(selectedCharge));
-//       updateOrderSummary(null, selectedCharge);
-//     });
-
-//   document
-//     .querySelector(".additional_charges_bottom .cancel")
-//     .addEventListener("click", () => {
-//       charges.forEach((data) => (data.selected = false));
-//       chargesModel.classList.add("hidden");
-//     });
-// }
-
-// function updateOrderSummary(
-//   selectedDiscountObj = null,
-//   selectedChargesObj = null
-// ) {
-//   const products = JSON.parse(localStorage.getItem("selectedProducts")) || [];
-//   const selectedDiscount =
-//     selectedDiscountObj ||
-//     JSON.parse(localStorage.getItem("selectedDiscount")) ||
-//     null;
-//   const selectedCharge =
-//     selectedChargesObj ||
-//     JSON.parse(localStorage.getItem("selectedCharges")) ||
-//     null;
-//   let subtotal = 0;
-//   let discount = 0;
-//   let charge = 0;
-
-//   // Calculate the subtotal
-//   products.forEach((product) => {
-//     subtotal += product.basePrice * product.quantity;
-//   });
-
-//   // Apply discount
-//   if (selectedDiscount && selectedDiscount.groups) {
-//     if (selectedDiscount.groups.includes("total")) {
-//       if (selectedDiscount.unit === "%") {
-//         discount = (subtotal * selectedDiscount.value) / 100;
-//       } else if (selectedDiscount.unit === "$") {
-//         discount = selectedDiscount.value;
-//       }
-//     } else {
-//       products.forEach((product) => {
-//         if (selectedDiscount.groups.includes(product.group)) {
-//           if (selectedDiscount.unit === "%") {
-//             discount +=
-//               (product.basePrice * selectedDiscount.value * product.quantity) /
-//               100;
-//           } else if (selectedDiscount.unit === "$") {
-//             discount += selectedDiscount.value * product.quantity;
-//           }
-//         }
-//       });
-//     }
-//   }
-
-//   // Apply charge
-//   if (selectedCharge && selectedCharge.groups) {
-//     if (selectedCharge.groups.includes("total")) {
-//       if (selectedCharge.unit === "%") {
-//         charge = (subtotal * selectedCharge.value) / 100;
-//       } else if (selectedCharge.unit === "$") {
-//         charge = selectedCharge.value;
-//       }
-//     } else {
-//       products.forEach((product) => {
-//         if (selectedCharge.groups.includes(product.group)) {
-//           if (selectedCharge.unit === "%") {
-//             charge +=
-//               (product.basePrice * selectedCharge.value * product.quantity) /
-//               100;
-//           } else if (selectedCharge.unit === "$") {
-//             charge += selectedCharge.value * product.quantity;
-//           }
-//         }
-//       });
-//     }
-//   }
-
-//   // Calculate tax and total
-//   const taxRate = 0.13; // Example tax rate
-//   const tax = (subtotal - discount + charge) * taxRate;
-//   const total = subtotal - discount + charge + tax;
-
-//   // Update UI
-//   document.getElementById("subTotalNumber").innerText = `$${subtotal.toFixed(
-//     2
-//   )}`;
-//   if (discount > 0) {
-//     document.getElementById("discountBox").classList.remove("hidden");
-//     document.getElementById("discounNumber").innerText = `$${discount.toFixed(
-//       2
-//     )}`;
-//   }
-//   if (charge > 0) {
-//     document.getElementById("additionChargeBox").classList.remove("hidden");
-//     document.getElementById(
-//       "additionChargeNumber"
-//     ).innerText = `$${charge.toFixed(2)}`;
-//   }
-//   document.getElementById("taxNumber").innerText = `$${tax.toFixed(2)}`;
-//   document.getElementById("totalNumber").innerText = `$${total.toFixed(2)}`;
-// }

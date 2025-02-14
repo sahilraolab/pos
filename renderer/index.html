@@ -222,11 +222,11 @@
                                     style="background-color: #FF5C00; box-shadow: 1px 1px 5px #FF5C00;"></span>
                                 <span class="name">Reserved</span>
                             </div>
-                            <div>
+                            <!-- <div>
                                 <span class="dot"
                                     style="background-color: #13C91B; box-shadow: 1px 1px 5px #13C91B;"></span>
                                 <span class="name">Billed</span>
-                            </div>
+                            </div> -->
                             <div>
                                 <span class="dot"
                                     style="background-color: #F0B433; box-shadow: 1px 1px 5px #F0B433;"></span>
@@ -235,10 +235,10 @@
                         </div>
                         <div class="status_indication_btn_search">
                             <div class="status_indication_filter_main">
-                                <button class="active">All table</button>
-                                <button>Reserved</button>
-                                <button>Running order</button>
-                                <button>Available</button>
+                                <button data-type="all" class="active">All table</button>
+                                <button data-type="reserved">Reserved</button>
+                                <button data-type="available_soon">Running order</button>
+                                <button data-type="available">Available</button>
                             </div>
                             <div class="table_search">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -255,20 +255,6 @@
                         </div>
                     </div>
                     <div class="table_aside">
-                        <button class="active">GF</button>
-                        <button>RTF</button>
-                        <button>RTF</button>
-                        <button>RTF</button>
-                        <button>RTF</button>
-                        <button class="active">RTF</button>
-                        <button>RTF</button>
-                        <button>TF1</button>
-                        <button>TF1</button>
-                        <button>TF1</button>
-                        <button>TF2</button>
-                        <button class="active">TF2</button>
-                        <button>TF2</button>
-                        <button>TF2</button>
                     </div>
                     <div class="dineTable-section" id="tables-section"></div>
                     <div class="table_float_bottom">
@@ -284,35 +270,15 @@
                                 </div>
                                 <div class="decor2">
                                     <span style="font-size: 16px; font-weight: bold; color: #19191C;">Table</span>
-                                    <span style="font-size: 14px; color: #828487;">Order #102</span>
+                                    <span id="dineInOrderId" style="font-size: 14px; color: #828487;"></span>
                                 </div>
                             </div>
-                            <div class="rightSide">
-                                <div>
-                                    <button>
-                                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M2.08334 2.0835L7.91668 7.91683M7.91668 2.0835L2.08334 7.91683"
-                                                stroke="white" stroke-width="1.5" stroke-linecap="round" />
-                                        </svg>
-
-                                    </button>
-                                    <span>T-10</span>
-                                </div>
-                                <div>
-                                    <button>
-                                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M2.08334 2.0835L7.91668 7.91683M7.91668 2.0835L2.08334 7.91683"
-                                                stroke="white" stroke-width="1.5" stroke-linecap="round" />
-                                        </svg>
-
-                                    </button>
-                                    <span>T-10</span>
-                                </div>
+                            <div class="rightSide selected_tables_info">
                             </div>
                         </div>
-                        <button style="background: linear-gradient(#EFA280, #DF6229); color: white; font-size: 16px; font-weight: bold; padding: 12px 18px; border-radius: 25px; border: none; outline: none; ">Place order</button>
+                        <button onclick="handleDineInPlaceOrder()"
+                            style="background: linear-gradient(#EFA280, #DF6229); color: white; font-size: 16px; font-weight: bold; padding: 12px 18px; border-radius: 25px; border: none; outline: none; ">Place
+                            order</button>
                     </div>
                 </div>
                 <div class="menu_container ">
@@ -719,7 +685,7 @@
                             </button>
                             <span>Customer Details</span>
                         </div>
-                        <button class="refresh">
+                        <button class="userHistoryInfo">
                             <svg width="2rem" height="2rem" viewBox="0 0 33 32" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path
@@ -1240,13 +1206,15 @@
         <div style="max-width: 80%;">
             <div class="additional_charges_top">
                 <h3 style="font-size: 20px; font-weight: 600;">Customer History</h3>
-                <svg style="cursor: pointer;" width="16" height="16" viewBox="0 0 16 16" fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 1L15 15M15 1L1 15" stroke="#282930" stroke-width="1.5" stroke-linecap="round" />
-                </svg>
+                <button onclick="hideCustomerHistoryModel()" style="background: transparent; border: none; outline: none; cursor: pointer;">
+                    <svg style="cursor: pointer;" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 1L15 15M15 1L1 15" stroke="#282930" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                </button>
             </div>
             <div style="padding: 2rem;" class="boxes">
-                <p style="font-size: 18px; font-weight: 500; color: #19191C; margin-bottom: 1rem;">Karan Rao, 9910971182
+                <p style="font-size: 18px; font-weight: 500; color: #19191C; margin-bottom: 1rem;" class="customer_history_user_info">
                 </p>
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
                     <div
@@ -1261,7 +1229,7 @@
                         </div>
                         <div style="display: flex; flex-direction: column; ">
                             <span style="font-size: 18px; font-weight: 500;">Total Orders</span>
-                            <span style="font-size: 18px; font-weight: 500; color: #DF6229;">10</span>
+                            <span style="font-size: 18px; font-weight: 500; color: #DF6229;" class="total_orders"></span>
                         </div>
                     </div>
                     <div
@@ -1276,7 +1244,7 @@
                         </div>
                         <div style="display: flex; flex-direction: column; ">
                             <span style="font-size: 18px; font-weight: 500;">Last Visited On</span>
-                            <span style="font-size: 18px; font-weight: 500; color: #DF6229;">2 weeks ago</span>
+                            <span style="font-size: 18px; font-weight: 500; color: #DF6229;" class="last_visit"></span>
                         </div>
                     </div>
                     <div
@@ -1291,7 +1259,7 @@
                         </div>
                         <div style="display: flex; flex-direction: column; ">
                             <span style="font-size: 18px; font-weight: 500;">Most Ordered Item</span>
-                            <span style="font-size: 18px; font-weight: 500; color: #DF6229;">Honey Chilli Potato</span>
+                            <span style="font-size: 18px; font-weight: 500; color: #DF6229;" class="mostly_ordered"></span>
                         </div>
                     </div>
                 </div>
@@ -1308,107 +1276,7 @@
                                 <th>Order Type</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda Soda Soda Soda Soda Soda Soda Soda Soda Soda </td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>000012345</td>
-                                <td>03 June 2024 05:11 PM</td>
-                                <td>$20</td>
-                                <td>Samosa 2pc, Sandwich, Banta Soda</td>
-                                <td>Steels</td>
-                                <td>Dine-In</td>
-                            </tr>
-                            <!-- Add more rows as needed -->
+                        <tbody class="order_history_list">
                         </tbody>
                     </table>
                 </div>
@@ -1465,6 +1333,7 @@
     <script src="../preload.js"></script>
     <script src="renderer.js"></script>
     <script src="onload.js"></script>
+    <script src="navigation.js"></script>
     <script src="app.js"></script>
     <script src="api.js"></script>
 </body>
