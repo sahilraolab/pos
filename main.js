@@ -16,7 +16,10 @@ function createWindow() {
         fullscreen: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
-        }
+        },
+        contextIsolation: true,
+        enableRemoteModule: false,
+        nodeIntegration: false
     });
 
     mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));

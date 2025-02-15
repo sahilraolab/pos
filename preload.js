@@ -2,15 +2,15 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
     scanKDS: () => ipcRenderer.send('scan-kds'),
-    connectKDS: (kdsInfo, password) => ipcRenderer.send('connect-kds', { kdsInfo, password }),  // ✅ Pass password
+    connectKDS: (kdsInfo) => ipcRenderer.send('connect-kds', kdsInfo),
     onKDSFound: (callback) => {
         ipcRenderer.removeAllListeners('kds-found'); 
         ipcRenderer.on('kds-found', (_, kds) => callback(kds));
     },
     onKDSConnected: (callback) => {
-        ipcRenderer.removeAllListeners('kds-connected');
-        ipcRenderer.on('kds-connected', callback);
-    },
+        ipcRenderer.removeAllListeners('kds-connected'); // Remove old listeners
+        ipcRenderer.on('kds-connected', (_event, data) => callback(data));
+    },    
     onKDSError: (callback) => {
         ipcRenderer.removeAllListeners('kds-error');
         ipcRenderer.on('kds-error', (_, errorMessage) => callback(errorMessage));

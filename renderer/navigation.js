@@ -242,7 +242,7 @@ function showSettingScreen() {
     document.getElementById("settingSection").classList.remove("hidden");
     localStorage.setItem("openedNavigationLink", "settingSectionLink");
     localStorage.setItem("openedNavigationSection", "settingSection");
-    fetchKdsScreens();
+    // fetchKdsScreens();
     hideLoader();
 }
 
