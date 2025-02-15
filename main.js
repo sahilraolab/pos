@@ -4,6 +4,7 @@ const { setupDatabaseHandlers } = require('./database/orders');
 const { setupKDSHandlers } = require('./services/kds');
 const { setupPrinterHandlers } = require('./services/printer');
 
+
 let mainWindow;
 
 function createWindow() {
@@ -39,7 +40,7 @@ app.on('ready', () => {
     createWindow();
     setupDatabaseHandlers(ipcMain);
     setupKDSHandlers(ipcMain);
-    setupPrinterHandlers(ipcMain);
+    // setupPrinterHandlers(ipcMain);
 });
 
 app.on('window-all-closed', () => {
@@ -53,3 +54,5 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+

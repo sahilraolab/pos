@@ -4,7 +4,7 @@
   "description": "Electron application for printing receipts",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --disable-features=AutofillServerCommunication",
     "build": "electron-builder"
   },
   "keywords": [],
