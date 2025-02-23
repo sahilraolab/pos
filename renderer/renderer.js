@@ -1,9 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const kdsList = document.getElementById('kdsList');
 
-  // Load connected KDS list from localStorage
-  let connectedKDSList = JSON.parse(localStorage.getItem('connectedKDSList')) || [];
-
   // Function to render KDS devices
   function renderKDS(kds) {
     const existingKDS = document.querySelector(`[data-ip="${kds.ip}"][data-port="${kds.port}"]`);
@@ -12,8 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const kdsDiv = document.createElement('div');
     kdsDiv.setAttribute('data-ip', kds.ip);
     kdsDiv.setAttribute('data-port', kds.port);
-
-    let isConnected = connectedKDSList.some((connectedKDS) => connectedKDS.ip === kds.ip && connectedKDS.port === kds.port);
 
     kdsDiv.innerHTML = `
       <div style="gap: 1rem; background-color: white; padding: 1rem; display: flex; flex-direction: column; 
@@ -26,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button data-ip="${kds.ip}" data-port="${kds.port}" class="connect-btn"
           style="align-self: flex-start; border-radius: 20px; font-size: 16px; color: white; border: none; 
           padding: 0.6rem 1rem; background: linear-gradient(#EFA280, #DF6229);">
-          ${isConnected ? 'Disconnect' : 'Connect'}
+          Connect
         </button>
       </div>
     `;
@@ -34,13 +29,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Scan for available KDS devices when the user navigates to the screen
-  function fetchKdsScreens() {
-    kdsList.innerHTML = ''; // Clear previous results
-    window.electronAPI.scanKDS();
-    window.electronAPI.onKDSFound((kds) => {
-      renderKDS(kds);
-    });
+  function fetchKdsScreens(interval = 10000) {
+    console.log("🔍 Scanning for KDS screens...");
+
+    const connectedKDS = new Set(); // Store already connected KDS
+
+    function scan() {
+      window.electronAPI.scanKDS();
+
+      window.electronAPI.onKDSFound((kds) => {
+        const kdsKey = `${kds.ip}:${kds.port}`;
+
+        if (!connectedKDS.has(kdsKey)) {
+          console.log(`✅ New KDS found: ${kdsKey}`);
+          renderKDS(kds);
+          connectedKDS.add(kdsKey);
+        } else {
+          console.log(`🔄 KDS ${kdsKey} is already connected.`);
+        }
+      });
+    }
+
+    // Initial scan
+    scan();
+
+    // Periodically scan for new KDS without disconnecting existing ones
+    setInterval(scan, interval);
   }
+
 
   fetchKdsScreens(); // Auto-fetch when the page loads
 
@@ -50,16 +66,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const kdsDiv = event.target.parentElement;
       const ip = event.target.getAttribute('data-ip');
       const port = parseInt(event.target.getAttribute('data-port'), 10);
-      let isConnected = connectedKDSList.some((kds) => kds.ip === ip && kds.port === port);
+      let isConnected = event.target.textContent === 'Disconnect';
+      let connectedKDSList = JSON.parse(localStorage.getItem('connectedKDSList')) || [];
 
       if (isConnected) {
         // Disconnecting from KDS
         console.log(`🔴 Disconnecting from KDS: ${ip}:${port}`);
         connectedKDSList = connectedKDSList.filter((kds) => !(kds.ip === ip && kds.port === port));
         localStorage.setItem('connectedKDSList', JSON.stringify(connectedKDSList));
-        window.electronAPI.connectKDS({ ip, port }, null); // Sending null to disconnect
-        kdsDiv.querySelector('.discount-btn')?.remove();
-        event.target.textContent = 'Connect';
+
+        // Properly trigger a disconnection request to the POS
+        window.electronAPI.disconnectKDS({ ip, port });
+
+        // Update UI
+        kdsDiv.querySelector('.connect-btn').textContent = 'Connect';
       } else {
         // Connecting to KDS
         console.log(`🔵 Trying to connect to KDS: ${ip}:${port}`);
@@ -75,15 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!kds || !kds.ip || !kds.port) return;
     alert(`✅ Connected to KDS: ${kds.ip}:${kds.port}`);
 
-    if (!connectedKDSList.some((c) => c.ip === kds.ip && c.port === kds.port)) {
-        connectedKDSList.push(kds);
-        localStorage.setItem('connectedKDSList', JSON.stringify(connectedKDSList));
-    }
-
     // Update UI for connected KDS
     const kdsDiv = document.querySelector(`[data-ip="${kds.ip}"][data-port="${kds.port}"]`);
     if (kdsDiv) {
-        kdsDiv.querySelector('.connect-btn').textContent = 'Disconnect';
+      kdsDiv.querySelector('.connect-btn').textContent = 'Disconnect';
     }
   });
 
@@ -95,11 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle order status updates
   window.electronAPI.onOrderStatus((status) => {
     alert(`📦 Order Update: ${status}`);
-  });
-
-  // Restore connected KDS on page reload
-  connectedKDSList.forEach((kds) => {
-    renderKDS(kds);
   });
 });
 

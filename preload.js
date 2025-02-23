@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
     scanKDS: () => ipcRenderer.send('scan-kds'),
     connectKDS: (kdsInfo) => ipcRenderer.send('connect-kds', kdsInfo),
+    disconnectKDS: (kdsInfo) => ipcRenderer.send('disconnect-kds', kdsInfo),
     onKDSFound: (callback) => {
         ipcRenderer.removeAllListeners('kds-found'); 
         ipcRenderer.on('kds-found', (_, kds) => callback(kds));
