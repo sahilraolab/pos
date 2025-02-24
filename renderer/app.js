@@ -217,8 +217,6 @@ function saveKot(print) {
         const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
         const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
 
-        console.log(orderDetails);
-
         // save data in localstorage and sent to kot
         saveOrderDetails(orderDetails);
 
@@ -381,6 +379,45 @@ function handleBackToMenuList() {
     `;
     hideLoader();
 }
+
+document.getElementById("menuSearch").addEventListener("input", function () {
+    const searchQuery = this.value.toLowerCase();
+    filterMenuItems(searchQuery);
+});
+
+function filterMenuItems(searchQuery) {
+    const allMenuItems = document.querySelectorAll(".category_menu_item");
+
+    allMenuItems.forEach((item) => {
+        const itemData = JSON.parse(item.getAttribute("data-item"));
+        const itemName = itemData.name.toLowerCase();
+
+        if (itemName.includes(searchQuery)) {
+            item.style.display = "flex"; // Show matching item
+        } else {
+            item.style.display = "none"; // Hide non-matching item
+        }
+    });
+}
+
+
+function switchToCategory(categoryId) {
+    const categoryButtons = document.querySelectorAll(".menu_category_button");
+
+    categoryButtons.forEach((button) => {
+        if (button.innerText.toLowerCase() === getCategoryName(categoryId).toLowerCase()) {
+            button.click(); // Simulate category button click
+        }
+    });
+}
+
+// Helper function to get category name by ID
+function getCategoryName(categoryId) {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : "";
+}
+
+
 
 async function loadMenu() {
     showLoader(true);
@@ -1056,28 +1093,28 @@ function showCouponModel() {
             value: "20", // 20% discount
             code: "PIZZA20",
             selected: false,
-            categories: ["Pizza"], // Applies to the Pizza category
-            items: ["Margherita Pizza", "Pepperoni Pizza"], // Specific items
-            day: ["Sunday", "Monday"], // Applicable days
+            categories: ["Pizza"],
+            items: ["Margherita Pizza", "Pepperoni Pizza"],
+            day: ["Sunday", "Monday"],
             startTime: "11:00 AM",
             endTime: "03:00 PM",
-            startDate: "2024-12-01", // Offer start date
-            endDate: "2024-12-31", // Offer end date
+            startDate: "2024-12-01",
+            endDate: "2024-12-31",
         },
         {
             name: "Caesar Salad Special - Pickup",
-            order_type: ["pickup, dinein"],
+            order_type: ["pickup", "dinein"],
             fixed: true,
             value: "10", // $10 off
             code: "SALAD10",
             selected: false,
-            categories: ["Salads"], // Applies to the Salad category
-            items: ["Caesar Salad"], // Specific item
-            day: ["Wednesday"], // Only on Wednesdays
+            categories: ["Salads"],
+            items: ["Caesar Salad"],
+            day: ["Wednesday"],
             startTime: "10:00 AM",
             endTime: "02:00 PM",
-            startDate: "2024-12-01", // Offer start date
-            endDate: "2024-12-15", // Offer end date
+            startDate: "2024-12-01",
+            endDate: "2024-12-15",
         },
         {
             name: "Quick Bill Drinks Offer",
@@ -1086,13 +1123,13 @@ function showCouponModel() {
             value: "15", // 15% discount
             code: "DRINKS15",
             selected: false,
-            categories: ["Drinks"], // Applies to Drinks category
-            items: ["Coke", "Pepsi", "Lemonade"], // Specific items
-            day: ["Friday", "Saturday"], // Weekend offer
+            categories: ["Drinks"],
+            items: ["Coke", "Pepsi", "Lemonade"],
+            day: ["Friday", "Saturday"],
             startTime: "05:00 PM",
             endTime: "10:00 PM",
-            startDate: "2024-12-01", // Offer start date
-            endDate: "2024-12-31", // Offer end date
+            startDate: "2024-12-01",
+            endDate: "2024-12-31",
         },
         {
             name: "All Day Breakfast - All Orders",
@@ -1101,66 +1138,164 @@ function showCouponModel() {
             value: "5", // $5 off
             code: "BREAKFAST5",
             selected: false,
-            categories: ["all"], // Applies to Breakfast category
-            items: ["Pancakes", "Omelette", "French Toast"], // Specific items
-            day: ["Sunday"], // Only on Sundays
+            categories: ["all"],
+            items: ["Pancakes", "Omelette", "French Toast"],
+            day: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
             startTime: "07:00 AM",
-            endTime: "12:00 PM",
-            startDate: "2024-12-01", // Offer start date
-            endDate: "2024-12-31", // Offer end date
+            endTime: "11:59 PM",
+            startDate: "2024-01-01",
+            endDate: "2025-12-31",
         },
     ];
 
     let couponModel = document.getElementById("couponCodeModel");
     const inputElement = document.getElementById("couponCode");
+
+    // Determine the order type from localStorage
     const openedOrderTypeLink = localStorage.getItem("openedOrderTypeLink");
-    const orderDetailsTypeName = openedOrderTypeLink === "quickBill" ? 'quickOrderDetails' : openedOrderTypeLink === "pickUp" ? "pickUpOrderDetails" : 'dineInOrderDetails';
-    const orderDetails = JSON.parse(localStorage.getItem(orderDetailsTypeName));
+    const orderDetailsTypeName = openedOrderTypeLink === "quickBill"
+        ? 'quickOrderDetails'
+        : openedOrderTypeLink === "pickUp"
+            ? "pickUpOrderDetails"
+            : 'dineInOrderDetails';
 
-    document.querySelector(".apply_coupon_bottom .apply").replaceWith(document.querySelector(".additional_charges_bottom .apply").cloneNode(true));
-    document.querySelector(".apply_coupon_bottom .cancel").replaceWith(document.querySelector(".additional_charges_bottom .cancel").cloneNode(true));
+    let orderDetails = JSON.parse(localStorage.getItem(orderDetailsTypeName));
 
+    // Show coupon modal
     couponModel.classList.remove("hidden");
+
     if (orderDetails.coupon) {
         inputElement.value = orderDetails.coupon.code;
     }
-    document
-        .querySelector(".apply_coupon_bottom .apply")
-        .addEventListener("click", (event) => {
-            event.preventDefault();
-            const inputElement = document.getElementById("couponCode");
-            if (inputElement) {
-                const selectedCoupon = inputElement.value.trim() === "TEST5";
-                if (selectedCoupon) {
-                    console.log("Applied Coupon:", coupons[3]);
-                    couponModel.classList.add("hidden");
-                    // Apply the selected coupon to the order (update order summary, localStorage, etc.)
-                    // localStorage.setItem(
-                    //     "addedCoupon",
-                    //     JSON.stringify(coupons[3])
-                    // );
-                    orderDetails.coupon = coupons[3];
-                    // localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
-                    updateOrderDetails(orderDetails);
-                } else {
-                    alert("Invalid Code, Codes are case sensitive");
-                }
-            } else {
-                alert("Enter a code");
-            }
-        });
 
-    document
-        .querySelector(".apply_coupon_bottom .cancel")
-        .addEventListener("click", () => {
-            inputElement.value = "";
-            couponModel.classList.add("hidden");
-            // localStorage.removeItem("addedCoupon");
-            orderDetails.coupon = "";
-            // localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
-            updateOrderDetails(orderDetails);
-        });
+    const applyButton = document.querySelector(".apply_coupon_bottom .apply");
+    const cancelButton = document.querySelector(".apply_coupon_bottom .cancel");
+
+    applyButton.replaceWith(applyButton.cloneNode(true));
+    cancelButton.replaceWith(cancelButton.cloneNode(true));
+
+    document.querySelector(".apply_coupon_bottom .apply").addEventListener("click", (event) => {
+        event.preventDefault();
+        const couponCode = inputElement.value.trim();
+        if (!couponCode) {
+            alert("Enter a coupon code.");
+            return;
+        }
+
+        const validCoupon = coupons.find(coupon => coupon.code === couponCode);
+        if (!validCoupon) {
+            alert("Invalid Code, Codes are case sensitive");
+            return;
+        }
+
+        if (!isCouponValid(validCoupon, orderDetails)) {
+            alert("This coupon is not valid for your order.");
+            return;
+        }
+
+        // Apply coupon
+        orderDetails.coupon = validCoupon;
+        localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
+        updateOrderDetails(orderDetails);
+        couponModel.classList.add("hidden");
+    });
+
+    document.querySelector(".apply_coupon_bottom .cancel").addEventListener("click", () => {
+        inputElement.value = "";
+        couponModel.classList.add("hidden");
+
+        // Remove applied coupon
+        orderDetails.coupon = null;
+        localStorage.setItem(orderDetailsTypeName, JSON.stringify(orderDetails));
+        updateOrderDetails(orderDetails);
+    });
+
 }
+
+/**
+ * Validate if a coupon can be applied based on order details
+ */
+function isCouponValid(coupon, orderDetails) {
+    const currentTime = new Date();
+    const today = currentTime.toLocaleDateString("en-US", { weekday: "long" });
+    const currentHours = currentTime.getHours();
+    const currentMinutes = currentTime.getMinutes();
+
+    console.log("Current Day:", today);
+    console.log("Current Time:", `${currentHours}:${currentMinutes}`);
+
+    // 1. Validate Order Type
+    if (!coupon.order_type.includes("all") && !coupon.order_type.includes(orderDetails.orderType)) {
+        console.log("Invalid Order Type");
+        return false;
+    }
+
+    // 2. Validate Category or Item Match
+    const hasMatchingCategory = coupon.categories.includes("all") || 
+        orderDetails.selectedMenuList.some(item => 
+            item.categories.some(category => coupon.categories.includes(category))
+        );
+
+    const hasMatchingItem = orderDetails.selectedMenuList.some(item => coupon.items.includes(item.name));
+
+    console.log("Category Match:", hasMatchingCategory);
+    console.log("Item Match:", hasMatchingItem);
+
+    if (!hasMatchingCategory && !hasMatchingItem) {
+        console.log("No matching category or item.");
+        return false;
+    }
+
+    // 3. Validate Date Range (Fix Timezone Issue)
+    const startDate = new Date(coupon.startDate);
+    const endDate = new Date(coupon.endDate);
+
+    // Normalize to local time (start at 00:00:00, end at 23:59:59)
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+
+    console.log("Coupon Valid From:", startDate);
+    console.log("Coupon Valid Until:", endDate);
+
+    if (currentTime < startDate || currentTime > endDate) {
+        console.log("Invalid Date Range");
+        return false;
+    }
+
+    // 4. Validate Day of the Week
+    console.log("Coupon Valid Days:", coupon.day);
+    if (!coupon.day.includes(today)) {
+        console.log("Invalid Day");
+        return false;
+    }
+
+    // 5. Validate Time Range (Handling AM/PM)
+    function convertTimeTo24Hour(time) {
+        const [rawTime, period] = time.split(" ");
+        let [hour, minute] = rawTime.split(":").map(Number);
+        
+        if (period === "PM" && hour !== 12) hour += 12;
+        if (period === "AM" && hour === 12) hour = 0;
+
+        return [hour, minute];
+    }
+
+    const [startHour, startMinute] = convertTimeTo24Hour(coupon.startTime);
+    const [endHour, endMinute] = convertTimeTo24Hour(coupon.endTime);
+
+    console.log("Coupon Time Valid From:", `${startHour}:${startMinute}`);
+    console.log("Coupon Time Valid Until:", `${endHour}:${endMinute}`);
+
+    if ((currentHours < startHour || (currentHours === startHour && currentMinutes < startMinute)) ||
+        (currentHours > endHour || (currentHours === endHour && currentMinutes > endMinute))) {
+        console.log("Invalid Time Range");
+        return false;
+    }
+
+    console.log("Coupon is valid!");
+    return true;
+}
+
 
 function handleCustomerDetailsForm() {
     // const form = document.querySelector(".customer_details_form");
@@ -1843,4 +1978,24 @@ function daysAgo(dateString) {
 function hideCustomerHistoryModel() {
     const customerHistoryModel = document.querySelector('.customer_history');
     customerHistoryModel.classList.add('hidden');
+}
+
+function showGeneralSettings() {
+    console.log("Showing General Settings");
+    const printerContainer = document.getElementById('printerContainer');
+    const kdsContainer = document.getElementById("kdsContainer");
+    const generalContainer = document.getElementById("generalContainer");
+    kdsContainer.classList.add('hidden');
+    generalContainer.classList.remove('hidden');
+    printerContainer.classList.add('hidden');
+}
+
+function showPrinterSettings() {
+    console.log("Showing Printer Settings");
+    const printerContainer = document.getElementById('printerContainer');
+    const kdsContainer = document.getElementById("kdsContainer");
+    const generalContainer = document.getElementById("generalContainer");
+    kdsContainer.classList.add('hidden');
+    generalContainer.classList.add('hidden');
+    printerContainer.classList.remove('hidden');
 }

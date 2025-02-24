@@ -1,8 +1,7 @@
 const net = require('net');
 const dgram = require('dgram');
 
-let kdsSocket = null;
-const kdsConnections = {}; // Global object to store KDS connections
+let kdsConnections = {}; // Store multiple KDS connections
 const UDP_PORT = 9999;
 const BROADCAST_IP = '255.255.255.255';
 
@@ -27,7 +26,7 @@ function setupKDSHandlers(ipcMain) {
                 console.log('🔍 Sent KDS discovery request...');
             });
 
-            let discoveredKDS = [];  // Store multiple KDS responses
+            let discoveredKDS = [];
 
             client.on('message', (msg, rinfo) => {
                 console.log(`📩 Received response from ${rinfo.address}:${rinfo.port} → ${msg.toString()}`);
@@ -35,21 +34,17 @@ function setupKDSHandlers(ipcMain) {
                 try {
                     const kdsInfo = JSON.parse(msg.toString());
 
-                    // Prevent duplicate KDS entries
-                    if (!discoveredKDS.some(kds => kds.ip === kdsInfo.ip && kds.port === kdsInfo.port && kds.name === kdsInfo.kds_name)) {
+                    if (!discoveredKDS.some(kds => kds.ip === kdsInfo.ip && kds.port === kdsInfo.port)) {
                         discoveredKDS.push(kdsInfo);
 
                         console.log(`✅ New KDS found: ${kdsInfo.kds_name} (${kdsInfo.department}) at ${kdsInfo.ip}:${kdsInfo.port}`);
 
-                        // Use event.sender.send instead of event.reply to allow multiple responses
                         event.sender.send('kds-found', {
                             name: kdsInfo.kds_name,
                             department: kdsInfo.department,
                             ip: kdsInfo.ip,
                             port: kdsInfo.port
                         });
-                    } else {
-                        console.log(`⚠️ Duplicate KDS ignored: ${kdsInfo.kds_name} (${kdsInfo.department}) at ${kdsInfo.ip}:${kdsInfo.port}`);
                     }
                 } catch (parseError) {
                     console.error('❌ Failed to parse KDS response:', parseError);
@@ -57,12 +52,11 @@ function setupKDSHandlers(ipcMain) {
                 }
             });
 
-            // Keep the socket open longer to capture multiple responses
             setTimeout(() => {
                 console.log('🛑 Closing UDP socket after waiting for responses...');
-                client.removeAllListeners(); // Prevent memory leaks
+                client.removeAllListeners();
                 try { client.close(); } catch (_) { }
-            }, 10000); // Increased to 10 seconds            
+            }, 10000);
 
         } catch (error) {
             console.error('🚨 Scan KDS Error:', error);
@@ -70,33 +64,58 @@ function setupKDSHandlers(ipcMain) {
         }
     });
 
-
     ipcMain.on('connect-kds', (event, kdsInfo) => {
         try {
-            console.log(`🛠 Attempting to connect to KDS at ${kdsInfo.ip}:${kdsInfo.port}`);
+            console.log('============================')
+            console.log(kdsInfo);
+            console.log('============================')
+            const key = `${kdsInfo.ip}:${kdsInfo.port}`;
 
-            if (kdsSocket) {
-                console.log('🔌 Closing previous KDS connection...');
-                kdsSocket.destroy();
-                kdsSocket = null;
+            if (kdsConnections[key]) {
+                console.log(`🔄 Already connected to KDS at ${key}.`);
+                event.reply('kds-connected', kdsInfo);
+                return;
             }
 
-            kdsSocket = net.createConnection({ host: kdsInfo.ip, port: kdsInfo.port }, () => {
-                console.log(kdsInfo);
-                kdsConnections[`${kdsInfo.ip}:${kdsInfo.port}`] = kdsSocket;
-                console.log(`✅ Successfully connected to KDS: ${kdsInfo.ip} (${kdsInfo.port})`);
+            console.log(`🛠 Connecting to KDS at ${kdsInfo.ip}:${kdsInfo.port}`);
+
+            const kdsSocket = net.createConnection({ host: kdsInfo.ip, port: kdsInfo.port }, () => {
+                kdsConnections[key] = kdsSocket;
+                console.log(`✅ Successfully connected to KDS: ${key}`);
                 event.reply('kds-connected', kdsInfo);
             });
 
+            // 🔥 Listen for messages from KDS
+            kdsSocket.on('data', (data) => {
+                console.log(`📩 Received data from KDS ${key}:`, data.toString());
+
+                try {
+                    const orderData = JSON.parse(data.toString());
+                    if (orderData.orderId && orderData.status === "done") {
+
+                        event.sender.send('order-updated', {
+                            order_id: orderData.orderId,
+                            status: "done"
+                        });
+
+                        // ✅ Update the database or UI in your POS
+                        updateOrderStatus(orderData.order_id, "Completed");
+                    }
+                } catch (error) {
+                    console.error("❌ Error parsing KDS message:", error);
+                }
+            });
+
+
             kdsSocket.on('error', (err) => {
-                console.error('❌ KDS Connection Error:', err);
-                event.reply('kds-error', 'KDS Connection Error: ' + err.message);
+                console.error(`❌ KDS Connection Error (${key}):`, err);
+                event.reply('kds-error', `KDS Connection Error: ${err.message}`);
             });
 
             kdsSocket.on('close', () => {
-                console.log('🔌 KDS Disconnected');
-                event.reply('kds-disconnected', 'KDS Disconnected');
-                kdsSocket = null;
+                console.log(`🔌 KDS Disconnected: ${key}`);
+                delete kdsConnections[key];
+                event.reply('kds-disconnected', kdsInfo);
             });
 
         } catch (error) {
@@ -105,50 +124,56 @@ function setupKDSHandlers(ipcMain) {
         }
     });
 
+    ipcMain.on('disconnect-kds', (event, kdsInfo) => {
+        const key = `${kdsInfo.ip}:${kdsInfo.port}`;
+        console.log(`🔴 Disconnecting KDS: ${key}`);
 
-    ipcMain.on('disconnect-kds', (event, kds) => {
-        console.log(`Received disconnect request for KDS: ${kds.ip}:${kds.port}`);
-
-        // Implement your logic to disconnect KDS from the POS
-        disconnectKDSFromPOS(kds.ip, kds.port);
-
-        event.reply('kds-disconnected', kds); // Inform renderer that KDS is disconnected
+        if (kdsConnections[key]) {
+            kdsConnections[key].destroy();
+            delete kdsConnections[key];
+            console.log(`✅ KDS ${key} disconnected.`);
+            event.reply('kds-disconnected', kdsInfo);
+        } else {
+            console.warn(`⚠️ No active connection found for KDS ${key}.`);
+        }
     });
 
+    ipcMain.on('send-to-kds', (event, { ip, port, data }) => {
+        sendToKDS(ip, port, data);
+    });
+
+    ipcMain.on('send-to-all-kds', (event, data) => {
+        sendToAllKDS(data);
+    });
 }
 
-function disconnectKDSFromPOS(ip, port) {
-    console.log(`🔴 Disconnecting KDS at ${ip}:${port} from POS...`);
-    console.log('MR. SAHIL HERE IS ALL FINE');
-
-    if (!kdsConnections || typeof kdsConnections !== 'object') {
-        console.warn(`⚠️ kdsConnections is not initialized or is not an object.`);
-        return;
-    }
-
-    const key = `${ip.trim()}:${port}`;
-    console.log(`🔍 Checking kdsConnections for key: ${key}`);
-    console.log(`Available keys:`, Object.keys(kdsConnections));
+function sendToKDS(ip, port, data) {
+    const key = `${ip}:${port}`;
 
     if (kdsConnections[key]) {
-        console.log('MR. SAHIL HERE IS ALL FINE 2');
-        console.log(`Existing connection found:`, kdsConnections[key]);
-
-        if (kdsConnections[key].destroy && typeof kdsConnections[key].destroy === 'function') {
-            if (!kdsConnections[key].destroyed) {
-                console.log(`Destroying connection for ${key}`);
-                kdsConnections[key].destroy();
-            }
-        } else {
-            console.warn(`⚠️ Connection object for ${key} does not have a destroy method.`);
-        }
-
-        delete kdsConnections[key];
-        console.log(`✅ Connection for ${key} deleted.`);
+        console.log(`📤 Sending data to KDS ${key}:`, data);
+        kdsConnections[key].write(JSON.stringify(data));
     } else {
-        console.warn(`⚠️ No active connection found for KDS ${key}.`);
+        console.warn(`⚠️ KDS ${key} not connected.`);
     }
 }
 
+function sendToAllKDS(data) {
+    console.log(`📤 Broadcasting data to all KDS devices...`);
+
+    Object.values(kdsConnections).forEach(socket => {
+        if (socket && !socket.destroyed) {
+            socket.write(JSON.stringify(data));
+        }
+    });
+}
+
+// ✅ Function to Update Order Status in POS
+function updateOrderStatus(orderId, status) {
+    console.log(`🔄 Updating order ${orderId} to status: ${status}`);
+
+    // Replace this with your actual UI or database update logic
+    // Example: Send this update to the frontend UI of the POS
+}
 
 module.exports = { setupKDSHandlers };

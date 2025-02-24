@@ -242,7 +242,29 @@ function showSettingScreen() {
     document.getElementById("settingSection").classList.remove("hidden");
     localStorage.setItem("openedNavigationLink", "settingSectionLink");
     localStorage.setItem("openedNavigationSection", "settingSection");
-    // fetchKdsScreens();
+    const buttons = document.querySelectorAll("#settingsMenu .light-btn");
+
+    buttons.forEach(button => {
+        button.addEventListener("click", function() {
+            // Remove active class from all buttons
+            buttons.forEach(btn => btn.classList.remove("active"));
+
+            // Add active class to clicked button
+            this.classList.add("active");
+
+            // Execute the corresponding function
+            const setting = this.getAttribute("data-setting");
+            if (setting === "general") {
+                showGeneralSettings();
+            } else if (setting === "printer") {
+                showPrinterSettings();
+            } else if (setting === "kds") {
+                showKdsSettings();
+            }
+        });
+    });
+
+    showGeneralSettings();
     hideLoader();
 }
 

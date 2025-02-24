@@ -459,15 +459,24 @@
 
             <main class="main_content setting hidden" id="settingSection"
                 style="display: flex; flex-direction: column;">
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button class="light-btn active" style="padding: .2rem .8rem; font-size: 15px;">General</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">Printer</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">Bill Formats</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">Kitchen Display</button>
+                <div id="settingsMenu" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="light-btn" data-setting="general"
+                        style="padding: .2rem .8rem; font-size: 15px;">General</button>
+                    <button class="light-btn" data-setting="printer"
+                        style="padding: .2rem .8rem; font-size: 15px;">Printer</button>
+                    <button class="light-btn" data-setting="kds" style="padding: .2rem .8rem; font-size: 15px;">Kitchen
+                        Display</button>
                 </div>
-                <h2 style="margin-top: 2rem;" class="hidden">Add Printer</h2>
-                <div class="hidden"
+                <div id="generalContainer" class="hidden">
+                    <h2 style="margin-top: 2rem;">General</h2>
+                    <div>
+                        <button>Refresh</button>
+                        <button>Restart</button>
+                    </div>
+                </div>
+                <div id="printerContainer" class="hidden"
                     style="background-color: white; padding: 1rem; margin-top: 2rem; border-radius: 20px; position: relative; flex-grow: 1;">
+                    <h2 style="margin-top: 2rem;">Add Printer</h2>
                     <form class="customer_details_form" style="display: flex; flex-direction: column;">
                         <label for="">Title <span>(To identify printer easily)</span></label>
                         <input type="text">
@@ -517,10 +526,12 @@
                         </tbody>
                     </table>
                 </div>
-                <h2 style="margin-top: 2rem;">Select Display</h2>
-                <div class=""
-                    style="background-color: white; padding: 1rem; margin-top: 2rem; border-radius: 20px; position: relative; flex-grow: 1;">
-                    <div id="kdsList" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
+                <div id="kdsContainer" class="hidden">
+                    <h2 style="margin-top: 2rem;">Select Display</h2>
+                    <div class=""
+                        style="background-color: white; padding: 1rem; margin-top: 2rem; border-radius: 20px; position: relative; flex-grow: 1;">
+                        <div id="kdsList" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
+                    </div>
                 </div>
             </main>
 
@@ -698,6 +709,13 @@
                 <input type="text" name="comment" id="comment" placeholder="Comment If Any">
                 <button type="submit">Start Day</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Select Kds To send data -->
+    <div class="model start_day hidden">
+        <div>
+            
         </div>
     </div>
 
