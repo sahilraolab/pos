@@ -43,7 +43,7 @@ app.on('ready', () => {
     createWindow();
     setupDatabaseHandlers(ipcMain);
     setupKDSHandlers(ipcMain);
-    // setupPrinterHandlers(ipcMain);
+    setupPrinterHandlers(ipcMain);
 });
 
 app.on('window-all-closed', () => {

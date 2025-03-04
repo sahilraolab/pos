@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.on('kds-found', (_, kds) => callback(kds));
     },
     onKDSConnected: (callback) => {
-        ipcRenderer.removeAllListeners('kds-connected'); // Remove old listeners
+        ipcRenderer.removeAllListeners('kds-connected'); 
         ipcRenderer.on('kds-connected', (_event, data) => callback(data));
     },    
     onKDSError: (callback) => {
@@ -25,15 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onOrderUpdated: (callback) => {
         ipcRenderer.removeAllListeners('order-updated');
         ipcRenderer.on('order-updated', (_event, data) => callback(data));
-    }
-});
-
-contextBridge.exposeInMainWorld('api', {
-    invoke: (channel, data) => ipcRenderer.invoke(channel, data),
-    send: (channel, data) => ipcRenderer.send(channel, data),
-    receive: (channel, func) => {
-        ipcRenderer.removeAllListeners(channel); // Ensure no duplicate listeners
-        ipcRenderer.on(channel, (event, ...args) => func(...args));
     },
-    removeListener: (channel) => ipcRenderer.removeAllListeners(channel),
+    connectPrinter: (printerInfo) => ipcRenderer.invoke('connect-printer', printerInfo), // ✅ FIXED
+    getConnectedPrinter: () => ipcRenderer.invoke('get-connected-printer'),
 });

@@ -1,40 +1,38 @@
+const { ipcMain } = require('electron');
 const net = require('net');
 
 function setupPrinterHandlers(ipcMain) {
-    const printerAddress = '192.168.1.23';
-    const printerPort = 9100;
+    let printerSocket = null;
 
-    const socket = net.createConnection({ host: printerAddress, port: printerPort }, () => {
-        console.log('Connected to printer');
-    });
-
-    socket.on('error', (err) => {
-        console.error('Printer connection error:', err);
-    });
-
-    socket.on('close', () => {
-        console.log('Printer connection closed');
-    });
-
-    ipcMain.on('print-receipt', (event, receiptContent) => {
-        socket.write(receiptContent, (error) => {
-            if (error) {
-                event.sender.send('print-receipt-response', 'Failed to print.');
-            } else {
-                const feedAndCutCommand = Buffer.concat([
-                    Buffer.from('\x1B\x64\x05'),
-                    Buffer.from('\x1D\x56\x00'),
-                    Buffer.from([0x1B, 0x70, 0x00, 0x19, 0xFA])
-                ]);
-                socket.write(feedAndCutCommand, (cutError) => {
-                    if (cutError) {
-                        event.sender.send('print-receipt-response', 'Printed successfully, but failed to cut.');
-                    } else {
-                        event.sender.send('print-receipt-response', 'Printed and cut successfully.');
-                    }
-                });
+    ipcMain.handle('connect-printer', async (_event, { ip, port }) => { // ✅ Ensure handler exists
+        console.log(`Connecting to printer at ${ip}:${port}`);
+        
+        return new Promise((resolve, reject) => {
+            if (printerSocket) {
+                printerSocket.destroy(); // Close existing connection
             }
+
+            printerSocket = net.createConnection({ host: ip, port }, () => {
+                console.log(`Connected to printer at ${ip}:${port}`);
+                resolve({ status: 'connected', ip, port });
+            });
+
+            printerSocket.on('error', (err) => {
+                console.error('Printer connection error:', err);
+                reject(new Error(err.message)); // Ensure it's a proper Error object
+            });
+
+            printerSocket.on('close', () => {
+                console.log('Printer connection closed');
+                printerSocket = null;
+            });
         });
+    });
+
+    ipcMain.handle('get-connected-printer', () => { // ✅ Ensure this exists
+        return printerSocket
+            ? { status: 'connected', ip: printerSocket.remoteAddress, port: printerSocket.remotePort }
+            : { status: 'disconnected' };
     });
 }
 

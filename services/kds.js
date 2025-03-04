@@ -99,7 +99,7 @@ function setupKDSHandlers(ipcMain) {
                         });
 
                         // ✅ Update the database or UI in your POS
-                        updateOrderStatus(orderData.order_id, "Completed");
+                        updateOrderStatus(orderData.orderId, "Completed");
                     }
                 } catch (error) {
                     console.error("❌ Error parsing KDS message:", error);

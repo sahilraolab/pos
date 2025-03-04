@@ -204,6 +204,11 @@ function showOngoingOrdersScreen() {
     document.getElementById("ongoingOrdersSection").classList.remove("hidden");
     localStorage.setItem("openedNavigationLink", "ongoingOrderLink");
     localStorage.setItem("openedNavigationSection", "ongoingOrdersSection");
+    // Trigger the ALL button properly
+    const allButton = document.getElementById("orders-container-all-btn");
+    if (allButton) {
+        filterOrders({ target: allButton }); // Call function with simulated event
+    }
     hideLoader();
 }
 
@@ -245,7 +250,7 @@ function showSettingScreen() {
     const buttons = document.querySelectorAll("#settingsMenu .light-btn");
 
     buttons.forEach(button => {
-        button.addEventListener("click", function() {
+        button.addEventListener("click", function () {
             // Remove active class from all buttons
             buttons.forEach(btn => btn.classList.remove("active"));
 

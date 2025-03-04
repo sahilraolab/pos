@@ -218,12 +218,18 @@ function saveKot(print) {
         const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
 
         // save data in localstorage and sent to kot
-        saveOrderDetails(orderDetails);
 
-        onRightAsideVisible();
-        if (print) {
-            // print it
-        }
+        saveOrderDetails(orderDetails).then(success => {
+            if (success) {
+                onRightAsideVisible();
+                if (print) {
+                    // print it
+                }
+            } else {
+                alert('not ok')
+            }
+        })
+
         // const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
         // const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
         // document.getElementById('paymentModel').classList.remove('hidden');
@@ -1231,8 +1237,8 @@ function isCouponValid(coupon, orderDetails) {
     }
 
     // 2. Validate Category or Item Match
-    const hasMatchingCategory = coupon.categories.includes("all") || 
-        orderDetails.selectedMenuList.some(item => 
+    const hasMatchingCategory = coupon.categories.includes("all") ||
+        orderDetails.selectedMenuList.some(item =>
             item.categories.some(category => coupon.categories.includes(category))
         );
 
@@ -1273,7 +1279,7 @@ function isCouponValid(coupon, orderDetails) {
     function convertTimeTo24Hour(time) {
         const [rawTime, period] = time.split(" ");
         let [hour, minute] = rawTime.split(":").map(Number);
-        
+
         if (period === "PM" && hour !== 12) hour += 12;
         if (period === "AM" && hour === 12) hour = 0;
 
@@ -1784,7 +1790,7 @@ function distributeSeats(shape) {
 
 function selectTable(table, tableDiv) {
     const orderDetails = JSON.parse(localStorage.getItem("dineInOrderDetails"));
-    if (table.status === 'available' || table.status === 'available_soon') {
+    if (table.status === 'available') {
         tableDiv.classList.toggle('selected');
         if (tableDiv.classList.toString().includes('selected')) {
             orderDetails.tableDetails.push({
@@ -1800,7 +1806,11 @@ function selectTable(table, tableDiv) {
         localStorage.setItem("dineInOrderDetails", JSON.stringify(orderDetails));
         showSelectedTable();
     } else {
-        alert(`${table.tableNumber} is not available.`);
+        if (table.status === 'available_soon') {
+            alert(`${table.tableNumber} will available soon.`);
+        } else {
+            alert(`${table.tableNumber} is not available.`);
+        }
     }
 }
 
@@ -1998,4 +2008,116 @@ function showPrinterSettings() {
     kdsContainer.classList.add('hidden');
     generalContainer.classList.add('hidden');
     printerContainer.classList.remove('hidden');
+    showPrinter();
+}
+
+document.getElementById("ongoingOrderSearch").addEventListener("input", function () {
+    const searchQuery = this.value.toLowerCase();
+    filterOrders({ target: document.querySelector(".light-btn.active") }, searchQuery);
+});
+
+function filterOrders(event, searchQuery = "") {
+    const buttons = document.querySelectorAll(".light-btn");
+    buttons.forEach(btn => btn.classList.remove("active"));
+    event.target.classList.add("active");
+
+    const filterType = event.target.getAttribute("data-filter");
+    displayOrders(filterType, searchQuery);
+}
+
+function displayOrders(filter, searchQuery = "") {
+    fetchOrders()
+        .then((res) => {
+            if (!res.success) {
+                console.error("Error fetching orders:", res.error);
+                return;
+            }
+
+            const orders = res.data;
+            const ordersContainer = document.getElementById("orders-container");
+            ordersContainer.innerHTML = "";
+
+            let filteredOrders = filter === "all" ? orders : orders.filter(order => order.orderType === filter);
+
+            if (searchQuery) {
+                console.log(searchQuery.toLowerCase());
+                filteredOrders = filteredOrders.filter(order => {
+                    try {
+                        const userInfo = JSON.parse(order.userInfo);
+                        const orderSummary = JSON.parse(order.orderSummary);
+                        const tableDetails = JSON.parse(order.tableDetails);
+                        
+                        // Convert search query to lowercase for case-insensitive search
+                        const query = searchQuery.toLowerCase();
+                        
+                        // Extract relevant search fields
+                        const userName = userInfo.fullName.toLowerCase();
+                        const orderId = order.id.toString();
+                        const tableNames = Array.isArray(tableDetails) 
+                            ? tableDetails.map(table => table.table.toLowerCase()).join(", ")
+                            : "";
+            
+                        // Check if any field contains the search query
+                        return userName.includes(query) || 
+                               orderId.includes(query) || 
+                               tableNames.includes(query);
+                    } catch (error) {
+                        console.error("Error parsing order details:", error);
+                        return false;
+                    }
+                });
+            }
+            
+
+            filteredOrders.forEach(order => {
+                let userInfo, orderSummary, tableDetails;
+                try {
+                    userInfo = JSON.parse(order.userInfo);
+                    orderSummary = JSON.parse(order.orderSummary);
+                    tableDetails = JSON.parse(order.tableDetails);
+                } catch (error) {
+                    console.error("Error parsing JSON:", error);
+                    return;
+                }
+
+                let orderTypeText = "Dine In";
+                let extraInfo = "";
+
+                if (order.orderType === "pickUp") {
+                    orderTypeText = "Pickup";
+                    extraInfo = `Pickup ID: ${order.id}`;
+                } else if (order.orderType === "quickBill") {
+                    orderTypeText = "Quick Bill";
+                    extraInfo = `Bill No: ${order.id}`;
+                } else if (order.orderType === "dineIn") {
+                    orderTypeText = "Dine In";
+                    if (Array.isArray(tableDetails) && tableDetails.length > 0) {
+                        const tableNumbers = tableDetails.map(table => table.table).join(", ");
+                        extraInfo = `Table No(s): ${tableNumbers}`;
+                    } else {
+                        extraInfo = "Table Info Unavailable";
+                    }
+                }
+
+                const orderCard = document.createElement("div");
+                orderCard.style = "background-color: white; padding: 1rem; display: flex; gap: 4rem; border: 1px solid #ccc; border-radius: 8px;";
+                
+                orderCard.innerHTML = `
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 18px; color: #2B2B2B; font-weight: 500; margin-bottom: .5rem;">${extraInfo}</span>
+                        <span style="color: #2B2B2B; font-size: 14px; margin-bottom: 2rem;">Name: ${userInfo.fullName}</span>
+                        <button style="font-size: 14px; color: white; border: none; padding: 5px; background: linear-gradient(#EFA280, #DF6229); border-radius: 20px;">Pay</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: end;">
+                        <span style="font-size: 18px; color: #2B2B2B; font-weight: 500; margin-bottom: .5rem;">#${order.id}</span>
+                        <span style="color: #2B2B2B; font-size: 14px; margin-bottom: 2rem;">$ ${orderSummary?.subtotal}</span>
+                        <span style="font-size: 14px; color: #DF6229; margin-top: 5px;">${orderTypeText}</span>
+                    </div>
+                `;
+                ordersContainer.appendChild(orderCard);
+            });
+        })
+        .catch(err => {
+            console.error("Network or server error:", err);
+        });
 }

@@ -317,7 +317,7 @@
             <main class="main_content ongoing_orders hidden" id="ongoingOrdersSection">
                 <h1>Ongoing Orders</h1>
                 <div class="menu_search" style="align-self: flex-start; margin-top: 1rem;">
-                    <input type="text" name="menuSearch" id="menuSearch" placeholder="Search menu...">
+                    <input type="text" name="ongoingOrderSearch" id="ongoingOrderSearch" placeholder="Search menu...">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
@@ -327,15 +327,20 @@
                     </svg>
                 </div>
                 <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button class="light-btn active" style="padding: .2rem .8rem; font-size: 15px;">ALL</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">Dine in</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">Pickup</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">Quick Bill</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">UberEats</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">SkiptheDishes</button>
-                    <button class="light-btn" style="padding: .2rem .8rem; font-size: 15px;">DoorDash</button>
+                    <button class="light-btn active" data-filter="all" id="orders-container-all-btn"
+                        onclick="filterOrders(event)" style="padding: .2rem .8rem; font-size: 15px;">ALL</button>
+                    <button class="light-btn" data-filter="dineIn" onclick="filterOrders(event)"
+                        style="padding: .2rem .8rem; font-size: 15px;">Dine In</button>
+                    <button class="light-btn" data-filter="pickUp" onclick="filterOrders(event)"
+                        style="padding: .2rem .8rem; font-size: 15px;">Pickup</button>
+                    <button class="light-btn" data-filter="quickBill" onclick="filterOrders(event)"
+                        style="padding: .2rem .8rem; font-size: 15px;">Quick Bill</button>
+                    <button class="light-btn" disabled style="padding: .2rem .8rem; font-size: 15px;">UberEats</button>
+                    <button class="light-btn" disabled
+                        style="padding: .2rem .8rem; font-size: 15px;">SkiptheDishes</button>
+                    <button class="light-btn" disabled style="padding: .2rem .8rem; font-size: 15px;">DoorDash</button>
                 </div>
-                <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;" id="orders-container">
                     <div style="background-color: white; padding: 1rem; display: flex; gap: 4rem;">
                         <div style="display: flex; flex-direction: column;">
                             <span style="font-size: 18px; color: #2B2B2B; font-weight: 500; margin-bottom: .5rem;">Table
@@ -477,30 +482,38 @@
                 <div id="printerContainer" class="hidden"
                     style="background-color: white; padding: 1rem; margin-top: 2rem; border-radius: 20px; position: relative; flex-grow: 1;">
                     <h2 style="margin-top: 2rem;">Add Printer</h2>
-                    <form class="customer_details_form" style="display: flex; flex-direction: column;">
-                        <label for="">Title <span>(To identify printer easily)</span></label>
-                        <input type="text">
-                        <label for="">Printer Type</label>
-                        <select name="" id="">
+                    <form id="printerForm" class="customer_details_form" style="display: flex; flex-direction: column;">
+                        <label for="printerTitle">Title <span>(To identify printer easily)</span></label>
+                        <input type="text" id="printerTitle" required>
+
+                        <label for="printerType">Printer Type</label>
+                        <select id="printerType">
                             <option value="Network Printer">Network Printer</option>
                         </select>
+
                         <div style="display: flex; gap: 1rem;">
                             <div class="customer_details_form">
-                                <label for="">Printer IP Address</label>
-                                <input type="text" name="" id="">
+                                <label for="printerIP">Printer IP Address</label>
+                                <input type="text" id="printerIP" required>
                             </div>
                             <div class="customer_details_form">
-                                <label for="">Printer Port Address</label>
-                                <input type="text" name="" id="">
+                                <label for="printerPort">Printer Port Address</label>
+                                <input type="text" id="printerPort" required>
                             </div>
                         </div>
+
                         <div style="margin-top: 2rem; display: flex; align-items: center; gap: 1rem;">
-                            <button
-                                style="border-radius: 20px; font-size: 16px; color: white; border: none; padding: 0.6rem 1rem; background: linear-gradient(#EFA280, #DF6229);">submit</button>
-                            <button
-                                style="background: transparent; color: #DF6229; font-size: 16px; border: 2px solid #DF6229; padding: .5rem 1rem; border-radius: 20px;">reset</button>
+                            <button type="submit" id="submitPrinter"
+                                style="border-radius: 20px; font-size: 16px; color: white; border: none; padding: 0.6rem 1rem; background: linear-gradient(#EFA280, #DF6229);">
+                                Submit
+                            </button>
+                            <button type="reset"
+                                style="background: transparent; color: #DF6229; font-size: 16px; border: 2px solid #DF6229; padding: .5rem 1rem; border-radius: 20px;">
+                                Reset
+                            </button>
                         </div>
                     </form>
+
                     <table>
                         <thead>
                             <tr>
@@ -509,20 +522,11 @@
                                 <th>Printer Type</th>
                                 <th>Printer IP Address</th>
                                 <th>Printer Port</th>
-                                <th>Share Name</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Kitchen Network Printer</td>
-                                <td>Network</td>
-                                <td>192.168.1.87</td>
-                                <td>9100</td>
-                                <td>StarLink001</td>
-                                <td><img src="../assets/delete.png" alt=""></td>
-                            </tr>
+                        <tbody id="printerList">
+                            <!-- Dynamically added printers will appear here -->
                         </tbody>
                     </table>
                 </div>
@@ -715,7 +719,7 @@
     <!-- Select Kds To send data -->
     <div class="model start_day hidden">
         <div>
-            
+
         </div>
     </div>
 
