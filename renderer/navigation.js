@@ -33,6 +33,7 @@ const pickUpOrderDetails = {
     },
     tableDetails: [],
     status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+    kdsSave : 0, // 0 fresh, 1 sent to kds
 }
 
 const dineInOrderDetails = {
@@ -52,6 +53,7 @@ const dineInOrderDetails = {
         card: 0,
     },
     status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
+    kdsSave : 0, // 0 fresh, 1 sent to kds
 }
 
 const tables = [
@@ -79,10 +81,56 @@ const tables = [
 
 document.addEventListener("DOMContentLoaded", () => {
 
+
+    const POS_INFO = localStorage.getItem('POS_INFO');
+
+    if(POS_INFO){
+ 
+    } else {
+        const initialPosSetupLoginScreen = document.querySelector('.initialPosSetupLoginScreen')
+        if(initialPosSetupLoginScreen){
+            initialPosSetupLoginScreen.classList.remove('hidden');
+            document.getElementById('posForm').addEventListener('submit', async function(event) {
+                event.preventDefault(); // Prevent form from refreshing the page
+
+                showLoader();
+    
+                const posId = document.getElementById('posIdInput').value;
+                const password = document.getElementById('passwordInput').value;
+    
+                try {
+                    const response = await fetch('http://localhost:3000/api/pos_setup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pos_id: posId, password: password })
+                    });
+    
+                    const data = await response.json();
+    
+                    if (response.ok) {
+                        localStorage.setItem('POS_INFO', JSON.stringify(data.data));
+                        window.location.reload();
+                        hideLoader();
+                    } else {
+                        alert(data.error);
+                        hideLoader();
+                    }
+                } catch (error) {
+                    alert('Failed to connect to server');
+                    hideLoader();
+                }
+            });
+        } 
+    }
+
+
     localStorage.setItem("quickOrderDetails", JSON.stringify(quickOrderDetails));
     localStorage.setItem("pickUpOrderDetails", JSON.stringify(pickUpOrderDetails));
     localStorage.setItem("dineInOrderDetails", JSON.stringify(dineInOrderDetails));
     localStorage.setItem("selectedAreas", JSON.stringify([]));
+
+
+
 
     showDashboardScreen();
 
@@ -204,6 +252,7 @@ function showOngoingOrdersScreen() {
     document.getElementById("ongoingOrdersSection").classList.remove("hidden");
     localStorage.setItem("openedNavigationLink", "ongoingOrderLink");
     localStorage.setItem("openedNavigationSection", "ongoingOrdersSection");
+    document.getElementById('rightAside').classList.add('hidden');
     // Trigger the ALL button properly
     const allButton = document.getElementById("orders-container-all-btn");
     if (allButton) {
@@ -247,6 +296,7 @@ function showSettingScreen() {
     document.getElementById("settingSection").classList.remove("hidden");
     localStorage.setItem("openedNavigationLink", "settingSectionLink");
     localStorage.setItem("openedNavigationSection", "settingSection");
+    document.getElementById('rightAside').classList.add('hidden');
     const buttons = document.querySelectorAll("#settingsMenu .light-btn");
 
     buttons.forEach(button => {

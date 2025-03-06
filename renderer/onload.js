@@ -1,4 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // const keys = document.querySelectorAll(".key");
   // pin = "";
   // keys.forEach((key) => {
@@ -133,7 +149,7 @@ async function verifyPin(pin) {
 
 function showMainContent() {
   document.querySelector(".container").classList.remove("hidden");
-  document.querySelector(".posloginContainer").classList.add("hidden");
+  document.querySelector(".initialPosSetupLoginScreen").classList.add("hidden");
   document.querySelector(".loginContainer").classList.add("hidden");
 }
 
@@ -357,63 +373,14 @@ function hideLoader() {
   document.body.style.overflow = "auto";
 }
 
-async function handlePOSAuthentication(event) {
-  event.preventDefault(); // Prevent the form from submitting
-  showLoader();
-
-  const posId = document.getElementById("posIdInput")?.value?.trim();
-  const password = document.getElementById("passwordInput")?.value?.trim();
-
-  // Validate inputs
-  if (!posId || !password) {
-    alert("Please enter POS ID and Password");
-    hideLoader();
-    return;
-  }
-
-  const requestBody = {
-    clientId: posId,
-    password: password,
-  };
-
-  try {
-    // Send POST request to server
-    const response = await fetch("http://localhost:3000/pos-authenticate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    // Handle response
-    if (!response.ok) {
-      const errorMessage = await response.text();
-      throw new Error(`Authentication failed: ${errorMessage}`);
-    }
-
-    const data = await response.json();
-    console.log("Authentication successful:", data);
-    localStorage.setItem("POSAuthenticationToken", data.token);
-    document.querySelector(".container").classList.remove("hidden");
-    document.querySelector(".posloginContainer").classList.add("hidden");
-    document.querySelector(".loginContainer").classList.remove("hidden");
-  } catch (error) {
-    console.error("Error during authentication:", error.message);
-    alert(`Error: ${error.message}`);
-  } finally {
-    hideLoader();
-  }
-}
-
 function showPosInitialLoginScreen() {
   localStorage.clear();
   document.querySelector(".container").classList.remove("hidden");
-  document.querySelector(".posloginContainer").classList.remove("hidden");
+  document.querySelector(".initialPosSetupLoginScreen").classList.remove("hidden");
 }
 
 function showSalePersonAuthScreen() {
   document.querySelector(".container").classList.remove("hidden");
-  document.querySelector(".posloginContainer").classList.add("hidden");
+  document.querySelector(".initialPosSetupLoginScreen").classList.add("hidden");
   document.querySelector(".loginContainer").classList.remove("hidden");
 }

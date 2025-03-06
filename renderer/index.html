@@ -26,9 +26,9 @@
     </div>
 
     <!-- INITIAL LOGIN SCREEN -->
-    <div class="posloginContainer hidden">
+    <div class="initialPosSetupLoginScreen hidden">
         <h2 class="login_name">POS LOGIN</h2>
-        <form id="posForm" onsubmit="handlePOSAuthentication(event)">
+        <form id="posForm">
             <input id="posIdInput" type="text" placeholder="POS ID" required>
             <input id="passwordInput" type="password" placeholder="Password" required>
             <button type="submit">Login</button>
@@ -68,7 +68,7 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container hidden">
         <!-- HEADER -->
         <header class="header">
             <div class="logo">
@@ -317,7 +317,7 @@
             <main class="main_content ongoing_orders hidden" id="ongoingOrdersSection">
                 <h1>Ongoing Orders</h1>
                 <div class="menu_search" style="align-self: flex-start; margin-top: 1rem;">
-                    <input type="text" name="ongoingOrderSearch" id="ongoingOrderSearch" placeholder="Search menu...">
+                    <input type="text" name="ongoingOrderSearch" id="ongoingOrderSearch" placeholder="Search Orders">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
@@ -1321,8 +1321,8 @@
 
     <script src="../preload.js"></script>
     <script src="renderer.js"></script>
-    <script src="onload.js"></script>
     <script src="navigation.js"></script>
+    <script src="onload.js"></script>
     <script src="app.js"></script>
     <script src="api.js"></script>
 </body>

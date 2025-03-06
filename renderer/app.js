@@ -17,7 +17,7 @@ function onRightAsideVisible() {
             <button style="width: 50%;" onclick="handleQuickBillPayment()">Payment</button>
             `;
         }
-        else {
+        else if (orderDetails.kdsSave == 1) {
             document.querySelector('.menu_bills_btn').innerHTML = `
             <button style="" onclick="newOrderCreation()">New</button>
             <button style="" onclick="printBill()">Print Bill</button>
@@ -206,34 +206,35 @@ function handleDineInPlaceOrder() {
 function saveKot(print) {
     const success = handleCustomerDetailsForm();
     if (success) {
-        document.querySelector('.selected_menu').classList.remove('hidden');
-        document.querySelector('.customer_details').classList.add('hidden');
-        document.querySelector('.menu_bills_btn').innerHTML = `
-        <button style="" onclick="newOrderCreation()">New</button>
-        <button style="" onclick="printBill()">Print Bill</button>
-        <button style="" onclick="makePayment()">Payment</button>
-        `;
-
         const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
         const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
 
         // save data in localstorage and sent to kot
-
         saveOrderDetails(orderDetails).then(success => {
             if (success) {
+                orderDetails.kdsSave = 1;
+                document.querySelector('.selected_menu').classList.remove('hidden');
+                document.querySelector('.customer_details').classList.add('hidden');
+                document.querySelector('.menu_bills_btn').innerHTML = `
+                <button style="" onclick="newOrderCreation()">New</button>
+                <button style="" onclick="printBill()">Print Bill</button>
+                <button style="" onclick="makePayment()">Payment</button>
+                `;
+                if (openedOrderTypeLink === "quickBill") {
+                    localStorage.setItem('quickOrderDetails', JSON.stringify(orderDetails))
+                } else if (openedOrderTypeLink === "pickUp") {
+                    localStorage.setItem('pickUpOrderDetails', JSON.stringify(orderDetails))
+                } else {
+                    localStorage.setItem('dineInOrderDetails', JSON.stringify(orderDetails));
+                }
                 onRightAsideVisible();
                 if (print) {
                     // print it
                 }
-            } else {
-                alert('not ok')
             }
         })
+    } else {
 
-        // const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
-        // const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
-        // document.getElementById('paymentModel').classList.remove('hidden');
-        // document.getElementById('totalBillAmtSpan').innerText = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
     }
 }
 
@@ -1304,7 +1305,6 @@ function isCouponValid(coupon, orderDetails) {
 
 
 function handleCustomerDetailsForm() {
-    // const form = document.querySelector(".customer_details_form");
     const openedOrderTypeLink = localStorage.getItem('openedOrderTypeLink');
     const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
     const nameInput = document.getElementById("fullName");
@@ -1338,13 +1338,11 @@ function handleCustomerDetailsForm() {
     // Validate the full name field
     if (!formData.fullName) {
         errors.push("Full Name is mandatory.");
-        return false
     }
 
     // Validate phone number (optional but should be numeric if provided)
     if (formData.phone && !/^\d+$/.test(formData.phone)) {
         errors.push("Phone number should contain only numbers.");
-        return false
     }
 
     // Display errors or log form data
@@ -1355,7 +1353,6 @@ function handleCustomerDetailsForm() {
     } else {
         console.log("Form submitted successfully:", formData);
         return true;
-        // Perform further actions like sending data to the server if needed
     }
 }
 
@@ -1374,6 +1371,8 @@ function handleQuickBillPayment() {
         const orderDetails = openedOrderTypeLink === "quickBill" ? (JSON.parse(localStorage.getItem('quickOrderDetails')) || { selectedMenuList: [] }) : openedOrderTypeLink === "pickUp" ? (JSON.parse(localStorage.getItem('pickUpOrderDetails')) || { selectedMenuList: [] }) : (JSON.parse(localStorage.getItem('dineInOrderDetails')) || { selectedMenuList: [] });
         document.getElementById('paymentModel').classList.remove('hidden');
         document.getElementById('totalBillAmtSpan').innerText = parseFloat(orderDetails.orderSummary.total + orderDetails.paymentDetails.tip).toFixed(2);
+    } else {
+        console.log('ok here')
     }
     hideLoader();
 }
@@ -2046,28 +2045,28 @@ function displayOrders(filter, searchQuery = "") {
                         const userInfo = JSON.parse(order.userInfo);
                         const orderSummary = JSON.parse(order.orderSummary);
                         const tableDetails = JSON.parse(order.tableDetails);
-                        
+
                         // Convert search query to lowercase for case-insensitive search
                         const query = searchQuery.toLowerCase();
-                        
+
                         // Extract relevant search fields
                         const userName = userInfo.fullName.toLowerCase();
                         const orderId = order.id.toString();
-                        const tableNames = Array.isArray(tableDetails) 
+                        const tableNames = Array.isArray(tableDetails)
                             ? tableDetails.map(table => table.table.toLowerCase()).join(", ")
                             : "";
-            
+
                         // Check if any field contains the search query
-                        return userName.includes(query) || 
-                               orderId.includes(query) || 
-                               tableNames.includes(query);
+                        return userName.includes(query) ||
+                            orderId.includes(query) ||
+                            tableNames.includes(query);
                     } catch (error) {
                         console.error("Error parsing order details:", error);
                         return false;
                     }
                 });
             }
-            
+
 
             filteredOrders.forEach(order => {
                 let userInfo, orderSummary, tableDetails;
@@ -2101,7 +2100,7 @@ function displayOrders(filter, searchQuery = "") {
 
                 const orderCard = document.createElement("div");
                 orderCard.style = "background-color: white; padding: 1rem; display: flex; gap: 4rem; border: 1px solid #ccc; border-radius: 8px;";
-                
+
                 orderCard.innerHTML = `
                     <div style="display: flex; flex-direction: column;">
                         <span style="font-size: 18px; color: #2B2B2B; font-weight: 500; margin-bottom: .5rem;">${extraInfo}</span>

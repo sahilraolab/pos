@@ -753,7 +753,7 @@ body {
 /* POS LOGIN CONTAINER */
 
 
-.posloginContainer {
+.initialPosSetupLoginScreen {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -770,26 +770,26 @@ body {
     bottom: 0;
 }
 
-.posloginContainer>.login_name {
+.initialPosSetupLoginScreen>.login_name {
     margin-bottom: 1rem;
     color: #333;
 }
 
-.posloginContainer>form {
+.initialPosSetupLoginScreen>form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     width: 50%;
 }
 
-.posloginContainer>form>input {
+.initialPosSetupLoginScreen>form>input {
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-.posloginContainer>form>button {
+.initialPosSetupLoginScreen>form>button {
     padding: 0.75rem;
     font-size: 1rem;
     border: none;

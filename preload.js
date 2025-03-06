@@ -29,3 +29,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     connectPrinter: (printerInfo) => ipcRenderer.invoke('connect-printer', printerInfo), // ✅ FIXED
     getConnectedPrinter: () => ipcRenderer.invoke('get-connected-printer'),
 });
+
+
+contextBridge.exposeInMainWorld('api', {
+    invoke: (channel, data) => ipcRenderer.invoke(channel, data),
+    send: (channel, data) => ipcRenderer.send(channel, data),
+    receive: (channel, func) => {
+        ipcRenderer.removeAllListeners(channel); // Ensure no duplicate listeners
+        ipcRenderer.on(channel, (event, ...args) => func(...args));
+    },
+    removeListener: (channel) => ipcRenderer.removeAllListeners(channel),
+});

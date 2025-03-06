@@ -95,3 +95,20 @@ function fetchCategories() {
         }, 100);
     });
 }
+
+
+
+/*
+1. Initial pos loging screen 
+    api -> pos_setup -> response -> 
+    {
+        name : "Sector 17 Clarence",
+        location: "180 Clarence St, Brampton, ON L6W 1T2, Canada",
+        email: "clarence@sector17.ca",
+        phone : "905-456-0017",
+        website : "www.sector17.ca",
+        Order_Types : ["Quick Bill", "Pick Up", "Dine In"]
+    }
+
+
+*/
