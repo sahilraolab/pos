@@ -1,37 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // const keys = document.querySelectorAll(".key");
-  // pin = "";
-  // keys.forEach((key) => {
-  //     key.addEventListener("click", () => {
-  //         if (key.classList.contains("delete")) {
-  //             pin = pin.slice(0, -1);
-  //         } else if (pin.length < 4) {
-  //             pin += key.textContent.trim();
-  //         }
-  //         updateDots();
-
-  //         if (pin.length === 4) {
-  //             verifyPin(pin);
-  //         }
-  //     });
-  // });
-
   const emailInput = document.getElementById("email");
   const phoneInput = document.getElementById("phone");
   const nameInput = document.getElementById("fullName");
@@ -90,67 +58,11 @@ function checkInternetConnection() {
   }
 }
 
-function updateDots() {
-  const dots = document.querySelectorAll(".dot");
-  dots.forEach((dot, index) => {
-    if (index < pin.length) {
-      dot.textContent = pin[index];
-      dot.classList.add("filled");
-    } else {
-      dot.textContent = "";
-      dot.classList.remove("filled");
-    }
-  });
-}
-
-async function verifyPin(pin) {
-  const token = localStorage.getItem("POSAuthenticationToken");
-  if (!token) {
-    alert("No token found. Please login again.");
-    return;
-  }
-
-  const requestBody = {
-    token: token,
-    pin: pin,
-  };
-
-  try {
-    const response = await fetch("http://localhost:3000/pos-saleperson-auth", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      throw new Error("PIN verification failed");
-    }
-
-    const data = await response.json();
-    console.log("PIN verification successful:", data);
-
-    showMainContent();
-    const dayStart = localStorage.getItem("dayStart");
-    if (!dayStart) {
-      showStartDayModel();
-    } else {
-      showPunchInModel();
-    }
-  } catch (error) {
-    console.error("Error during PIN verification:", error);
-    alert("PIN verification failed. Please try again.");
-    clearDots();
-  } finally {
-    hideLoader();
-  }
-}
 
 function showMainContent() {
-  document.querySelector(".container").classList.remove("hidden");
+  document.querySelector(".screensContainer").classList.remove("hidden");
   document.querySelector(".initialPosSetupLoginScreen").classList.add("hidden");
-  document.querySelector(".loginContainer").classList.add("hidden");
+  document.querySelector(".counterStaffLoginScreen").classList.add("hidden");
 }
 
 function showStartDayModel() {
@@ -336,10 +248,6 @@ function loadMenu() {
   hideLoader();
 }
 
-function clearDots() {
-  pin = "";
-  updateDots();
-}
 
 function showLoader() {
   // Show overlay and loader
@@ -375,12 +283,12 @@ function hideLoader() {
 
 function showPosInitialLoginScreen() {
   localStorage.clear();
-  document.querySelector(".container").classList.remove("hidden");
+  document.querySelector(".screensContainer").classList.remove("hidden");
   document.querySelector(".initialPosSetupLoginScreen").classList.remove("hidden");
 }
 
 function showSalePersonAuthScreen() {
-  document.querySelector(".container").classList.remove("hidden");
+  document.querySelector(".screensContainer").classList.remove("hidden");
   document.querySelector(".initialPosSetupLoginScreen").classList.add("hidden");
-  document.querySelector(".loginContainer").classList.remove("hidden");
+  document.querySelector(".counterStaffLoginScreen").classList.remove("hidden");
 }

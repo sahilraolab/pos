@@ -33,7 +33,7 @@ const pickUpOrderDetails = {
     },
     tableDetails: [],
     status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-    kdsSave : 0, // 0 fresh, 1 sent to kds
+    kdsSave: 0, // 0 fresh, 1 sent to kds
 }
 
 const dineInOrderDetails = {
@@ -53,7 +53,7 @@ const dineInOrderDetails = {
         card: 0,
     },
     status: null, // fulfilled -> 0, canceled -> 1, refunded -> 2
-    kdsSave : 0, // 0 fresh, 1 sent to kds
+    kdsSave: 0, // 0 fresh, 1 sent to kds
 }
 
 const tables = [
@@ -79,48 +79,139 @@ const tables = [
     { tableId: "TBL-020", area: "Ground Floor", tableNumber: "G-8", seatingCapacity: 6, shape: "rectangle", status: "available" }
 ];
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    const POS_INFO = localStorage.getItem("POS_INFO");
 
+    if (POS_INFO) {
+        const WORKING_COUNTER_STAFF = localStorage.getItem("WORKING_COUNTER_STAFF");
 
-    const POS_INFO = localStorage.getItem('POS_INFO');
+        if (!WORKING_COUNTER_STAFF) {
+            const counterStaffLoginScreen = document.querySelector(".counterStaffLoginScreen");
 
-    if(POS_INFO){
- 
+            if (counterStaffLoginScreen) {
+                counterStaffLoginScreen.classList.remove("hidden");
+
+                const keys = document.querySelectorAll(".key");
+                let pin = "";
+
+                function updateDots() {
+                    const dots = document.querySelectorAll(".dot");
+                    dots.forEach((dot, index) => {
+                        dot.textContent = pin[index];
+                        dot.classList.toggle("filled", index < pin.length);
+                    });
+                }
+
+                function clearDots() {
+                    pin = "";
+                    updateDots();
+                }
+
+                async function verifyPin() {
+                    if (pin.length === 4) {
+                        showLoader();
+                        let _posInfo = JSON.parse(POS_INFO);
+                        const requestBody = {
+                            brand_id: _posInfo.brand_id,
+                            outlet_id: _posInfo.outlet_id,
+                            pin: pin,
+                        };
+
+                        try {
+                            const response = await fetch("http://localhost:3000/api/counter_staff_verification", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(requestBody),
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok) {
+                                throw new Error(data.message || "Failed to verify PIN. Please check your credentials.");
+                            }
+
+                            console.log("✅ PIN verification successful:", data);
+                            localStorage.setItem("WORKING_COUNTER_STAFF", JSON.stringify(data.staff));
+                            // showMainContent();
+
+                            // // Handle Day Start or Punch-in
+                            // const dayStart = localStorage.getItem("dayStart");
+                            // if (!dayStart) {
+                            //     showStartDayModel();
+                            // } else {
+                            //     showPunchInModel();
+                            // }
+                        } catch (error) {
+                            console.error("❌ Error during PIN verification:", error);
+
+                            if (error.message.includes("Failed to fetch")) {
+                                alert("Unable to connect to the server. Please check your internet connection and try again.");
+                            } else {
+                                alert(error.message);
+                            }
+
+                            clearDots();
+                        } finally {
+                            hideLoader();
+                        }
+                    }
+                }
+
+                keys.forEach((key) => {
+                    key.addEventListener("click", () => {
+                        if (key.classList.contains("delete")) {
+                            pin = pin.slice(0, -1);
+                        } else if (pin.length < 4) {
+                            pin += key.textContent.trim();
+                        }
+                        updateDots();
+                        verifyPin();
+                    });
+                });
+            }
+        }
     } else {
-        const initialPosSetupLoginScreen = document.querySelector('.initialPosSetupLoginScreen')
-        if(initialPosSetupLoginScreen){
-            initialPosSetupLoginScreen.classList.remove('hidden');
-            document.getElementById('posForm').addEventListener('submit', async function(event) {
-                event.preventDefault(); // Prevent form from refreshing the page
+        const initialPosSetupLoginScreen = document.querySelector(".initialPosSetupLoginScreen");
+        if (initialPosSetupLoginScreen) {
+            initialPosSetupLoginScreen.classList.remove("hidden");
+
+            document.getElementById("posForm").addEventListener("submit", async function (event) {
+                event.preventDefault();
 
                 showLoader();
-    
-                const posId = document.getElementById('posIdInput').value;
-                const password = document.getElementById('passwordInput').value;
-    
+
+                const posId = document.getElementById("posIdInput").value.trim();
+                const password = document.getElementById("passwordInput").value.trim();
+
+                if (!posId || !password) {
+                    alert("POS ID and Password are required.");
+                    hideLoader();
+                    return;
+                }
+
                 try {
-                    const response = await fetch('http://localhost:3000/api/pos_setup', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pos_id: posId, password: password })
+                    const response = await fetch("http://localhost:3000/api/pos_setup", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ pos_id: posId, password: password }),
                     });
-    
+
                     const data = await response.json();
-    
+
                     if (response.ok) {
-                        localStorage.setItem('POS_INFO', JSON.stringify(data.data));
+                        localStorage.setItem("POS_INFO", JSON.stringify(data.data));
                         window.location.reload();
-                        hideLoader();
                     } else {
-                        alert(data.error);
-                        hideLoader();
+                        alert(data.error || "Login failed.");
                     }
                 } catch (error) {
-                    alert('Failed to connect to server');
+                    console.error("Error:", error);
+                    alert("Failed to connect to server.");
+                } finally {
                     hideLoader();
                 }
             });
-        } 
+        }
     }
 
 
