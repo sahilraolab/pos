@@ -84,8 +84,115 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (POS_INFO) {
         const WORKING_COUNTER_STAFF = localStorage.getItem("WORKING_COUNTER_STAFF");
+        if (WORKING_COUNTER_STAFF) {
+            const mainScreensContainer = document.querySelector(".screensContainer");
+            if (mainScreensContainer) {
 
-        if (!WORKING_COUNTER_STAFF) {
+                mainScreensContainer.classList.remove('hidden');
+                localStorage.setItem("quickOrderDetails", JSON.stringify(quickOrderDetails));
+                localStorage.setItem("pickUpOrderDetails", JSON.stringify(pickUpOrderDetails));
+                localStorage.setItem("dineInOrderDetails", JSON.stringify(dineInOrderDetails));
+                localStorage.setItem("selectedAreas", JSON.stringify([]));
+                showDashboardScreen();
+
+                const DAY_START = localStorage.getItem('DAY_START');
+                if (DAY_START) {
+                    const punchIn = JSON.parse(WORKING_COUNTER_STAFF)?.activities?.punch_in;
+                    if (!punchIn) {
+                        showPunchInModel();
+                    } else {
+                        document.getElementById('currentStaffName').textContent = JSON.parse(WORKING_COUNTER_STAFF).name;
+                        document.getElementById('currentStaffRole').textContent = JSON.parse(WORKING_COUNTER_STAFF).role;
+                    }
+                } else {
+                    const startDayModel = document.querySelector('.start_day');
+                    startDayModel.classList.remove('hidden');
+                }
+
+
+                /* -------------------------------------
+                 Right aside rezide functionality start
+                ------------------------------------- */
+                const rightAside = document.getElementById("rightAside");
+                const rightAsideHandle = document.getElementById("rightAsideHandle");
+
+                let isResizing = false;
+
+                rightAsideHandle.addEventListener("mousedown", function (e) {
+                    isResizing = true;
+                    document.addEventListener("mousemove", resize, false);
+                    document.addEventListener("mouseup", stopResize, false);
+                });
+
+                function resize(e) {
+                    if (isResizing) {
+                        const newWidth = window.innerWidth - e.clientX;
+                        rightAside.style.width = newWidth + "px";
+                    }
+                }
+
+                function stopResize() {
+                    isResizing = false;
+                    document.removeEventListener("mousemove", resize, false);
+                    document.removeEventListener("mouseup", stopResize, false);
+                }
+
+                /* -------------------------------------
+                 Right aside rezide functionality end
+                ------------------------------------- */
+
+                // Create a MutationObserver
+                const observer = new MutationObserver((mutationsList) => {
+                    for (const mutation of mutationsList) {
+                        if (mutation.type === "attributes" && mutation.attributeName === "class") {
+                            // Check if the 'hidden' class is removed
+                            if (!rightAside.classList.contains("hidden")) {
+                                onRightAsideVisible();
+                            }
+                        }
+                    }
+                });
+
+                // Observe changes to the 'class' attribute of the element
+                observer.observe(rightAside, { attributes: true });
+
+
+
+                // -------------------------
+
+                const statusButtons = document.querySelectorAll(".status_indication_filter_main button");
+                let selectedStatus = "all"; // Default selection
+
+                statusButtons.forEach(button => {
+                    button.addEventListener("click", () => {
+                        statusButtons.forEach(btn => btn.classList.remove("active"));
+                        button.classList.add("active");
+                        selectedStatus = button.dataset.type;
+                        createTableElements();
+                    });
+                });
+
+                const searchInput = document.querySelector(".table_search input");
+
+                searchInput.addEventListener("input", function () {
+                    const searchValue = searchInput.value.toLowerCase();
+                    filterTables(searchValue);
+                });
+
+                function filterTables(searchValue) {
+                    const filteredTables = tables.filter(table =>
+                        table.tableId.toLowerCase().includes(searchValue) ||
+                        table.area.toLowerCase().includes(searchValue) ||
+                        table.tableNumber.toLowerCase().includes(searchValue) ||
+                        table.shape.toLowerCase().includes(searchValue) ||
+                        table.status.toLowerCase().includes(searchValue)
+                    );
+                    createTableElements(filteredTables);
+                }
+
+                // -------------------------
+            }
+        } else {
             const counterStaffLoginScreen = document.querySelector(".counterStaffLoginScreen");
 
             if (counterStaffLoginScreen) {
@@ -132,6 +239,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                             console.log("✅ PIN verification successful:", data);
                             localStorage.setItem("WORKING_COUNTER_STAFF", JSON.stringify(data.staff));
+                            window.location.reload();
                             // showMainContent();
 
                             // // Handle Day Start or Punch-in
@@ -213,97 +321,86 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         }
     }
-
-
-    localStorage.setItem("quickOrderDetails", JSON.stringify(quickOrderDetails));
-    localStorage.setItem("pickUpOrderDetails", JSON.stringify(pickUpOrderDetails));
-    localStorage.setItem("dineInOrderDetails", JSON.stringify(dineInOrderDetails));
-    localStorage.setItem("selectedAreas", JSON.stringify([]));
-
-
-
-
-    showDashboardScreen();
-
-    // Right aside rezide functionality start
-    const rightAside = document.getElementById("rightAside");
-    const rightAsideHandle = document.getElementById("rightAsideHandle");
-
-    let isResizing = false;
-
-    rightAsideHandle.addEventListener("mousedown", function (e) {
-        isResizing = true;
-        document.addEventListener("mousemove", resize, false);
-        document.addEventListener("mouseup", stopResize, false);
-    });
-
-    function resize(e) {
-        if (isResizing) {
-            const newWidth = window.innerWidth - e.clientX;
-            rightAside.style.width = newWidth + "px";
-        }
-    }
-
-    function stopResize() {
-        isResizing = false;
-        document.removeEventListener("mousemove", resize, false);
-        document.removeEventListener("mouseup", stopResize, false);
-    }
-
-    // Right aside rezide functionality end
-
-    // Create a MutationObserver
-    const observer = new MutationObserver((mutationsList) => {
-        for (const mutation of mutationsList) {
-            if (mutation.type === "attributes" && mutation.attributeName === "class") {
-                // Check if the 'hidden' class is removed
-                if (!rightAside.classList.contains("hidden")) {
-                    onRightAsideVisible();
-                }
-            }
-        }
-    });
-
-    // Observe changes to the 'class' attribute of the element
-    observer.observe(rightAside, { attributes: true });
-
-    const statusButtons = document.querySelectorAll(".status_indication_filter_main button");
-    let selectedStatus = "all"; // Default selection
-
-    // Event listener for status buttons
-    statusButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            // Remove 'active' class from all buttons
-            statusButtons.forEach(btn => btn.classList.remove("active"));
-            // Add 'active' class to the clicked button
-            button.classList.add("active");
-            // Update selected status
-            selectedStatus = button.dataset.type; // Corrected this line
-            // Call function to update table elements
-            createTableElements();
-        });
-    });
-
-    const searchInput = document.querySelector(".table_search input");
-
-    searchInput.addEventListener("input", function () {
-        const searchValue = searchInput.value.toLowerCase();
-        filterTables(searchValue);
-    });
-
-    function filterTables(searchValue) {
-        const filteredTables = tables.filter(table =>
-            table.tableId.toLowerCase().includes(searchValue) ||
-            table.area.toLowerCase().includes(searchValue) ||
-            table.tableNumber.toLowerCase().includes(searchValue) ||
-            table.shape.toLowerCase().includes(searchValue) ||
-            table.status.toLowerCase().includes(searchValue)
-        );
-        createTableElements(filteredTables);
-    }
-
 });
 
+
+function logout() {
+    showLoader();
+    localStorage.removeItem("WORKING_COUNTER_STAFF");
+    window.location.reload();
+}
+
+function submitStartDayModel(event) {
+    event.preventDefault();
+    showLoader();
+    const openingCash = event.target[0].value;
+    const openTime = event.target[1].value;
+    const comment = event.target[2].value.trim();
+    const openBy = JSON.parse(localStorage.getItem('WORKING_COUNTER_STAFF')).user_id;
+    const dayStartInfo = {
+        openingCash,
+        openTime,
+        comment,
+        openBy
+    }
+    localStorage.setItem("DAY_START", JSON.stringify(dayStartInfo));
+    document.querySelector(".start_day").classList.add("hidden");
+    showPunchInModel();
+    hideLoader();
+}
+
+
+function showPunchInModel() {
+    showLoader();
+    const WORKING_COUNTER_STAFF = JSON.parse(localStorage.getItem('WORKING_COUNTER_STAFF'));
+    document.getElementById('punchInUserName').textContent = WORKING_COUNTER_STAFF.name + "!";
+    document.getElementById('punchInCurrentDate').textContent = getFormattedDate();
+    document.querySelector(".punch_in").classList.remove("hidden");
+    document.querySelector(".punch_in_btn").addEventListener("click", function () {
+
+        const punchTime = document.getElementById("punchTime").value;
+
+        if (!punchTime) {
+            alert("Please select a punch-in time.");
+            return;
+        }
+
+        const today = new Date();
+        const punchInDateTime = new Date(`${today.toISOString().split("T")[0]}T${punchTime}:00Z`).toISOString();
+
+        WORKING_COUNTER_STAFF.activities = WORKING_COUNTER_STAFF.activities || {};
+        WORKING_COUNTER_STAFF.activities.punch_in = punchInDateTime;
+
+        if (!WORKING_COUNTER_STAFF.activities.check_ins) {
+            WORKING_COUNTER_STAFF.activities.check_ins = [];
+        }
+
+        WORKING_COUNTER_STAFF.activities.check_ins.push({
+            time: punchInDateTime,
+            type: "punch_in"
+        });
+
+        // Save back to localStorage
+        localStorage.setItem("WORKING_COUNTER_STAFF", JSON.stringify(WORKING_COUNTER_STAFF));
+
+        document.getElementById('currentStaffName').textContent = WORKING_COUNTER_STAFF.name;
+        document.getElementById('currentStaffRole').textContent = WORKING_COUNTER_STAFF.role;
+        document.querySelector(".punch_in").classList.add("hidden");
+    });
+
+    hideLoader();
+}
+
+function showOperatorActions() {
+    alert('ok')
+}
+
+
+function getFormattedDate() {
+    const today = new Date();
+    const options = { year: "numeric", month: "long", day: "2-digit", weekday: "long" };
+    return today.toLocaleDateString("en-US", options);
+}
 
 
 function showDashboardScreen() {

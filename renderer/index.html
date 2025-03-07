@@ -94,15 +94,22 @@
                 <button id="pickUp" onclick="showPickupScreen()">Pickup/Delivery</button>
                 <button id="quickBill" onclick="showQuickBillScreen()">Quick Bill</button>
             </div>
-            <div class="user_info">
+            <div class="user_info" id="operatorInfo" onclick="showOperatorActions()" style="cursor: pointer;">
                 <div class="user_img">
                     <img src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
                         alt="">
                 </div>
                 <div class="user_typo">
-                    <span class="user_name">Lauren Smith</span>
-                    <span class="user_role">Cashier</span>
+                    <span class="user_name" id="currentStaffName"></span>
+                    <span class="user_role" id="currentStaffRole"></span>
                 </div>
+                <button style="border: none; background-color: transparent; margin-right: 1rem;">
+                    <svg width="18" height="17" viewBox="0 0 14 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M11.0015 8.30551C9.28795 11.0567 8.43116 12.4323 7.18182 12.4323C5.93247 12.4323 5.07569 11.0567 3.36212 8.30552L2.96357 7.66563C1.06866 4.62324 0.121197 3.10205 0.764049 1.94431C1.4069 0.786566 3.19902 0.786566 6.78327 0.786566H7.58037C11.1646 0.786566 12.9567 0.786566 13.5996 1.94431C14.2424 3.10205 13.295 4.62324 11.4001 7.66562L11.0015 8.30551Z"
+                            fill="#E4E4E4" />
+                    </svg>
+                </button>
             </div>
         </header>
 
@@ -194,7 +201,7 @@
                             stroke-linejoin="round" />
                     </svg>
                 </button>
-                <button>
+                <button style="cursor: pointer;" onclick="logout()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M15.1 16.44C14.79 20.04 12.94 21.51 8.88998 21.51H8.75998C4.28998 21.51 2.49998 19.72 2.49998 15.25L2.49998 8.73001C2.49998 4.26001 4.28998 2.47001 8.75998 2.47001H8.88998C12.91 2.47001 14.76 3.92001 15.09 7.46001"
@@ -706,7 +713,7 @@
             <h3>Start Day</h3>
             <form onsubmit="submitStartDayModel(event);">
                 <label for="openingCash">Opening Cash Balance</label>
-                <input type="number" name="openingCash" id="openingCash" placeholder="Opening Cash Balance" required>
+                <input type="number" name="openingCash" id="openingCash" placeholder="Opening Cash Balance" step="any">
                 <label for="timeDate">Time & Date</label>
                 <input type="datetime-local" name="timeDate" id="timeDate" placeholder="Time & Date" required>
                 <label for="comment">Comment If Any</label>
@@ -726,12 +733,12 @@
     <!-- PUNCH IN MODEL -->
     <div class="model punch_in hidden">
         <div>
-            <h3>Hey Karan!</h3>
+            <h3 id="punchInUserName"></h3>
             <p style="margin-bottom: 1rem;">Mark your attendance!</p>
             <div class="line"></div>
             <input type="time" name="punchTime" id="punchTime">
-            <p>May 26, 2023 - Monday</p>
-            <button onclick="sumbitPunchInModle()">Punch In</button>
+            <p id="punchInCurrentDate">May 26, 2023 - Monday</p>
+            <button class="punch_in_btn">Punch In</button>
         </div>
     </div>
 

@@ -69,18 +69,6 @@ function showStartDayModel() {
   document.querySelector(".start_day").classList.remove("hidden");
 }
 
-function submitStartDayModel(event) {
-  event.preventDefault();
-  showLoader();
-  document.querySelector(".start_day").classList.add("hidden");
-  localStorage.setItem("dayStart", true);
-  showPunchInModel();
-  hideLoader();
-}
-
-function showPunchInModel() {
-  document.querySelector(".punch_in").classList.remove("hidden");
-}
 
 // function sumbitPunchInModle() {
 //   showLoader();
