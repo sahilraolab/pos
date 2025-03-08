@@ -3,6 +3,7 @@ const path = require('path');
 const { setupDatabaseHandlers } = require('./database/orders');
 const { setupKDSHandlers } = require('./services/kds');
 const { setupPrinterHandlers } = require('./services/printer');
+const { setupUserHandlers } = require('./database/userHandlers');
 
 
 let mainWindow;
@@ -42,6 +43,7 @@ function createWindow() {
 app.on('ready', () => {
     createWindow();
     setupDatabaseHandlers(ipcMain);
+    setupUserHandlers(ipcMain);
     setupKDSHandlers(ipcMain);
     setupPrinterHandlers(ipcMain);
 });

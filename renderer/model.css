@@ -74,12 +74,23 @@
     text-align: center;
 }
 
-.punch_in>div>h3,
-.punch_out_and_break>div>h3 {
+.punch_in>div>h3 {
     font-size: 1.5rem;
     font-weight: 600;
     padding: 20px 20px 0 20px;
     /* border-bottom: 1px solid #E4E4E4; */
+}
+
+.punch_out_and_break_top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+}
+
+.punch_out_and_break h3{
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
 .punch_in>div>p {

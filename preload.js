@@ -6,17 +6,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     disconnectKDS: (kdsInfo) => ipcRenderer.send('disconnect-kds', kdsInfo),
     sendToKDS: (ip, port, data) => ipcRenderer.send('send-to-kds', { ip, port, data }),
     sendToAllKDS: (data) => ipcRenderer.send('send-to-all-kds', data),
+
     onKDSFound: (callback) => {
         ipcRenderer.removeAllListeners('kds-found'); 
-        ipcRenderer.on('kds-found', (_, kds) => callback(kds));
+        ipcRenderer.once('kds-found', (_, kds) => callback(kds)); // 🔹 Use `once` instead of `on`
     },
     onKDSConnected: (callback) => {
         ipcRenderer.removeAllListeners('kds-connected'); 
-        ipcRenderer.on('kds-connected', (_event, data) => callback(data));
-    },    
+        ipcRenderer.once('kds-connected', (_event, data) => callback(data)); // 🔹 Use `once`
+    },
     onKDSError: (callback) => {
         ipcRenderer.removeAllListeners('kds-error');
-        ipcRenderer.on('kds-error', (_, errorMessage) => callback(errorMessage));
+        ipcRenderer.once('kds-error', (_, errorMessage) => callback(errorMessage)); // 🔹 Use `once`
     },
     onOrderStatus: (callback) => {
         ipcRenderer.removeAllListeners('order-status');
@@ -26,10 +27,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.removeAllListeners('order-updated');
         ipcRenderer.on('order-updated', (_event, data) => callback(data));
     },
-    connectPrinter: (printerInfo) => ipcRenderer.invoke('connect-printer', printerInfo), // ✅ FIXED
+
+    connectPrinter: (printerInfo) => ipcRenderer.invoke('connect-printer', printerInfo),
     getConnectedPrinter: () => ipcRenderer.invoke('get-connected-printer'),
 });
-
 
 contextBridge.exposeInMainWorld('api', {
     invoke: (channel, data) => ipcRenderer.invoke(channel, data),

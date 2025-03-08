@@ -83,7 +83,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const POS_INFO = localStorage.getItem("POS_INFO");
 
     if (POS_INFO) {
-        const WORKING_COUNTER_STAFF = localStorage.getItem("WORKING_COUNTER_STAFF");
+        let counterStaff = await userAPI.fetchUsers();
+        console.log(counterStaff);
+        counterStaff = counterStaff?.data;
+        let WORKING_COUNTER_STAFF;
+        if(counterStaff && counterStaff.length > 0){
+            array = counterStaff.filter(user => user.status === "Active");
+            WORKING_COUNTER_STAFF = array[0];
+        }
         if (WORKING_COUNTER_STAFF) {
             const mainScreensContainer = document.querySelector(".screensContainer");
             if (mainScreensContainer) {
@@ -237,9 +244,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                                 throw new Error(data.message || "Failed to verify PIN. Please check your credentials.");
                             }
 
-                            console.log("✅ PIN verification successful:", data);
-                            localStorage.setItem("WORKING_COUNTER_STAFF", JSON.stringify(data.staff));
-                            window.location.reload();
+                            const updatedStaff = data.all_staff.map(user => ({
+                                ...user,
+                                status: user.user_id === data.staff.user_id ? "Active" : "Inactive"
+                            }));
+                            
+                            // Update the data object with modified staff list
+                            const updatedData = { ...data, all_staff: updatedStaff };
+                            
+                            console.log(updatedData.all_staff);
+
+                            updatedData.all_staff.forEach( async (item)=>{
+                                await userAPI.createUser(item);
+                            })
+                            
+                            // localStorage.setItem("WORKING_COUNTER_STAFF", JSON.stringify(data.staff));
+                            // window.location.reload();
                             // showMainContent();
 
                             // // Handle Day Start or Punch-in
@@ -391,10 +411,117 @@ function showPunchInModel() {
     hideLoader();
 }
 
+
 function showOperatorActions() {
-    alert('ok')
+    showLoader();
+
+    const WORKING_COUNTER_STAFF = JSON.parse(localStorage.getItem('WORKING_COUNTER_STAFF'));
+
+    const punchOutBreakUserName = document.getElementById('punchOutBreakUserName');
+    const todayDatePOB = document.getElementById("todayDatePOB");
+    const punch_out_and_break_model = document.querySelector('.punch_out_and_break_model');
+    const checkInTimeShow = document.querySelector('.checkInTimeShow');
+    const totalWorkingHours = document.querySelector('.totalWorkingHours');
+    const closeButton = document.querySelector('.punch_out_and_break_top button');
+    const punchOutBtn = document.querySelector('.punchOutBtn');
+
+    punchOutBreakUserName.textContent = WORKING_COUNTER_STAFF.name + "!";
+
+    // Live clock management
+    let clockInterval = setInterval(liveClock, 1000);
+
+    todayDatePOB.textContent = getFormattedDate();
+    checkInTimeShow.textContent = formatTime(WORKING_COUNTER_STAFF.activities.check_ins.at(-1).time); // Gets last check-in time
+    totalWorkingHours.textContent = calculateTotalWorkTime(WORKING_COUNTER_STAFF);
+    punch_out_and_break_model.classList.remove('hidden');
+
+    // Remove previous event listeners before adding a new one
+    closeButton.removeEventListener('click', closePopUp);
+    closeButton.addEventListener('click', closePopUp, { once: true }); // Ensures it runs only once
+    punchOutBtn.removeEventListener('click', punchOut);
+    punchOutBtn.addEventListener('click', punchOut, { once: true }); // Ensures it runs only once
+
+    function closePopUp() {
+        showLoader();
+        clearInterval(clockInterval); // Stop the live clock updates
+        punch_out_and_break_model.classList.add('hidden');
+        hideLoader();
+    }
+
+    function punchOut() {
+        showLoader();
+
+        const currentTime = new Date().toISOString();
+        WORKING_COUNTER_STAFF.activities.logout = currentTime;
+
+        // Calculate total work time
+        WORKING_COUNTER_STAFF.activities.total_hours = calculateTotalWorkTime(WORKING_COUNTER_STAFF);
+
+        // Update localStorage
+        localStorage.setItem('WORKING_COUNTER_STAFF', JSON.stringify(WORKING_COUNTER_STAFF));
+
+        hideLoader();
+    }
+
+
+    hideLoader();
 }
 
+
+function liveClock() {
+    const clockElement = document.getElementById('liveClock');
+    const now = new Date();
+
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+    let seconds = now.getSeconds();
+    let amPm = hours >= 12 ? 'PM' : 'AM';
+
+    hours = hours % 12;
+    hours = hours ? hours : 12; // The hour '0' should be '12'
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    seconds = seconds < 10 ? '0' + seconds : seconds;
+
+    const currentTime = `${hours}:${minutes}:${seconds} ${amPm}`;
+    clockElement.textContent = currentTime;
+}
+
+function calculateTotalWorkTime(userData) {
+    const punchIn = new Date(userData.activities.punch_in);
+    const currentTime = new Date(); // Get current time
+
+    // Use logout time if available; otherwise, use current time
+    const endTime = userData.activities.logout ? new Date(userData.activities.logout) : currentTime;
+
+    let totalMilliseconds = endTime - punchIn; // Total work duration
+
+    // Check if breaks exist and are valid before subtracting time
+    if (Array.isArray(userData.activities.breaks)) {
+        userData.activities.breaks.forEach(breakPeriod => {
+            if (breakPeriod.start && breakPeriod.end) {
+                const breakStart = new Date(breakPeriod.start);
+                const breakEnd = new Date(breakPeriod.end);
+                totalMilliseconds -= (breakEnd - breakStart);
+            }
+        });
+    }
+
+    // Convert milliseconds to hours and minutes
+    const totalMinutes = Math.floor(totalMilliseconds / (1000 * 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${hours}h ${minutes}m`;
+}
+
+function formatTime(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+}
 
 function getFormattedDate() {
     const today = new Date();

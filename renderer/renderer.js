@@ -395,7 +395,36 @@ function showPrinter() {
   updateConnectedPrinterUI();
 }
 
+const userAPI = {
+  createUser: async (userDetails) => await window.api.invoke('create-user', userDetails),
+  fetchUsers: async () => await window.api.invoke('fetch-users'),
+  deleteUser: async (id) => await window.api.invoke('delete-user', id),
+};
 
+const shiftAPI = {
+  createShift: async (shiftDetails) => await window.api.invoke('create-shift', shiftDetails),
+  fetchShifts: async () => await window.api.invoke('fetch-shifts'),
+  updateShift: async (shiftDetails) => await window.api.invoke('update-shift', shiftDetails),
+  deleteShift: async (id) => await window.api.invoke('delete-shift', id),
+};
+
+const breakAPI = {
+  createBreak: async (breakDetails) => await window.api.invoke('create-break', breakDetails),
+  fetchBreaks: async () => await window.api.invoke('fetch-breaks'),
+  deleteBreak: async (id) => await window.api.invoke('delete-break', id),
+};
+
+
+async function  deleteallusers(){
+  const data = await userAPI.deleteUser(4);
+  const data2 = await userAPI.deleteUser(5);
+  return {
+    data,
+    data2
+  }
+}
+
+// console.log(deleteallusers());
 
 // Call the function to fetch and display orders in the console
 
