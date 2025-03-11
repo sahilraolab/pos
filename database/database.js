@@ -37,28 +37,106 @@ const tables = {
         { name: 'start_time', type: 'DATETIME' },
         { name: 'end_time', type: 'DATETIME' }
     ],
-    orders: [
+    day_starts: [
+        { "name": "id", "type": "INTEGER PRIMARY KEY AUTOINCREMENT" },
+        { "name": "openingCash", "type": "TEXT" },
+        { "name": "openTime", "type": "DATETIME" },
+        { "name": "comment", "type": "TEXT" },
+        { "name": "openBy", "type": "TEXT", "foreign": "REFERENCES users(user_id)" },
+        { "name": "created_at", "type": "DATETIME DEFAULT CURRENT_TIMESTAMP" }
+    ],
+    selected_menu_items: [
         { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
-        { name: 'orderId', type: 'TEXT' },
-        { name: 'orderType', type: 'TEXT' },
-        { name: 'userInfo', type: 'TEXT' },
-        { name: 'discount', type: 'TEXT' },
-        { name: 'coupon', type: 'TEXT' },
-        { name: 'additionCharges', type: 'TEXT' },
-        { name: 'selectedMenuList', type: 'TEXT' },
-        { name: 'paymentDetails', type: 'TEXT' },
-        { name: 'orderSummary', type: 'TEXT' },
-        { name: 'tableDetails', type: 'TEXT' },
-        { name: 'status', type: 'INTEGER DEFAULT NULL' }, 
+        { name: 'order_id', type: 'INTEGER', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
+        { name: 'name', type: 'TEXT' },
+        { name: 'price', type: 'REAL' },
+        { name: 'description', type: 'TEXT' },
+        { name: 'status', type: 'TEXT DEFAULT "enable"' },
+        { name: 'categories', type: 'TEXT' }, // JSON string
+        { name: 'type', type: 'TEXT' },
+        { name: 'order_type', type: 'TEXT' },
+        { name: 'addons', type: 'TEXT' }, // JSON string
+        { name: 'activeAddons', type: 'TEXT' }, // JSON string
+        { name: 'quantity', type: 'INTEGER DEFAULT 1' },
+        { name: 'total_price', type: 'REAL' },
         { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
-    ]
+    ],
+    orders: [
+        { "name": "id", "type": "INTEGER PRIMARY KEY AUTOINCREMENT" },
+        { "name": "order_type", "type": "TEXT", "constraint": "CHECK(order_type IN ('dine_in', 'quick_bill', 'pickup'))" },
+        { "name": "status", "type": "TEXT DEFAULT 'pending'" },
+        { "name": "created_at", "type": "DATETIME DEFAULT CURRENT_TIMESTAMP" }
+    ],
+    tables: [
+        { name: 'order_id', type: 'INTEGER', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
+        { name: 'area', type: 'TEXT NOT NULL' },
+        { name: 'tableNumber', type: 'TEXT NOT NULL UNIQUE' },
+        { name: 'seatingCapacity', type: 'INTEGER NOT NULL CHECK(seatingCapacity > 0)' },
+        { name: 'shape', type: 'TEXT CHECK(shape IN ("circle", "square", "rectangle")) NOT NULL' },
+        { name: 'status', type: 'TEXT DEFAULT "available" CHECK(status IN ("available", "reserved", "available_soon"))' },
+        { name: 'selected', type: 'INTEGER DEFAULT 0 CHECK(selected IN (0, 1))' },  // 0 = not selected, 1 = selected
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' },
+        { name: 'updated_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ],
+    discounts: [
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
+        { name: 'name', type: 'TEXT NOT NULL' },
+        { name: 'order_type', type: 'TEXT NOT NULL' }, // JSON string ["dinein", "pickup"]
+        { name: 'fixed', type: 'INTEGER DEFAULT 0 CHECK(fixed IN (0,1))' }, // 0 = Percentage, 1 = Fixed amount
+        { name: 'value', type: 'REAL NOT NULL' }, // Discount value
+        { name: 'code', type: 'TEXT UNIQUE NOT NULL' }, // Discount code
+        { name: 'categories', type: 'TEXT NOT NULL' }, // JSON string ["Pizza"]
+        { name: 'items', type: 'TEXT NOT NULL' }, // JSON string ["Margherita Pizza", "Pepperoni Pizza"]
+        { name: 'day', type: 'TEXT NOT NULL' }, // JSON string ["Sunday", "Monday"]
+        { name: 'startTime', type: 'TEXT NOT NULL' }, // "11:00 AM"
+        { name: 'endTime', type: 'TEXT NOT NULL' }, // "03:00 PM"
+        { name: 'startDate', type: 'DATE NOT NULL' }, // YYYY-MM-DD
+        { name: 'endDate', type: 'DATE NOT NULL' }, // YYYY-MM-DD
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' },
+        { name: 'updated_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ],
+    charges: [
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
+        { name: 'name', type: 'TEXT NOT NULL' }, // Charge name
+        { name: 'order_type', type: 'TEXT NOT NULL' }, // JSON string ["dinein", "pickup"]
+        { name: 'fixed', type: 'BOOLEAN DEFAULT 0' }, // 0 = Percentage, 1 = Fixed amount
+        { name: 'value', type: 'REAL NOT NULL' }, // Charge value
+        { name: 'code', type: 'TEXT UNIQUE NOT NULL' }, // Charge code
+        { name: 'categories', type: 'TEXT NOT NULL' }, // JSON string ["Pizza"]
+        { name: 'items', type: 'TEXT NOT NULL' }, // JSON string ["Margherita Pizza", "Pepperoni Pizza"]
+        { name: 'day', type: 'TEXT NOT NULL' }, // JSON string ["Sunday", "Monday"]
+        { name: 'startTime', type: 'TEXT NOT NULL' }, // "11:00 AM"
+        { name: 'endTime', type: 'TEXT NOT NULL' }, // "03:00 PM"
+        { name: 'startDate', type: 'DATE NOT NULL' }, // YYYY-MM-DD
+        { name: 'endDate', type: 'DATE NOT NULL' }, // YYYY-MM-DD
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' },
+        { name: 'updated_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ],
+    coupons: [
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
+        { name: 'name', type: 'TEXT NOT NULL' }, // Coupon name
+        { name: 'order_type', type: 'TEXT NOT NULL' }, // JSON string ["dinein", "pickup"]
+        { name: 'fixed', type: 'BOOLEAN DEFAULT 0' }, // 0 = Percentage, 1 = Fixed amount
+        { name: 'value', type: 'REAL NOT NULL' }, // Discount value
+        { name: 'code', type: 'TEXT UNIQUE NOT NULL' }, // Coupon code
+        { name: 'categories', type: 'TEXT NOT NULL' }, // JSON string ["Pizza"]
+        { name: 'items', type: 'TEXT NOT NULL' }, // JSON string ["Margherita Pizza", "Pepperoni Pizza"]
+        { name: 'day', type: 'TEXT NOT NULL' }, // JSON string ["Sunday", "Monday"]
+        { name: 'startTime', type: 'TEXT NOT NULL' }, // "11:00 AM"
+        { name: 'endTime', type: 'TEXT NOT NULL' }, // "03:00 PM"
+        { name: 'startDate', type: 'DATE NOT NULL' }, // YYYY-MM-DD
+        { name: 'endDate', type: 'DATE NOT NULL' }, // YYYY-MM-DD
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' },
+        { name: 'updated_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ],
+
+
 };
 
 // Function to initialize or update tables
 function initializeDatabase() {
     db.serialize(() => {
         Object.entries(tables).forEach(([tableName, columns]) => {
-            // Create table if it doesn't exist
             db.run(
                 `CREATE TABLE IF NOT EXISTS ${tableName} (
                     ${columns.map(col => `${col.name} ${col.type}${col.foreign ? ' ' + col.foreign : ''}`).join(', ')}

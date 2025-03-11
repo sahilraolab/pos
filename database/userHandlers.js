@@ -101,6 +101,25 @@ function setupUserHandlers(ipcMain) {
         });
     });
 
+    ipcMain.handle('check-punch-in', async (event, user_id) => {
+        return new Promise((resolve, reject) => {
+            db.get(
+                `SELECT * FROM shifts WHERE user_id = ? ORDER BY punch_in DESC LIMIT 1`, 
+                [user_id], 
+                (err, shift) => {
+                    if (err) {
+                        reject({ success: false, error: err.message });
+                    } else if (shift && shift.logout === null) {
+                        resolve({ success: true, punchedIn: true, shift });
+                    } else {
+                        resolve({ success: true, punchedIn: false });
+                    }
+                }
+            );
+        });
+    });
+    
+
     // ===================== BREAKS =====================
     ipcMain.handle('create-break', async (event, breakDetails) => {
         const { shift_id, start_time, end_time } = breakDetails;

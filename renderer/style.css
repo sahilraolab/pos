@@ -882,8 +882,10 @@ body {
     position: fixed;
     right: 0;
     top: 20%;
-    overflow: scroll;
-    float: right;
+    max-height: 80vh;
+    /* Limits height to 80% of viewport height */
+    overflow-y: auto;
+    /* Enables scrolling only if content overflows */
     display: flex;
     flex-direction: column;
     background-color: white;
@@ -892,6 +894,7 @@ body {
     z-index: 2;
 }
 
+/* Ensures the button remains a perfect circle */
 .table_aside>button {
     background-color: #FFF5EE;
     color: #FF5C00;
@@ -900,12 +903,14 @@ body {
     border-radius: 50%;
     outline: none;
     border: none;
-    height: 4rem;
     width: 4rem;
+    height: 4rem;
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
+    flex-shrink: 0;
+    /* Prevents button from stretching */
 }
 
 .table_aside>button.active {
@@ -1042,7 +1047,7 @@ body {
     font-weight: 400;
 }
 
-.table-info>span{
+.table-info>span {
     font-size: 12px;
     font-weight: 500;
 }
@@ -1142,14 +1147,16 @@ body {
     border-radius: 5px;
 }
 
-.left > .seat {
+.left>.seat {
     transform: rotate(90deg);
 }
 
-.right > .seat {
+.right>.seat {
     transform: rotate(90deg);
 }
 
-#dashboardSection.disable, .selected_menu.disable,.menu_offers.disable {
+#dashboardSection.disable,
+.selected_menu.disable,
+.menu_offers.disable {
     pointer-events: none;
 }

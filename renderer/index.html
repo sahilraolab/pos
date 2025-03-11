@@ -90,9 +90,9 @@
                 </div>
             </div>
             <div class="order_type">
-                <button id="dineIn" onclick="showDineIn()">Dine in</button>
-                <button id="pickUp" onclick="showPickupScreen()">Pickup/Delivery</button>
-                <button id="quickBill" onclick="showQuickBillScreen()">Quick Bill</button>
+                <button id="DINEIN" onclick="showDineInScreen()">Dine in</button>
+                <button id="PICKUP" onclick="showPickupScreen()">Pickup/Delivery</button>
+                <button id="QUICKBILL" onclick="showQuickBillScreen()">Quick Bill</button>
             </div>
             <div class="user_info" id="operatorInfo" onclick="showOperatorActions()" style="cursor: pointer;">
                 <div class="user_img">
@@ -100,8 +100,8 @@
                         alt="">
                 </div>
                 <div class="user_typo">
-                    <span class="user_name" id="currentStaffName"></span>
-                    <span class="user_role" id="currentStaffRole"></span>
+                    <span class="user_name counter_user_name"></span>
+                    <span class="user_role counter_user_role"></span>
                 </div>
                 <button style="border: none; background-color: transparent; margin-right: 1rem;">
                     <svg width="18" height="17" viewBox="0 0 14 13" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -283,7 +283,7 @@
                             <div class="rightSide selected_tables_info">
                             </div>
                         </div>
-                        <button onclick="handleDineInPlaceOrder()"
+                        <button onclick="handleTableSelection()"
                             style="background: linear-gradient(#EFA280, #DF6229); color: white; font-size: 16px; font-weight: bold; padding: 12px 18px; border-radius: 25px; border: none; outline: none; ">Place
                             order</button>
                     </div>
@@ -291,7 +291,7 @@
                 <div class="menu_container ">
                     <div class="load_menu">
                         <div class="menu_search">
-                            <input type="text" name="menuSearch" id="menuSearch" placeholder="Search menu...">
+                            <input type="text" name="menuSearch" id="menuSearch" placeholder="Search menu..." oninput="handleMenuSearch(event)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path
@@ -692,9 +692,9 @@
                 </div>
                 <div class="menu_summary">
                     <div class="menu_offers">
-                        <button onclick="showDiscounts();">Discount</button>
-                        <button onclick="showCouponModel();">Coupon Code</button>
-                        <button onclick="showAdditionalChargesModel();">Charges</button>
+                        <button onclick="handleMenuOffers('DISCOUNT');">Discount</button>
+                        <button onclick="handleMenuOffers('COUPON');">Coupon Code</button>
+                        <button onclick="handleMenuOffers('CHARGE');">Charges</button>
                     </div>
                     <div class="order_summary">
                     </div>
@@ -715,7 +715,7 @@
                 <label for="openingCash">Opening Cash Balance</label>
                 <input type="number" name="openingCash" id="openingCash" placeholder="Opening Cash Balance" step="any">
                 <label for="timeDate">Time & Date</label>
-                <input type="datetime-local" name="timeDate" id="timeDate" placeholder="Time & Date" required>
+                <input type="datetime-local" name="openTime" id="timeDate" placeholder="Time & Date" required>
                 <label for="comment">Comment If Any</label>
                 <input type="text" name="comment" id="comment" placeholder="Comment If Any">
                 <button type="submit">Start Day</button>
@@ -733,11 +733,11 @@
     <!-- PUNCH IN MODEL -->
     <div class="model punch_in hidden">
         <div>
-            <h3 id="punchInUserName"></h3>
+            <h3 class="counter_user_name"></h3>
             <p style="margin-bottom: 1rem;">Mark your attendance!</p>
             <div class="line"></div>
             <input type="time" name="punchTime" id="punchTime">
-            <p id="punchInCurrentDate">May 26, 2023 - Monday</p>
+            <p id="punchInCurrentDate"></p>
             <button class="punch_in_btn">Punch In</button>
         </div>
     </div>
@@ -746,7 +746,7 @@
     <div class="model punch_out_and_break punch_out_and_break_model hidden">
         <div>
             <div class="punch_out_and_break_top">
-                <h3 id="punchOutBreakUserName"></h3>
+                <h3 class="counter_user_name"></h3>
                 <button class="crossBtn" style="border: none; background-color: transparent; cursor: pointer;">
                     <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M1 1.5L15 15.5M15 1.5L1 15.5" stroke="#282930" stroke-width="1.5" stroke-linecap="round" />
@@ -1290,10 +1290,14 @@
 
     <script src="../preload.js"></script>
     <script src="renderer.js"></script>
-    <script src="navigation.js"></script>
+    <script src="variables.js"></script>
+    <script src="index.js"></script>
+    <script src="model.js"></script>
+    <script src="helper.js"></script>
+    <!-- <script src="navigation.js"></script>
     <script src="onload.js"></script>
-    <script src="app.js"></script>
-    <script src="api.js"></script>
+    <script src="app.js"></script> -->
+    <!-- <script src="api.js"></script> -->
 </body>
 
 </html>

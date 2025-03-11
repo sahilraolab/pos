@@ -406,6 +406,7 @@ const shiftAPI = {
   fetchShifts: async () => await window.api.invoke('fetch-shifts'),
   updateShift: async (shiftDetails) => await window.api.invoke('update-shift', shiftDetails),
   deleteShift: async (id) => await window.api.invoke('delete-shift', id),
+  checkPunchIn: async (user_id) => await window.api.invoke('check-punch-in', user_id),
 };
 
 const breakAPI = {
@@ -414,8 +415,49 @@ const breakAPI = {
   deleteBreak: async (id) => await window.api.invoke('delete-break', id),
 };
 
+const dayStartAPI = {
+  createDayStart: async (dayStartDetails) => await window.api.invoke('create-daystart', dayStartDetails),
+  fetchDayStarts: async () => await window.api.invoke('fetch-daystarts'),
+  deleteDayStart: async (id) => await window.api.invoke('delete-daystart', id),
+};
 
-async function  deleteallusers(){
+const selectedMenuItemsAPI = {
+  createMenuItem: async (menuItemDetails) => await window.api.invoke('create-selected-menu-item', menuItemDetails),
+  fetchMenuItemsByOrder: async (order_id) => await window.api.invoke('fetch-selected-menu-items', order_id),
+  fetchAllMenuItems: async () => await window.api.invoke('fetch-all-selected-menu-items'),
+  updateMenuItem: async (menuItemDetails) => await window.api.invoke('update-selected-menu-item', menuItemDetails),
+  deleteMenuItem: async (id) => await window.api.invoke('delete-selected-menu-item', id),
+  deleteAllMenuItems: async () => await window.api.invoke('delete-all-selected-menu-items'),
+};
+
+const orderAPI = {
+  fetchOrderByType: async (orderType) => await window.api.invoke("fetch-order-by-type", orderType),
+  createNewOrder: async (orderData) => await window.api.invoke("create-new-order", orderData),
+};
+
+const tableAPI = {
+  createTable: async (tableDetails) => await window.api.invoke('create-table', tableDetails),
+  fetchTables: async () => await window.api.invoke('fetch-tables'),
+  updateTable: async (tableNumber, updatedDetails) => await window.api.invoke('update-table', tableNumber, updatedDetails),
+  deleteTable: async (tableNumber) => await window.api.invoke('delete-table', tableNumber),
+  updateTableSelection: async (tableNumber, order_id, selected) =>
+    await window.api.invoke('update-table-selection', { tableNumber, order_id, selected }),
+  updateTableStatus: async (tableNumber, status) =>
+    await window.api.invoke('update-table-status', tableNumber, status),
+};
+
+const menuOffersAPI = {
+  createMenuOffer: async (offerDetails) => await window.api.invoke('create-menu-offer', offerDetails),
+  fetchMenuOffers: async () => await window.api.invoke('fetch-menu-offers'),
+  updateMenuOffer: async (id, updatedDetails) => await window.api.invoke('update-menu-offer', id, updatedDetails),
+  updateOrderIds: async (id, data) => await window.api.invoke('menuOffers:update', { id: id, order_ids: data }),
+  deleteMenuOffer: async (id) => await window.api.invoke('delete-menu-offer', id),
+};
+
+
+
+
+async function deleteallusers() {
   const data = await userAPI.deleteUser(4);
   const data2 = await userAPI.deleteUser(5);
   return {

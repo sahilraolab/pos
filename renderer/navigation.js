@@ -373,7 +373,6 @@ function submitStartDayModel(event) {
 function showPunchInModel() {
     showLoader();
     const WORKING_COUNTER_STAFF = JSON.parse(localStorage.getItem('WORKING_COUNTER_STAFF'));
-    document.getElementById('punchInUserName').textContent = WORKING_COUNTER_STAFF.name + "!";
     document.getElementById('punchInCurrentDate').textContent = getFormattedDate();
     document.querySelector(".punch_in").classList.remove("hidden");
     document.querySelector(".punch_in_btn").addEventListener("click", function () {
@@ -417,15 +416,13 @@ function showOperatorActions() {
 
     const WORKING_COUNTER_STAFF = JSON.parse(localStorage.getItem('WORKING_COUNTER_STAFF'));
 
-    const punchOutBreakUserName = document.getElementById('punchOutBreakUserName');
+
     const todayDatePOB = document.getElementById("todayDatePOB");
     const punch_out_and_break_model = document.querySelector('.punch_out_and_break_model');
     const checkInTimeShow = document.querySelector('.checkInTimeShow');
     const totalWorkingHours = document.querySelector('.totalWorkingHours');
     const closeButton = document.querySelector('.punch_out_and_break_top button');
     const punchOutBtn = document.querySelector('.punchOutBtn');
-
-    punchOutBreakUserName.textContent = WORKING_COUNTER_STAFF.name + "!";
 
     // Live clock management
     let clockInterval = setInterval(liveClock, 1000);
@@ -774,10 +771,12 @@ function showDineIn() {
     if (tableTop) {
         const tableTopHeight = tableTop.getBoundingClientRect().height;
         if (tableTopHeight) {
+            console.log('here')
             // document.querySelector('.table_aside').style.top = tableTopHeight + "px";
             document.querySelector('.table_aside').style.bottom = tableTopHeight + "px";
             document.querySelector('.dineTable-section').style.paddingTop = tableTopHeight + "px";
             document.querySelector('.dineTable-section').style.paddingRight = ((document.querySelector('.table_aside').getBoundingClientRect().width - 1) + 20) + "px";
+            console.log(((document.querySelector('.table_aside').getBoundingClientRect().width - 1) + 20) );
             document.getElementById('dashboardSection').style.padding = 0;
         }
     }

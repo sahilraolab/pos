@@ -4,6 +4,11 @@ const { setupDatabaseHandlers } = require('./database/orders');
 const { setupKDSHandlers } = require('./services/kds');
 const { setupPrinterHandlers } = require('./services/printer');
 const { setupUserHandlers } = require('./database/userHandlers');
+const { setupDayStartHandlers } = require('./database/dayStart');
+const { setupSelectedMenuItemsHandlers } = require('./database/selectedMenuItems');
+const { setupOrderHandlers } = require('./database/orderHandlers');
+const { setupTableHandlers } = require('./database/tableHandlers');
+const { setupMenuOffersHandlers } = require('./database/menuOffersHandlers');
 
 
 let mainWindow;
@@ -46,6 +51,11 @@ app.on('ready', () => {
     setupUserHandlers(ipcMain);
     setupKDSHandlers(ipcMain);
     setupPrinterHandlers(ipcMain);
+    setupDayStartHandlers(ipcMain);
+    setupSelectedMenuItemsHandlers(ipcMain);
+    setupOrderHandlers(ipcMain);
+    setupTableHandlers(ipcMain);
+    setupMenuOffersHandlers(ipcMain);
 });
 
 app.on('window-all-closed', () => {
