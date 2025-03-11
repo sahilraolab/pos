@@ -45,9 +45,8 @@ const tables = {
         { "name": "openBy", "type": "TEXT", "foreign": "REFERENCES users(user_id)" },
         { "name": "created_at", "type": "DATETIME DEFAULT CURRENT_TIMESTAMP" }
     ],
-    selected_menu_items: [
+    menus: [
         { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
-        { name: 'order_id', type: 'INTEGER', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
         { name: 'name', type: 'TEXT' },
         { name: 'price', type: 'REAL' },
         { name: 'description', type: 'TEXT' },
@@ -61,6 +60,12 @@ const tables = {
         { name: 'total_price', type: 'REAL' },
         { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
     ],
+    order_menus: [
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
+        { name: 'order_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
+        { name: 'menu_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES discounts(id) ON DELETE CASCADE' },
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ],
     orders: [
         { "name": "id", "type": "INTEGER PRIMARY KEY AUTOINCREMENT" },
         { "name": "order_type", "type": "TEXT", "constraint": "CHECK(order_type IN ('dine_in', 'quick_bill', 'pickup'))" },
@@ -68,7 +73,7 @@ const tables = {
         { "name": "created_at", "type": "DATETIME DEFAULT CURRENT_TIMESTAMP" }
     ],
     tables: [
-        { name: 'order_id', type: 'INTEGER', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
         { name: 'area', type: 'TEXT NOT NULL' },
         { name: 'tableNumber', type: 'TEXT NOT NULL UNIQUE' },
         { name: 'seatingCapacity', type: 'INTEGER NOT NULL CHECK(seatingCapacity > 0)' },
@@ -77,6 +82,12 @@ const tables = {
         { name: 'selected', type: 'INTEGER DEFAULT 0 CHECK(selected IN (0, 1))' },  // 0 = not selected, 1 = selected
         { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' },
         { name: 'updated_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ],
+    order_tables: [
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
+        { name: 'order_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
+        { name: 'table_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES discounts(id) ON DELETE CASCADE' },
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
     ],
     discounts: [
         { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
@@ -129,8 +140,24 @@ const tables = {
         { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' },
         { name: 'updated_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
     ],
-
-
+    order_discounts: [
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
+        { name: 'order_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
+        { name: 'discount_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES discounts(id) ON DELETE CASCADE' },
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ],
+    order_charges: [
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
+        { name: 'order_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
+        { name: 'charge_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES charges(id) ON DELETE CASCADE' },
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ],
+    order_coupons: [
+        { name: 'id', type: 'INTEGER PRIMARY KEY AUTOINCREMENT' },
+        { name: 'order_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES orders(id) ON DELETE CASCADE' },
+        { name: 'coupon_id', type: 'INTEGER NOT NULL', foreign: 'REFERENCES coupons(id) ON DELETE CASCADE' },
+        { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+    ]
 };
 
 // Function to initialize or update tables
