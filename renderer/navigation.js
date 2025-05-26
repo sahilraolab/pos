@@ -36,6 +36,10 @@ const pickUpOrderDetails = {
     kdsSave: 0, // 0 fresh, 1 sent to kds
 }
 
+/* 
+
+*/
+
 const dineInOrderDetails = {
     orderId: "",
     orderType: "dineIn",
@@ -546,93 +550,6 @@ function showDashboardScreen() {
             break;
     }
     loadMenu();
-}
-
-function showOngoingOrdersScreen() {
-    showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    // Show the new section and active the clicked link
-    document.getElementById("ongoingOrderLink").classList.add("active");
-    document.getElementById("ongoingOrdersSection").classList.remove("hidden");
-    localStorage.setItem("openedNavigationLink", "ongoingOrderLink");
-    localStorage.setItem("openedNavigationSection", "ongoingOrdersSection");
-    document.getElementById('rightAside').classList.add('hidden');
-    // Trigger the ALL button properly
-    const allButton = document.getElementById("orders-container-all-btn");
-    if (allButton) {
-        filterOrders({ target: allButton }); // Call function with simulated event
-    }
-    hideLoader();
-}
-
-function showBillsScreen() {
-    showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    // Show the new section and active the clicked link
-    document.getElementById("billsSectionLink").classList.add("active");
-    document.getElementById("billsSection").classList.remove("hidden");
-    localStorage.setItem("openedNavigationLink", "billsSectionLink");
-    localStorage.setItem("openedNavigationSection", "billsSection");
-    hideLoader();
-}
-
-function showSettingScreen() {
-    showLoader();
-    // Hide the currently opened section and inactive the currentely opened section link
-    const openedNavigationLink = localStorage.getItem("openedNavigationLink");
-    const openedNavigationSection = localStorage.getItem(
-        "openedNavigationSection"
-    );
-    if (openedNavigationLink && openedNavigationSection) {
-        document.getElementById(openedNavigationLink).classList.remove("active");
-        document.getElementById(openedNavigationSection).classList.add("hidden");
-    }
-    // Show the new section and active the clicked link
-    document.getElementById("settingSectionLink").classList.add("active");
-    document.getElementById("settingSection").classList.remove("hidden");
-    localStorage.setItem("openedNavigationLink", "settingSectionLink");
-    localStorage.setItem("openedNavigationSection", "settingSection");
-    document.getElementById('rightAside').classList.add('hidden');
-    const buttons = document.querySelectorAll("#settingsMenu .light-btn");
-
-    buttons.forEach(button => {
-        button.addEventListener("click", function () {
-            // Remove active class from all buttons
-            buttons.forEach(btn => btn.classList.remove("active"));
-
-            // Add active class to clicked button
-            this.classList.add("active");
-
-            // Execute the corresponding function
-            const setting = this.getAttribute("data-setting");
-            if (setting === "general") {
-                showGeneralSettings();
-            } else if (setting === "printer") {
-                showPrinterSettings();
-            } else if (setting === "kds") {
-                showKdsSettings();
-            }
-        });
-    });
-
-    showGeneralSettings();
-    hideLoader();
 }
 
 function showQuickBillScreen() {

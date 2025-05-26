@@ -680,7 +680,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 10000;
+    z-index: 10000000;
 }
 
 .loader-container::before {
@@ -1008,7 +1008,8 @@ body {
     justify-content: space-evenly;
     padding-bottom: 10rem;
     padding-left: 2rem;
-
+    height: inherit;
+    position: relative;
 }
 
 .dineTable {
@@ -1081,7 +1082,7 @@ body {
     color: #FF5C00;
 }
 
-.status-billed>.table-info {
+.status-occupied>.table-info {
     background-color: #FFF9EB;
     color: #F0B433;
 }

@@ -1,9 +1,81 @@
+/*
+
+    // CRED operations
+
+    const staffData = await storeAPI.get('staff');
+    await storeAPI.set('staff', [{ name: 'Sahil', id: '123' }]);
+    const hasStaff = await storeAPI.has('staff');
+    await storeAPI.updateItem('staff', '123', { name: 'Sahil Rao' });
+    await storeAPI.delete('staff');
+    await storeAPI.clear();
+*/
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // restartApp();
+    // await storeAPI.delete('orders');
     showLoader();
-    if (POS_INFO) {
-        // Initial setup authentication done allready!
-        initialSecondScreen();
+    if (localStorage.getItem('POS_INFO')) {
+        hasData = await fetchStoredPOSData();
+        console.log(hasData);
+        if (hasData) {
+            initialSecondScreen();
+        } else {
+
+            const data = await fetchAllPOSData();
+            console.log(data);
+
+            if (data?.staff?.staff && Array.isArray(data.staff.staff)) {
+                await storeAPI.set('staff', data.staff.staff);
+            } else {
+                alert('Staff info not found!');
+            }
+            if (data?.tables?.tables && Array.isArray(data.tables.tables)) {
+                const tables = data.tables.tables.map(i => ({
+                    ...i,
+                    tableStatus: "available"
+                }));
+                await storeAPI.set('tables', tables);
+
+            } else {
+                alert('Tables info not found!');
+            }
+            if (data?.orderTypes?.orderTypes && Array.isArray(data.orderTypes.orderTypes)) {
+                await storeAPI.set('orderTypes', data.orderTypes.orderTypes);
+            } else {
+                alert("Order type info not found!");
+            }
+            if (data?.paymentTypes?.paymentTypes && Array.isArray(data.paymentTypes.paymentTypes)) {
+                await storeAPI.set('paymentTypes', data.paymentTypes.paymentTypes);
+            } else {
+                alert('Payment type info not found!');
+            }
+            if (data?.tax?.tax) {
+                await storeAPI.set('tax', data.tax.tax);
+            } else {
+                alert('tax info not found!');
+            }
+            if (data?.menu?.data?.addons && Array.isArray(data.menu.data.addons)) {
+                await storeAPI.set('addons', data.menu.data.addons);
+            }
+            if (data?.menu?.data?.categories && Array.isArray(data.menu.data.categories)) {
+                await storeAPI.set('categories', data.menu.data.categories);
+            } else {
+                alert('No category found!');
+            }
+            if (data?.menu?.data?.items && Array.isArray(data.menu.data.items)) {
+                await storeAPI.set('items', data.menu.data.items);
+            }
+            if (data?.discounts?.discounts && Array.isArray(data.discounts.discounts)) {
+                const priceModifiers = getPriceModifiers(data.discounts.discounts);
+                console.log(priceModifiers);
+                await storeAPI.set('priceModifiers', priceModifiers);
+            }
+            if (data?.offers?.offers && Array.isArray(data.offers.offers)) {
+                await storeAPI.set('offers', data.offers.offers);
+            }
+            initialSecondScreen();
+        }
+
     } else {
         // Initial setup authentication pending!
         initialFirstScreen();
@@ -12,7 +84,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 async function initialFirstScreen() {
-
+    isInternetAvailable().then(status => {
+        console.log(status ? "Internet Available ✅" : "No Internet ❌");
+    });
     const initialPosSetupLoginScreen = document.querySelector(".initialPosSetupLoginScreen");
     if (initialPosSetupLoginScreen) {
         initialPosSetupLoginScreen.classList.remove("hidden");
@@ -30,43 +104,19 @@ async function initialFirstScreen() {
             }
 
             try {
-                const response = await fetch("http://localhost:3000/api/pos_setup", {
+                const response = await fetch("http://localhost:5002/api/pos/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ pos_id: posId, password: password }),
+                    body: JSON.stringify({ code: posId, password: password }),
+                    credentials: "include" // 🔥 This tells fetch to allow cookies
                 });
+
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    POS_INFO = data.data;
-                    initialSecondScreen();
-                    // Fetch tables from remote server
-                    // const tableRequestBody = {
-                    //     brand_id: POS_INFO.brand_id,
-                    //     outlet_id: POS_INFO.outlet_id
-                    // }
-                    // const tableResponse = await fetch("http://localhost:3000/api/area_and_tables", {
-                    //     method: "POST",
-                    //     headers: { "Content-Type": "application/json" },
-                    //     body: JSON.stringify(tableRequestBody),
-                    // });
-
-                    // const tableData = await tableResponse.json();
-
-                    // if (!tableResponse.ok) {
-                    //     throw new Error(data.message || "Failed to fetch tables.");
-                    // }
-
-                    // const tables = tableData.data;
-                    // console.log("Fetched Tables:", tables);
-
-                    // // Store tables into local Express app
-                    // tables.map(async (item) => {
-                    //     await tableAPI.createTable(item);
-                    // })
-
-                    // console.log("Tables stored successfully in local Express app!");
+                    localStorage.setItem("POS_INFO", JSON.stringify(data.outlet));
+                    window.location.reload();
                 } else {
                     alert(data.error || "Login failed.");
                 }
@@ -83,29 +133,29 @@ async function initialFirstScreen() {
 async function initialSecondScreen() {
     const initialPosSetupLoginScreen = document.querySelector(".initialPosSetupLoginScreen");
     initialPosSetupLoginScreen.classList.add('hidden');
-    const response = await userAPI.fetchUsers();
-    const users = response.data;
-    if (Array.isArray(users) && users.some(user => user.status === "Active")) {
-        // Users data found
-        const currentUser = users.find(user => user.status === "Active");
-
+    const staffs = await storeAPI.get('staff');
+    console.log(staffs);
+    const staff = staffs.find(staff => staff.isLoggedIn);
+    if (staff) {
+        // Staff data found
         showScreensContainer();
-        updateCounterTypo(currentUser);
-        const response = await dayStartAPI.fetchDayStarts();
-        const dayStart = response.data;
+        updateCounterTypo(staff);
+        const hasDayStart = await storeAPI.has('dayStart');
 
-        if (Array.isArray(dayStart) && dayStart.length > 0) {
+        if (hasDayStart) {
             // Day already start
-            const response = await shiftAPI.checkPunchIn(currentUser.user_id);
-            const punchedIn = response.punchedIn;
+            // const response = await shiftAPI.checkPunchIn(staff);
+            const punchIns = await storeAPI.get('punchIns');
+            const punch = punchIns.find(i => i.status === "Active");
 
-            if (punchedIn) {
+            console.log(punch);
+
+            if (punch) {
                 // One active user present  
                 showDashboardScreen();
-                loadMenu();
             } else {
                 // No active user present
-                showPunchInModel(currentUser);
+                showPunchInModel(staff);
             }
 
         } else {
@@ -139,53 +189,33 @@ async function initialSecondScreen() {
             async function verifyPin() {
                 if (pin.length === 4) {
                     showLoader();
-                    const requestBody = {
-                        brand_id: POS_INFO.brand_id,
-                        outlet_id: POS_INFO.outlet_id,
-                        pin: pin,
-                    };
 
-                    try {
-                        const response = await fetch("http://localhost:3000/api/counter_staff_verification", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(requestBody),
-                        });
+                    const staffs = await storeAPI.get('staff');
 
-                        const data = await response.json();
+                    const matchedStaff = staffs.find(staff => staff.pos_login_pin === pin);
 
-                        if (!response.ok) {
-                            throw new Error(data.message || "Failed to verify PIN. Please check your credentials.");
-                        }
-
-                        const updatedStaff = data.all_staff.map(user => ({
-                            ...user,
-                            status: user.user_id === data.staff.user_id ? "Active" : "Inactive"
+                    if (matchedStaff) {
+                        // 👇 You can update/add a field, e.g. `isLoggedIn: true`
+                        const updatedStaffs = staffs.map(staff => ({
+                            ...staff,
+                            isLoggedIn: staff.pos_login_pin === pin
                         }));
 
-                        const updatedData = { ...data, all_staff: updatedStaff };
-
-                        updatedData.all_staff.forEach(async (item) => {
-                            await userAPI.createUser(item);
-                        })
+                        await storeAPI.set('staff', updatedStaffs);
 
                         showScreensContainer();
-
-                    } catch (error) {
-                        console.error("❌ Error during PIN verification:", error);
-
-                        if (error.message.includes("Failed to fetch")) {
-                            alert("Unable to connect to the server. Please check your internet connection and try again.");
-                        } else {
-                            alert(error.message);
-                        }
-
                         clearDots();
-                    } finally {
                         hideLoader();
+                    } else {
+                        setTimeout(() => {
+                            alert('Incorrect Pin!');
+                            clearDots();
+                            hideLoader();
+                        }, 500);
                     }
                 }
             }
+
 
             keys.forEach((key) => {
                 key.addEventListener("click", () => {
@@ -202,6 +232,284 @@ async function initialSecondScreen() {
     }
 }
 
+// ✅ Fetch and log all stored POS data
+const fetchStoredPOSData = async () => {
+    try {
+        const staff = await storeAPI.get('staff');
+        const tables = await storeAPI.get('tables');
+        const orderTypes = await storeAPI.get('orderTypes');
+        const paymentTypes = await storeAPI.get('paymentTypes');
+        const tax = await storeAPI.get('tax');
+        const addons = await storeAPI.get('addons');
+        const categories = await storeAPI.get('categories');
+        const items = await storeAPI.get('items');
+        const priceModifiers = await storeAPI.get('priceModifiers');
+        const offers = await storeAPI.get('offers');
+
+        console.log('📦 Stored POS Data:');
+        console.log('👤 Staff:', staff);
+        console.log('🪑 Tables:', tables);
+        console.log('🛍️ Order Types:', orderTypes);
+        console.log('💳 Payment Types:', paymentTypes);
+        console.log('💸 Tax:', tax);
+        console.log('➕ Addons:', addons);
+        console.log('📂 Categories:', categories);
+        console.log('🍔 Items:', items);
+        console.log('🎁 priceModifiers:', priceModifiers);
+        console.log('🔁 Offers:', offers);
+        return (staff && tables && orderTypes && paymentTypes && tax && addons && categories && items && priceModifiers && offers);
+    } catch (err) {
+        console.error('❌ Error fetching stored POS data:', err);
+        return false
+    }
+};
+
+const fetchAllPOSData = async () => {
+    try {
+        // 👤 Staff
+        const staff = await fetchWithCookies("http://localhost:5002/api/pos/staff");
+
+        // 📋 Menu (menus, categories, items, addons)
+        const menu = await fetchWithCookies("http://localhost:5002/api/pos/menu");
+
+        // 🪑 Tables
+        const tables = await fetchWithCookies("http://localhost:5002/api/pos/tables");
+
+        // 💸 Tax
+        const tax = await fetchWithCookies("http://localhost:5002/api/pos/tax");
+
+        // 🎁 Discounts
+        const discounts = await fetchWithCookies("http://localhost:5002/api/pos/discounts");
+
+        // 🔁 Buy X Get Y Offers
+        const offers = await fetchWithCookies("http://localhost:5002/api/pos/offers/buy-x-get-y");
+
+        // 🛒 Order Types
+        const orderTypes = await fetchWithCookies("http://localhost:5002/api/pos/order-types");
+
+        // 💳 Payment Types
+        const paymentTypes = await fetchWithCookies("http://localhost:5002/api/pos/payment-types");
+
+        // You can return all of this if needed
+        return {
+            staff,
+            menu,
+            tables,
+            tax,
+            discounts,
+            offers,
+            orderTypes,
+            paymentTypes
+        };
+
+    } catch (err) {
+        console.error("Unexpected error fetching POS data:", err);
+    }
+};
+
+async function updateAllPOSData() {
+    const data = await fetchAllPOSData();
+    if (!data) {
+        alert("❌ Failed to fetch POS data.");
+        return;
+    }
+
+    try {
+        // 👤 Staff
+        if (data?.staff?.staff && Array.isArray(data.staff.staff)) {
+            await storeAPI.set('staff', data.staff.staff);
+        } else {
+            alert('❌ Staff info not found!');
+        }
+
+        // 🪑 Tables
+        if (data?.tables?.tables && Array.isArray(data.tables.tables)) {
+            const tables = data.tables.tables.map(table => ({
+                ...table,
+                tableStatus: "available"
+            }));
+            await storeAPI.set('tables', tables);
+        } else {
+            alert('❌ Tables info not found!');
+        }
+
+        // 🛍️ Order Types
+        if (data?.orderTypes?.orderTypes && Array.isArray(data.orderTypes.orderTypes)) {
+            await storeAPI.set('orderTypes', data.orderTypes.orderTypes);
+        } else {
+            alert("❌ Order types info not found!");
+        }
+
+        // 💳 Payment Types
+        if (data?.paymentTypes?.paymentTypes && Array.isArray(data.paymentTypes.paymentTypes)) {
+            await storeAPI.set('paymentTypes', data.paymentTypes.paymentTypes);
+        } else {
+            alert('❌ Payment types info not found!');
+        }
+
+        // 💸 Tax
+        if (data?.tax?.tax) {
+            await storeAPI.set('tax', data.tax.tax);
+        } else {
+            alert('❌ Tax info not found!');
+        }
+
+        // ➕ Addons
+        if (data?.menu?.data?.addons && Array.isArray(data.menu.data.addons)) {
+            await storeAPI.set('addons', data.menu.data.addons);
+        }
+
+        // 📂 Categories
+        if (data?.menu?.data?.categories && Array.isArray(data.menu.data.categories)) {
+            await storeAPI.set('categories', data.menu.data.categories);
+        } else {
+            alert('❌ No categories found!');
+        }
+
+        // 🍔 Items
+        if (data?.menu?.data?.items && Array.isArray(data.menu.data.items)) {
+            await storeAPI.set('items', data.menu.data.items);
+        }
+
+        // 🎁 Discounts
+        if (data?.discounts?.discounts && Array.isArray(data.discounts.discounts)) {
+            const priceModifiers = getPriceModifiers(data.discounts.discounts);
+            console.log(priceModifiers);
+            await storeAPI.set('priceModifiers', priceModifiers);
+        }
+
+        // 🔁 Offers
+        if (data?.offers?.offers && Array.isArray(data.offers.offers)) {
+            await storeAPI.set('offers', data.offers.offers);
+        }
+
+        alert("✅ All POS data updated successfully.");
+    } catch (error) {
+        console.error("❌ Error while saving POS data:", error);
+        alert("❌ Failed to update some or all POS data.");
+    }
+}
+
+async function updatePOSData(type) {
+    try {
+        let result;
+
+        switch (type) {
+            case "staff":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/staff");
+                if (result?.staff && Array.isArray(result.staff)) {
+                    await storeAPI.set("staff", result.staff);
+                    alert("✅ staff updated.");
+                } else {
+                    alert("❌ Staff info not found.");
+                }
+                break;
+
+            case "tables":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/tables");
+                if (result?.tables && Array.isArray(result.tables)) {
+                    const tables = result.tables.map(t => ({
+                        ...t,
+                        tableStatus: "available"
+                    }));
+                    await storeAPI.set("tables", tables);
+                    alert("✅ tables updated.");
+                } else {
+                    alert("❌ Tables info not found.");
+                }
+                break;
+
+            case "orderTypes":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/order-types");
+                if (result?.orderTypes && Array.isArray(result.orderTypes)) {
+                    await storeAPI.set("orderTypes", result.orderTypes);
+                    alert("✅ orderTypes updated.");
+                } else {
+                    alert("❌ Order types not found.");
+                }
+                break;
+
+            case "paymentTypes":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/payment-types");
+                if (result?.paymentTypes && Array.isArray(result.paymentTypes)) {
+                    await storeAPI.set("paymentTypes", result.paymentTypes);
+                    alert("✅ paymentTypes updated.");
+                } else {
+                    alert("❌ Payment types not found.");
+                }
+                break;
+
+            case "tax":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/tax");
+                if (result?.tax) {
+                    await storeAPI.set("tax", result.tax);
+                    alert("✅ tax updated.");
+                } else {
+                    alert("❌ Tax info not found.");
+                }
+                break;
+
+            case "discounts":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/discounts");
+                if (result?.discounts && Array.isArray(result.discounts)) {
+                    const priceModifiers = getPriceModifiers(result.discounts);
+                    console.log(priceModifiers);
+                    await storeAPI.set("priceModifiers", priceModifiers);
+                    alert("✅ discounts updated.");
+                } else {
+                    alert("❌ Discounts not found.");
+                }
+                break;
+
+            case "offers":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/offers/buy-x-get-y");
+                if (result?.offers && Array.isArray(result.offers)) {
+                    await storeAPI.set("offers", result.offers);
+                    alert("✅ offers updated.");
+                } else {
+                    alert("❌ Offers not found.");
+                }
+                break;
+
+            case "addons":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/menu");
+                if (result?.data?.addons && Array.isArray(result.data.addons)) {
+                    await storeAPI.set("addons", result.data.addons);
+                    alert("✅ addons updated.");
+                } else {
+                    alert("❌ Addons not found.");
+                }
+                break;
+
+            case "categories":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/menu");
+                if (result?.data?.categories && Array.isArray(result.data.categories)) {
+                    await storeAPI.set("categories", result.data.categories);
+                    alert("✅ categories updated.");
+                } else {
+                    alert("❌ Categories not found.");
+                }
+                break;
+
+            case "items":
+                result = await fetchWithCookies("http://localhost:5002/api/pos/menu");
+                if (result?.data?.items && Array.isArray(result.data.items)) {
+                    await storeAPI.set("items", result.data.items);
+                    alert("✅ items updated.");
+                } else {
+                    alert("❌ Items not found.");
+                }
+                break;
+
+            default:
+                alert("❌ Invalid type provided.");
+        }
+    } catch (err) {
+        console.error(`❌ Failed to update ${type}:`, err);
+        alert(`❌ Failed to update ${type}`);
+    }
+}
+
 function showScreensContainer() {
     const counterStaffLoginScreen = document.querySelector(".counterStaffLoginScreen");
     const screensContainer = document.querySelector('.screensContainer');
@@ -210,62 +518,51 @@ function showScreensContainer() {
     hideLoader();
 }
 
-function showDashboardScreen() {
+async function showDashboardScreen() {
     showLoader();
-
-    switch (ORDERTYPE) {
-        case "DINEIN":
-            showDineInScreen();
-            break;
-        case "PICKUP":
-            showPickupScreen();
-            break;
-        case "QUICKBILL":
-            showQuickBillScreen();
-            break;
-
-        default:
-            showQuickBillScreen();
-            break;
+    switchNavigationSection('dashboardLink', 'dashboardSection');
+    const orderTypes = await storeAPI.get('orderTypes');
+    showOrderTypes(orderTypes);
+    const activeOrderType = orderTypes.find(i => i.isActive);
+    if (activeOrderType) {
+        handleOrderTypeSelection(activeOrderType.category);
     }
-
+    document.querySelector('.order_type').classList.remove('hidden');
     hideLoader();
 }
 
 
 async function loadMenu() {
-    showLoader(true);
-    try {
-
-        const requestBody = {
-            brand_id: POS_INFO.brand_id,
-            outlet_id: POS_INFO.outlet_id
-        }
-
-        const response = await fetch("http://localhost:3000/api/menu", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to verify PIN. Please check your credentials.");
-        }
-
-        const menu = data.data;
-        console.log(menu);
-        showMenuCategories(menu);
-    } catch (error) {
-        console.error("Error loading menu:", error);
-    } finally {
-        hideLoader();
-    }
+    showLoader();
+    showMenuCategories();
+    hideLoader();
 }
 
 
-function showMenuCategories(menu) {
+const handleOrderTypeSelection = (type) => {
+    switch (type) {
+        case "pickup":
+            toggleOrderType('pickup');
+            break;
+        case "dine-in":
+            toggleOrderType('dine-in');
+            break;
+        case "quick-service":
+            toggleOrderType('quick-service');
+            break;
+        case "delivery":
+            alert("Delivery feature, currently not available");
+            break;
+        case "third-party":
+            alert("Third party feature, currently not available");
+            break;
+        default:
+            break;
+    }
+
+}
+
+async function showMenuCategories() {
     const itemContainer = document.getElementById("selectedCategoryMenuList");
     const categoryContainer = document.getElementById("menuCategoryList");
 
@@ -278,35 +575,83 @@ function showMenuCategories(menu) {
     itemContainer.innerHTML = "";
     categoryContainer.innerHTML = "";
 
-    // Extract unique categories from menu items
-    const categories = [...new Set(menu.flatMap(item => item.categories))];
+    // show categories
+    const POS_INFO = JSON.parse(localStorage.getItem("POS_INFO"));
+    const timeZone = POS_INFO?.timezone?.value || "UTC";
 
-    categories.forEach((category) => {
-        const categoryButton = document.createElement("button");
-        categoryButton.classList.add("menu_category_button");
-        categoryButton.innerText = category;  // Since category is a string
-        categoryButton.addEventListener("click", (event) => {
-            document
-                .querySelectorAll(".menu_category_button")
-                .forEach((button) => button.classList.remove("active"));
-            event.target.classList.add("active");
+    // Get current date and time in POS time zone
+    const now = new Date();
+    const zonedTime = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        weekday: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    }).formatToParts(now);
 
-            displayItems(category);
-
-            // Update category heading
-            const categoryHeading = document.querySelector(".choosen_category_menu_items h3");
-            categoryHeading.innerText = `${category} Menu`;
-        });
-        categoryContainer.appendChild(categoryButton);
+    // Extract parts
+    let currentDay = "";
+    let currentHour = "";
+    let currentMinute = "";
+    zonedTime.forEach(part => {
+        if (part.type === 'weekday') currentDay = part.value.toLowerCase();
+        if (part.type === 'hour') currentHour = part.value;
+        if (part.type === 'minute') currentMinute = part.value;
     });
+
+    const currentTime = `${currentHour.padStart(2, '0')}:${currentMinute.padStart(2, '0')}`;
+
+    const categories = await storeAPI.get('categories');
+    const items = await storeAPI.get('items');
+    const addons = await storeAPI.get('addons');
+
+    categories
+        .filter((category) => {
+            const hasDay = category.day && category.day.trim() !== "";
+            const hasStart = category.start_time && category.start_time.trim() !== "";
+            const hasEnd = category.end_time && category.end_time.trim() !== "";
+
+            // No restriction
+            if (!hasDay && !hasStart && !hasEnd) return true;
+
+            // Day mismatch
+            if (hasDay && category.day.toLowerCase() !== currentDay) return false;
+
+            // Time range check
+            if (hasStart && hasEnd) {
+                return currentTime >= category.start_time && currentTime <= category.end_time;
+            }
+
+            return false;
+        })
+        .forEach((category) => {
+            const categoryButton = document.createElement("button");
+            categoryButton.classList.add("menu_category_button");
+            categoryButton.innerText = category.name;
+
+            categoryButton.addEventListener("click", (event) => {
+                document.querySelectorAll(".menu_category_button").forEach((btn) =>
+                    btn.classList.remove("active")
+                );
+
+                event.target.classList.add("active");
+
+                displayItems(category);
+
+                const categoryHeading = document.querySelector(".choosen_category_menu_items h3");
+                categoryHeading.innerText = `${category.name} Menu`;
+            });
+
+            categoryContainer.appendChild(categoryButton);
+        });
+
 
     // Display items for the first category by default
     if (categories.length > 0) {
         const firstCategory = categories[0];
         displayItems(firstCategory);
-
         const categoryHeading = document.querySelector(".choosen_category_menu_items h3");
-        categoryHeading.innerText = `${firstCategory} Menu`;
+        categoryHeading.innerText = `${firstCategory.name} Menu`;
 
         categoryContainer.firstChild.classList.add("active");
     }
@@ -314,33 +659,26 @@ function showMenuCategories(menu) {
     // Function to display items of a specific category
     function displayItems(category) {
         itemContainer.innerHTML = "";
-        const categoryItems = menu.filter(item => item.categories.includes(category));
+        const categoryItems = items.filter(item => item.category_name === category.name);
 
         if (categoryItems.length === 0) {
             itemContainer.innerHTML = "<p>No items available in this category.</p>";
             return;
         }
-
         categoryItems.forEach((item) => {
-            const addonsList = item.addons.map(addon => addon.name).join(", ");
 
             // Create a div and set its innerHTML
             const itemWrapper = document.createElement("div");
+            // const itemObj = JSON.stringify(item);
             itemWrapper.innerHTML = `
-                <div class="category_menu_item" id="menu${item.id}"
-                style="display: flex; flex-direction: column; padding: 15px; border: 1px solid #ddd; border-radius: 8px; width: 300px; background-color: #fff; cursor: pointer; transition: 0.3s;">
-                    <div class="details" style="display: flex; flex-direction: column;">
-                        <h3 style="margin: 0; font-size: 18px; color: #333;">${item.name}</h3>
-                        <p class="description" style="margin: 5px 0; font-size: 14px; color: #666;">
-                        ${item.description}
-                        </p>
-                        <div style="display: flex; align-items: center; gap: 5px;">
-                            <span class="price" style="font-weight: bold; font-size: 16px; color: #27ae60;">$${item.price} </span>
-                            <span style="font-size: 14px; color: #888;">per serving</span>
-                        </div>
-                        <div class="addons" style="margin-top: 8px; font-size: 14px; color: #444;">
-                            <strong style="color: #222;">Add-ons:</strong> ${addonsList || "None"}
-                        </div>
+                 <div class="category_menu_item"  onclick="selectProduct(${item})">
+                    <div class="imgCon">
+                    <img src="${item.image}" alt="${item.name}">
+                    </div>
+                    <span>${item.name}</span>
+                    <div>
+                    <span class="price">$${item.price.toFixed(2)}</span>
+                    <span>/portion</span>
                     </div>
                 </div>
             `;
@@ -375,40 +713,47 @@ function handleMenuSearch(event) {
 
 async function selectProduct(data) {
 
-    const orderId = await getOrderIdByType(ORDERTYPE);
-    let dataObj = { ...data, quantity: 1, total_price: data.price, order_type: ORDERTYPE, order_id: orderId };
+    data.quantity = 1;
+    const addons = await storeAPI.get('addons');
+    const categories = await storeAPI.get('categories');
+    const applicable = getApplicableAddons(data, addons, categories);
 
-    if (dataObj.addons && dataObj.addons.length > 0) {
+    // console.log("Applicable Addons for", data.name, ":", applicable);
 
+
+    if (applicable) {
         const addonModelListSection = document.getElementById("addonItems");
         addonModelListSection.innerHTML = ""; // Clear previous content
 
-        dataObj.addons.forEach((addon) => {
+        applicable.forEach((addon) => {
             const button = document.createElement("button");
             button.classList.add("addon");
             button.innerHTML = `
                 <span class="name">${addon.name}</span>
                 <span class="price">($${addon.price})</span>
             `;
+            button.dataset.addon = JSON.stringify(addon);
             button.addEventListener("click", () => button.classList.toggle("active"));
             addonModelListSection.appendChild(button);
         });
 
-        document.querySelector(".addon_heading").innerText = dataObj.name;
+        document.querySelector(".addon_heading").innerText = data.name;
         document.querySelector(".add_on").classList.remove("hidden");
 
         // Remove existing listeners and add the new one
         const saveButton = document.querySelector(".add_on_bottom .save");
         saveButton.replaceWith(saveButton.cloneNode(true)); // Remove all previous events
-        document.querySelector(".add_on_bottom .save").addEventListener("click", () => handleAddons(dataObj));
+        document.querySelector(".add_on_bottom .save").addEventListener("click", () => handleAddons(data));
 
         document.querySelector(".add_on_bottom .cancel").addEventListener("click", () => {
             document.querySelector(".add_on").classList.add("hidden");
         }, { once: true });
 
     } else {
-        await saveSelectedMenu(dataObj);
+        data.activeAddons = [];
+        saveSelectedMenu(data);
     }
+
 }
 
 async function handleAddons(data) {
@@ -422,11 +767,8 @@ async function handleAddons(data) {
     }
 
     const activeAddons = Array.from(addonModelListSection.querySelectorAll(".addon.active")).map(addon => {
-        const name = addon.querySelector(".name")?.textContent.trim() || "Unknown";
-        const priceText = addon.querySelector(".price")?.textContent.trim() || "$0";
-        const price = parseFloat(priceText.replace(/[($)]/g, "")) || 0; // Extract price as a number
-
-        return { name, price };
+        const addonData = JSON.parse(addon.dataset.addon || "{}");
+        return addonData;
     });
 
     data.activeAddons = activeAddons;
@@ -437,42 +779,66 @@ async function handleAddons(data) {
     await saveSelectedMenu(data);
 }
 
-
 async function saveSelectedMenu(data) {
-    showLoader(true);
-    console.log(data);
-    try {
-        // Create Menu Item
-        const response = await selectedMenuItemsAPI.createMenuItem(data);
+    showLoader();
+    // console.log("Selected item data:", data);
 
-        if (!response.success) {
-            throw new Error(response.error || "Something went wrong while adding menu items.");
-        }
+    const orderTypes = await storeAPI.get('orderTypes');
+    const activeType = orderTypes.find(i => i.isActive)?.category;
+    const orderId = localStorage.getItem(activeType);
 
-        document.querySelector(".add_on").classList.add("hidden");
-
-        showSelectedMenuList();
-
-    } catch (error) {
-        console.error("Error in saveSelectedMenu:", error);
-        alert(error.message || "An unexpected error occurred.");
-    } finally {
+    if (!orderId) {
+        console.error("❌ Order ID not found for type:", activeType);
         hideLoader();
+        return;
     }
+
+    const orders = await storeAPI.get('orders');
+    const orderIndex = orders.findIndex(i => i.id === orderId);
+
+    if (orderIndex === -1) {
+        console.error("❌ Order not found with ID:", orderId);
+        hideLoader();
+        return;
+    }
+
+    // Push the new item into the order's items array
+    const order = orders[orderIndex];
+    order.items = order.items || [];
+    order.items.push(data);
+
+    // Save the updated order
+    await storeAPI.updateItem('orders', orderId, order);
+    await orderSummaryHandle();
+
+    // Hide add-on modal
+    document.querySelector(".add_on")?.classList.add("hidden");
+
+    showSelectedMenuList();
+
+    hideLoader();
 }
+
 
 async function showSelectedMenuList() {
     showLoader();
-    const orderId = await getOrderIdByType(ORDERTYPE);
-    const response = await selectedMenuItemsAPI.fetchMenuItemsByOrder(orderId);
-    const selectedItems = response.data;
 
-    if (selectedItems) {
+    const orderTypes = await storeAPI.get('orderTypes');
+    const activeType = orderTypes.find(i => i.isActive)?.category;
+    const orderId = localStorage.getItem(activeType);
+
+    const orders = await storeAPI.get('orders');
+
+    const filterOrder = orders.find(i => i.id === orderId);
+
+    const selectedItems = filterOrder.items;
+
+    if (selectedItems && selectedItems.length > 0) {
+        await orderSummaryHandle();
         const menuItemsContainer = document.querySelector(".menu_item_list");
         menuItemsContainer.innerHTML = "";
 
         selectedItems.forEach((item) => {
-            item = parseJSONStringFields(item);
             const menuItemHTML = `
                 <div class="menu_item">
                   <div class="menu_item_name">
@@ -511,20 +877,35 @@ async function showSelectedMenuList() {
 
             async function updateItemCount(newCount) {
                 let count = parseInt(newCount);
+                const totalAddonPrice = item.activeAddons?.reduce((acc, addon) => acc + addon.price, 0) || 0;
+
                 if (isNaN(count) || count < 1) {
-                    menuItemsContainer.removeChild(menuItemElement);
-                    // remove the entry from the db here
-                    await selectedMenuItemsAPI.deleteMenuItem(item.id);
+                    // Remove only the exact instance (not all similar ones)
+                    const index = filterOrder.items.findIndex(i => i === item);
+                    if (index !== -1) {
+                        filterOrder.items.splice(index, 1); // Remove this exact item
+                        await storeAPI.updateItem('orders', filterOrder.id, filterOrder);
+                        await orderSummaryHandle();
+                        menuItemsContainer.removeChild(menuItemElement);
+                        console.log("🗑️ Deleted specific item from order", item);
+                    }
                 } else {
+                    // Update quantity and total price
                     item.quantity = count;
-                    menuNumbersInput.value = count;
-                    const totalAddonPrice = item.activeAddons ? item.activeAddons.reduce((acc, addon) => acc + addon.price, 0) : 0;
                     item.total_price = (item.price + totalAddonPrice) * count;
-                    // Update the price display
+                    menuNumbersInput.value = count;
                     menuPriceElement.textContent = `$${item.total_price.toFixed(2)}`;
-                    // update entry in db here
-                    await selectedMenuItemsAPI.updateMenuItem(item);
+
+                    // Find and update only this specific item
+                    const index = filterOrder.items.findIndex(i => i === item);
+                    if (index !== -1) {
+                        filterOrder.items[index] = item; // technically redundant, but good for clarity
+                        await storeAPI.updateItem('orders', filterOrder.id, filterOrder);
+                        await orderSummaryHandle();
+                        console.log("✅ Updated quantity for specific item", item);
+                    }
                 }
+                showSelectedMenuList();
             }
 
             subButton.addEventListener("click", () => {
@@ -540,9 +921,17 @@ async function showSelectedMenuList() {
             });
         });
 
+        if (filterOrder?.customer && filterOrder?.customer?.name) {
+            handleQuickPlaceOrder();
+        } else {
+            handleBackToMenuList();
+        }
 
+        document.querySelector(".right_aside").classList.remove("hidden");
+
+    } else {
+        document.querySelector(".right_aside").classList.add("hidden");
     }
-    document.querySelector(".right_aside").classList.remove("hidden");
     hideLoader();
 }
 
@@ -582,8 +971,8 @@ async function showSelectTableScreen(tables) {
             filterTables(searchValue);
         });
 
-        const orderId = await getOrderIdByType(ORDERTYPE);
-        document.getElementById('dineInOrderId').textContent = `Order #${orderId}`
+        // const orderId = await getOrderIdByType(ORDERTYPE);
+        // document.getElementById('dineInOrderId').textContent = `Order #${orderId}`
 
 
     } catch (error) {
@@ -596,15 +985,16 @@ async function showSelectTableScreen(tables) {
 function creteAreaSelection(tables) {
     const areaSectionAside = document.querySelector('.table_aside');
     areaSectionAside.innerHTML = "";
-    const uniqueAreas = [...new Set(tables.map(table => table.area))];
-    uniqueAreas.forEach((area, index) => {
+    const uniqueAreas = [...new Set(tables.map(table => table.floor_id))];
+    uniqueAreas.forEach((floor, index) => {
+
         const button = document.createElement('button');
 
         // Convert "Ground Floor" -> "GF", "First Floor" -> "FF", "Rooftop" -> "R"
-        const areaCode = area.split(' ').map(word => word[0]).join('').toUpperCase();
+        const floorCode = floor.floor_name.split(' ').map(word => word[0]).join('').toUpperCase();
 
-        button.textContent = `${areaCode}`;
-        button.dataset.area = area;
+        button.textContent = `${floorCode}`;
+        button.dataset.floor = JSON.stringify(floor);
         button.addEventListener('click', () => toggleAreaSelection(button));
         areaSectionAside.appendChild(button);
     });
@@ -623,20 +1013,20 @@ async function createTableElements() {
 
     const tablesSection = document.querySelector('.dineTable-section');
     tablesSection.innerHTML = "";
-    const filteredAreas = [];
+    const filteredFloors = [];
     const areaBtnsMain = document.querySelectorAll('.table_aside button.active');
     if (areaBtnsMain) {
         areaBtnsMain.forEach((item) => {
-            filteredAreas.push(item.dataset.area);
+            filteredFloors.push(JSON.parse(item.dataset.floor));
         })
     }
 
-    const response = await tableAPI.fetchTables();
-    const tables = response.data; // Tables received from the API
+    const tables = await storeAPI.get('tables');
     let tablesData = tables;
 
-    const sortedTables = tablesData
-        .filter(table => filteredAreas.includes(table.area)) // Filter by area
+    const sortedTables = tablesData.filter(table =>
+        filteredFloors.some(floor => floor._id === table.floor_id._id)
+    );
 
     console.log(sortedTables);
     const shapeOrder = { rectangle: 1, square: 2, circle: 3 };
@@ -644,8 +1034,19 @@ async function createTableElements() {
 
     sortedTables.forEach(table => {
         const tableDiv = document.createElement('div');
-        tableDiv.classList.add('dineTable', table.shape, `status-${table.status}`);
-        tableDiv.id = table.tableNumber;
+        tableDiv.classList.add('dineTable', table.type, `status-${table.tableStatus}`);
+        tableDiv.id = table._id;
+
+        // Restore saved position if exists
+        const positions = JSON.parse(localStorage.getItem("tablePositions") || "{}");
+        const savedPosition = positions[table._id];
+
+        if (savedPosition) {
+            tableDiv.style.position = "absolute";
+            tableDiv.style.left = `${savedPosition.left}px`;
+            tableDiv.style.top = `${savedPosition.top}px`;
+        }
+
 
         if (table.selected) {
             tableDiv.classList.add("selected");
@@ -673,7 +1074,7 @@ async function createTableElements() {
         // Create table info
         const tableInfo = document.createElement('div');
         tableInfo.classList.add('table-info');
-        tableInfo.innerHTML = `<p>${table.tableNumber}</p><span>Seats: ${table.seatingCapacity}</span>`;
+        tableInfo.innerHTML = `<p>${table.table_name}</p><span>Seats: ${table.sitting}</span>`;
 
         // Append elements to tableDiv
         tableDiv.appendChild(tableInfo);
@@ -681,6 +1082,35 @@ async function createTableElements() {
 
         // Add click event
         tableDiv.addEventListener('click', () => selectTable(table, tableDiv));
+
+        // Enable draggable
+        tableDiv.setAttribute("draggable", "true");
+
+        // Add drag events
+        tableDiv.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", table._id);
+        });
+
+        tablesSection.addEventListener("dragover", (e) => {
+            e.preventDefault(); // Necessary to allow dropping
+        });
+
+        tablesSection.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const tableId = e.dataTransfer.getData("text/plain");
+            const draggedTable = document.getElementById(tableId);
+
+            // Get new position
+            const offsetX = e.offsetX;
+            const offsetY = e.offsetY;
+
+            draggedTable.style.position = "absolute";
+            draggedTable.style.left = `${offsetX}px`;
+            draggedTable.style.top = `${offsetY}px`;
+
+            // Save position in localStorage
+            saveTablePosition(tableId, offsetX, offsetY);
+        });
 
         // Append table to the section
         tablesSection.appendChild(tableDiv);
@@ -824,41 +1254,190 @@ async function handleTableSelection() {
 
 
 
-async function showDineInScreen() {
+function showOngoingOrdersScreen() {
     showLoader();
-    ORDERTYPE = DINEIN;
-    toggleOrderType();
+    switchNavigationSection('ongoingOrderLink', 'ongoingOrdersSection');
+    document.getElementById('rightAside').classList.add('hidden');
+    // Trigger the ALL button properly
+    const allButton = document.getElementById("orders-container-all-btn");
+    if (allButton) {
+        filterOrders({ target: allButton }); // Call function with simulated event
+    }
+    hideLoader();
+}
 
-    const response = await tableAPI.fetchTables();
-    const orderId = await getOrderIdByType(ORDERTYPE);
-    const tables = response.data;
+function showBillsScreen() {
+    showLoader();
+    switchNavigationSection('billsSectionLink', 'billsSection');
+    hideLoader();
+}
 
-    const hasOrderId = tables.some(table => table.order_id === orderId);
+function showSettingScreen() {
+    showLoader();
+    switchNavigationSection('settingSectionLink', 'settingSection');
+    document.getElementById('rightAside').classList.add('hidden');
+    const buttons = document.querySelectorAll("#settingsMenu .light-btn");
+
+    buttons.forEach(button => {
+        button.addEventListener("click", function () {
+            // Remove active class from all buttons
+            buttons.forEach(btn => btn.classList.remove("active"));
+
+            // Add active class to clicked button
+            this.classList.add("active");
+
+            // Execute the corresponding function
+            const setting = this.getAttribute("data-setting");
+            if (setting === "general") {
+                showGeneralSettings();
+            } else if (setting === "printer") {
+                showPrinterSettings();
+            } else if (setting === "kds") {
+                showKdsSettings();
+            }
+        });
+    });
+
+    showGeneralSettings();
+    document.querySelector('.order_type').classList.add('hidden');
+    hideLoader();
+}
 
 
-    if (hasOrderId) {
-        showMenuContainerScreen();
-        // await selectedMenuItemsAPI.deleteMenuItem(20);
-        showSelectedMenuList();
-    } else {
-        showSelectTableScreen();
+function showGeneralSettings() {
+    const printerContainer = document.getElementById('printerContainer');
+    const kdsContainer = document.getElementById("kdsContainer");
+    const generalContainer = document.getElementById("generalContainer");
+    kdsContainer.classList.add('hidden');
+    generalContainer.classList.remove('hidden');
+    printerContainer.classList.add('hidden');
+}
+
+async function showPrinterSettings() {
+    const printerContainer = document.getElementById('printerContainer');
+    const kdsContainer = document.getElementById("kdsContainer");
+    const generalContainer = document.getElementById("generalContainer");
+    kdsContainer.classList.add('hidden');
+    generalContainer.classList.add('hidden');
+    printerContainer.classList.remove('hidden');
+    // Initial UI load
+    await renderPrinters();
+    await loadDefaultPrinter();
+}
+
+function showKdsSettings() {
+    alert('kds');
+}
+
+
+
+async function handleInputChange(e) {
+    const { name, value } = e.target;
+
+    const orderTypes = await storeAPI.get('orderTypes');
+    const activeType = orderTypes.find(i => i.isActive)?.category;
+    const orderId = localStorage.getItem(activeType);
+    const orders = await storeAPI.get('orders');
+    const order = orders.find(i => i.id === orderId);
+
+    // Ensure customer object exists
+    if (!order.customer) {
+        order.customer = {};
     }
 
-    hideLoader();
+    // Update only the specific field
+    if (name === "fullName") {
+        order.customer.name = value;
+    } else if (name === "kotNote") {
+        order.customer.note = value;
+    } else {
+        order.customer[name] = value;
+    }
+
+    // 🔍 Autofill if email or phone is entered
+    if (name === "email" || name === "phone") {
+        const matchedOrders = orders.filter(o => o.customer?.[name] === value);
+
+        if (matchedOrders.length > 0) {
+            const matchedCustomer = matchedOrders[0].customer;
+
+            // Autofill all fields if they are empty
+            if (!order.customer.name && matchedCustomer.name) {
+                order.customer.name = matchedCustomer.name;
+                document.getElementById("fullName").value = matchedCustomer.name;
+            }
+
+            if (!order.customer.email && matchedCustomer.email) {
+                order.customer.email = matchedCustomer.email;
+                document.getElementById("email").value = matchedCustomer.email;
+            }
+
+            if (!order.customer.phone && matchedCustomer.phone) {
+                order.customer.phone = matchedCustomer.phone;
+                document.getElementById("phone").value = matchedCustomer.phone;
+            }
+
+            if (!order.customer.note && matchedCustomer.note) {
+                order.customer.note = matchedCustomer.note;
+                document.getElementById("kotNote").value = matchedCustomer.note;
+            }
+
+            // 🧾 Save customer's order history
+            const orderHistory = matchedOrders.map(o => ({
+                orderId: o.id,
+                subtotal: o.subtotal || 0,
+                total: o.total || 0,
+                createdAt: o.createdAt || "N/A"
+            }));
+
+            console.log("🧾 Matched customer order history:", orderHistory);
+        }
+    }
+
+    // Save back to store
+    await storeAPI.updateItem('orders', order.id, order);
+    console.log("✅ Updated order:", order);
 }
 
-function showPickupScreen() {
-    showLoader();
-    ORDERTYPE = PICKUP;
-    toggleOrderType();
-    showMenuContainerScreen();
-    hideLoader();
-}
 
-function showQuickBillScreen() {
-    showLoader();
-    ORDERTYPE = QUICKBILL;
-    toggleOrderType();
-    showMenuContainerScreen();
-    hideLoader();
+// Renders list of printers with buttons to set default
+const renderPrinters = async () => {
+    const printerList = document.getElementById('printerList');
+    const printers = await printerAPI.list();
+    printerList.innerHTML = '';
+
+    if (printers.length === 0) {
+        printerList.innerHTML = '<p>No USB printers found.</p>';
+        return;
+    }
+
+    printers.forEach(printer => {
+        const btn = document.createElement('button');
+        btn.textContent = `USB Printer ${printer.vendorId}:${printer.productId}`;
+        btn.onclick = async () => {
+            await printerAPI.setDefault(printer);
+            await loadDefaultPrinter();
+            alert('✅ Default printer set');
+        };
+        btn.style.margin = '5px';
+        printerList.appendChild(btn);
+    });
+};
+
+// Displays the default printer
+const loadDefaultPrinter = async () => {
+    const printer = await printerAPI.getDefault();
+    const defaultPrinterDisplay = document.getElementById('defaultPrinter');
+    defaultPrinterDisplay.textContent = printer
+        ? `🖨️ Default Printer: USB ${printer.vendorId}:${printer.productId}`
+        : '⚠️ No default printer set';
+};
+
+const printDataHere = async () => {
+    const result = await printerAPI.print('🧾 Hello from POS! This is your receipt.\n\n');
+    if (result.success) {
+        alert('✅ Printed and drawer opened');
+    } else {
+        alert('❌ Print failed: ' + result.error);
+    }
 }

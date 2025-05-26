@@ -4,8 +4,8 @@
   "description": "Electron application for printing receipts",
   "main": "main.js",
   "scripts": {
-    "start": "electron . --disable-features=AutofillServerCommunication",
-    "build": "electron-builder"
+    "start-frontend": "node server.js",
+    "start-electron": "electron ."
   },
   "keywords": [],
   "author": "Your Name",
@@ -26,6 +26,12 @@
     "asar": true
   },
   "dependencies": {
+    "electron-store": "^10.0.1",
+    "escpos": "^3.0.0-alpha.6",
+    "escpos-network": "^3.0.0-alpha.5",
+    "escpos-serialport": "^3.0.0-alpha.4",
+    "escpos-usb": "^3.0.0-alpha.4",
+    "express": "^5.1.0",
     "serialport": "^12.0.0",
     "sqlite3": "^5.1.7"
   }

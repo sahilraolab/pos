@@ -360,7 +360,7 @@
     border-top: 2px solid #E4E4E4;
     border-left: 2px solid #E4E4E4;
     border-bottom: 2px solid #E4E4E4;
-    min-width: 75%;
+    min-width: 15rem;
 }
 
 .discount_left>.selected,.additional_charges_left>.selected {
@@ -543,4 +543,41 @@ td {
     padding: 8px;
     border-bottom: 1px solid #eee;
     word-wrap: break-word; /* Ensures long text wraps within the cell */
+}
+
+.hide-model{
+    background-color: transparent;
+    border: 1px solid #19191C;
+    border-radius: 50%;
+    padding: .5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.coupon-input-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.coupon-input-container > input{
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid #E4E4E4;
+}
+
+.coupon-input-container > button{
+    padding: 1rem 2rem;
+    height: 100%;
+     border-radius: 1rem;
+    border: none;
+    font-weight: 500;
+    font-size: 1rem;
+    color: white;
+    background: linear-gradient(#EFA280, #DF6229);
+    cursor: pointer;
 }

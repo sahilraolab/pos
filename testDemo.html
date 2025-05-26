@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Split Payment POS</title>
+  <style>
+    body { font-family: Arial; background: #f8f8f8; }
+    .modal {
+      max-width: 500px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    h2 { text-align: center; }
+    label { display: block; margin-top: 10px; }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .info {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .split-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .split-row select, .split-row input {
+      flex: 1;
+    }
+    .split-group {
+      margin-top: 10px;
+    }
+    .btn {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .secondary {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+
+<div class="modal">
+  <h2>Payment Collection</h2>
+
+  <!-- Order Total -->
+  <label for="orderTotal">Order Total</label>
+  <input type="number" id="orderTotal" placeholder="Enter order total amount" />
+
+  <!-- Tip -->
+  <label for="tip">Tip Amount</label>
+  <input type="number" id="tip" placeholder="Optional tip" />
+
+  <!-- Split Payments Section -->
+  <div class="split-group" id="splitGroup">
+    <div class="split-row">
+      <select class="payment-type">
+        <option value="">Select Type</option>
+        <option value="Card">Card</option>
+        <option value="Visa">Visa</option>
+        <option value="Apex">Apex</option>
+        <option value="Cash">Cash</option>
+      </select>
+      <input type="number" class="payment-amount" placeholder="Amount" />
+    </div>
+  </div>
+
+  <button class="btn secondary" onclick="addSplitRow()">+ Add Split Payment</button>
+
+  <!-- Payment Reference -->
+  <label for="reference">Payment Reference (Optional)</label>
+  <input type="text" id="reference" placeholder="Txn ID / Ref No." />
+
+  <!-- Calculated Info -->
+  <div class="info">Grand Total (incl. Tip): ₹<span id="grandTotal">0.00</span></div>
+  <div class="info">Total Paid: ₹<span id="totalPaid">0.00</span></div>
+  <div class="info">Remaining Amount: ₹<span id="remaining">0.00</span></div>
+  <div class="info">Return Amount: ₹<span id="return">0.00</span></div>
+
+  <button class="btn" onclick="submitSplitPayment()">Submit Payment</button>
+</div>
+
+<script>
+  const splitGroup = document.getElementById('splitGroup');
+  const orderTotalInput = document.getElementById('orderTotal');
+  const tipInput = document.getElementById('tip');
+  const grandTotalEl = document.getElementById('grandTotal');
+  const totalPaidEl = document.getElementById('totalPaid');
+  const remainingEl = document.getElementById('remaining');
+  const returnEl = document.getElementById('return');
+
+  function addSplitRow() {
+    const row = document.createElement('div');
+    row.className = 'split-row';
+    row.innerHTML = `
+      <select class="payment-type">
+        <option value="">Select Type</option>
+        <option value="Card">Card</option>
+        <option value="Visa">Visa</option>
+        <option value="Apex">Apex</option>
+        <option value="Cash">Cash</option>
+      </select>
+      <input type="number" class="payment-amount" placeholder="Amount" />
+    `;
+    splitGroup.appendChild(row);
+  }
+
+  function calculateTotals() {
+    const orderTotal = parseFloat(orderTotalInput.value) || 0;
+    const tip = parseFloat(tipInput.value) || 0;
+    const grandTotal = orderTotal + tip;
+
+    let totalPaid = 0;
+    document.querySelectorAll('.payment-amount').forEach(input => {
+      const val = parseFloat(input.value);
+      if (!isNaN(val)) totalPaid += val;
+    });
+
+    const remaining = grandTotal - totalPaid;
+    const returnAmt = totalPaid > grandTotal ? totalPaid - grandTotal : 0;
+
+    grandTotalEl.textContent = grandTotal.toFixed(2);
+    totalPaidEl.textContent = totalPaid.toFixed(2);
+    remainingEl.textContent = remaining > 0 ? remaining.toFixed(2) : '0.00';
+    returnEl.textContent = returnAmt > 0 ? returnAmt.toFixed(2) : '0.00';
+  }
+
+  document.addEventListener('input', calculateTotals);
+
+  function submitSplitPayment() {
+    const orderTotal = parseFloat(orderTotalInput.value) || 0;
+    const tip = parseFloat(tipInput.value) || 0;
+    const grandTotal = orderTotal + tip;
+    const reference = document.getElementById('reference').value;
+
+    const paymentDetails = [];
+    let totalPaid = 0;
+
+    const rows = splitGroup.querySelectorAll('.split-row');
+    for (const row of rows) {
+      const type = row.querySelector('.payment-type').value;
+      const amount = parseFloat(row.querySelector('.payment-amount').value);
+
+      if (!type || isNaN(amount) || amount <= 0) {
+        alert("All split payments must have valid type and amount.");
+        return;
+      }
+
+      paymentDetails.push({ type, amount });
+      totalPaid += amount;
+    }
+
+    const remaining = grandTotal - totalPaid;
+    const returnAmt = totalPaid > grandTotal ? totalPaid - grandTotal : 0;
+
+    const result = {
+      orderTotal,
+      tip,
+      grandTotal,
+      totalPaid,
+      remaining: remaining > 0 ? remaining : 0,
+      return: returnAmt > 0 ? returnAmt : 0,
+      reference,
+      payments: paymentDetails
+    };
+
+    console.log("✅ Split Payment Processed:", result);
+    alert("✅ Payment collected successfully!");
+  }
+</script>
+
+</body>
+</html>
