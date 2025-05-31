@@ -12,7 +12,8 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^29.3.0",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9"
   },
   "build": {
     "appId": "com.example.windowapp",
@@ -26,13 +27,17 @@
     "asar": true
   },
   "dependencies": {
+    "bonjour": "^3.5.0",
     "electron-store": "^10.0.1",
     "escpos": "^3.0.0-alpha.6",
     "escpos-network": "^3.0.0-alpha.5",
     "escpos-serialport": "^3.0.0-alpha.4",
     "escpos-usb": "^3.0.0-alpha.4",
     "express": "^5.1.0",
+    "node-thermal-printer": "^4.5.0",
+    "os": "^0.1.2",
     "serialport": "^12.0.0",
-    "sqlite3": "^5.1.7"
+    "usb": "^2.15.0",
+    "ws": "^8.18.2"
   }
 }

@@ -4,7 +4,17 @@ const escpos = require('escpos');
 escpos.USB = require('escpos-usb');
 escpos.Network = require('escpos-network');
 escpos.Serial = require('escpos-serialport');
+const os = require('os');
+const { startWebSocketServer } = require('./websocketServer');
+const { registerPrinterHandlers } = require('./printerHandlers');
+
+const hostname = os.hostname(); // unique per device
+let wss; // WebSocket Server instance
+let connectedClients = new Set();
+let orders = [];
+
 let store;
+let currentKDS = null; // Track single connected KDS
 
 (async () => {
     const Store = (await import('electron-store')).default;
@@ -50,9 +60,12 @@ function createWindow() {
 app.on('ready', async () => {
     createWindow();
 
+
     // ✅ Wait for electron-store to be ready
     const Store = (await import('electron-store')).default;
     const store = new Store();
+
+    startWebSocketServer(mainWindow, store, orders);
 
     // IPC handlers
     ipcMain.on('electron-store-get', (event, key) => {
@@ -94,53 +107,7 @@ app.on('ready', async () => {
         return updatedData.find(item => item.id === id || item._id === id);
     });
 
-    // Printer routes start
-
-
-    ipcMain.handle('get-printers', async () => {
-        const devices = escpos.USB.findPrinter();
-        return devices.map(dev => ({
-            vendorId: dev.deviceDescriptor.idVendor,
-            productId: dev.deviceDescriptor.idProduct
-        }));
-    });
-
-    ipcMain.handle('set-default-printer', (event, printer) => {
-        store.set('defaultPrinter', printer);
-        return true;
-    });
-
-    ipcMain.handle('get-default-printer', () => {
-        return store.get('defaultPrinter') || null;
-    });
-
-    ipcMain.handle('print-default', async (event, content = 'Test Print') => {
-        try {
-            const defaultPrinter = store.get('defaultPrinter');
-            if (!defaultPrinter) throw new Error('No default printer set');
-
-            const device = new escpos.USB(defaultPrinter.vendorId, defaultPrinter.productId);
-            const printer = new escpos.Printer(device);
-
-            device.open(() => {
-                printer
-                    .align('ct')
-                    .text(content)
-                    .text('\n\n')
-                    .cashdraw() // Open drawer
-                    .cut()
-                    .close();
-            });
-
-            return { success: true };
-        } catch (err) {
-            console.error('Print Error:', err);
-            return { success: false, error: err.message };
-        }
-    });
-
-    // Printer routes end
-
+    registerPrinterHandlers(() => store);
 });
 
 app.on('window-all-closed', () => {

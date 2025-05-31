@@ -8,495 +8,61 @@ const storeAPI = {
 };
 
 const printerAPI = {
+  // USB printers
   list: async () => await window.posAPI.printers.list(),
   setDefault: async (printer) => await window.posAPI.printers.setDefault(printer),
   getDefault: async () => await window.posAPI.printers.getDefault(),
   print: async (data) => await window.posAPI.printers.print(data),
+
+  // Network printers
+  setNetwork: async (ip, port = 9100) => await window.posAPI.printers.setNetwork(ip, port),
+  getNetwork: async () => await window.posAPI.printers.getNetwork(),
+  printNetwork: async (data) => await window.posAPI.printers.printNetwork(data),
+
 };
 
-// document.addEventListener('DOMContentLoaded', () => {
-// const kdsList = document.getElementById('kdsList');
-
-// // Function to render KDS devices
-// function renderKDS(kds) {
-//   const existingKDS = document.querySelector(`[data-ip="${kds.ip}"][data-port="${kds.port}"]`);
-//   if (existingKDS) return; // Avoid duplicate entries
-
-//   const kdsDiv = document.createElement('div');
-//   kdsDiv.setAttribute('data-ip', kds.ip);
-//   kdsDiv.setAttribute('data-port', kds.port);
-
-//   kdsDiv.innerHTML = `
-//     <div style="gap: 1rem; background-color: white; padding: 1rem; display: flex; flex-direction: column;
-//     box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px; border-radius: 20px;">
-
-//       <h1 style="font-size: 18px; color: #2B2B2B; font-weight: 500;">${kds.name}</h1>
-//       <p style="font-size: 14px; color: #2B2B2B;">
-//         <span>Kitchen Department</span>:&nbsp;<span>${kds.department}</span>
-//       </p>
-//       <button data-ip="${kds.ip}" data-port="${kds.port}" class="connect-btn"
-//         style="align-self: flex-start; border-radius: 20px; font-size: 16px; color: white; border: none;
-//         padding: 0.6rem 1rem; background: linear-gradient(#EFA280, #DF6229);">
-//         Connect
-//       </button>
-//     </div>
-//   `;
-//   kdsList.appendChild(kdsDiv);
-// }
-
-// // Scan for available KDS devices when the user navigates to the screen
-// function fetchKdsScreens(interval = 10000) {
-//   console.log("🔍 Scanning for KDS screens...");
-
-//   const connectedKDS = new Set(); // Store already connected KDS
-
-//   function scan() {
-//     window.electronAPI.scanKDS();
-
-//     window.electronAPI.onKDSFound((kds) => {
-//       console.log('+++++++++++++++++++++++++++')
-//       console.log(kds)
-//       console.log('+++++++++++++++++++++++++++')
-//       const kdsKey = `${kds.ip}:${kds.port}`;
-
-//       if (!connectedKDS.has(kdsKey)) {
-//         console.log(`✅ New KDS found: ${kdsKey}`);
-//         renderKDS(kds);
-//         connectedKDS.add(kdsKey);
-//       } else {
-//         console.log(`🔄 KDS ${kdsKey} is already connected.`);
-//       }
-//     });
-//   }
-
-//   // Initial scan
-//   scan();
-
-//   // Periodically scan for new KDS without disconnecting existing ones
-//   setInterval(scan, interval);
-// }
-
-
-// fetchKdsScreens(); // Auto-fetch when the page loads
-
-// // Handle connect/disconnect button click
-// kdsList.addEventListener('click', (event) => {
-//   if (event.target.classList.contains('connect-btn')) {
-//     const kdsDiv = event.target.parentElement;
-//     const ip = event.target.getAttribute('data-ip');
-//     const port = parseInt(event.target.getAttribute('data-port'), 10);
-//     let isConnected = event.target.textContent === 'Disconnect';
-//     let connectedKDSList = JSON.parse(localStorage.getItem('connectedKDSList')) || [];
-
-//     if (isConnected) {
-//       // Disconnecting from KDS
-//       console.log(`🔴 Disconnecting from KDS: ${ip}:${port}`);
-//       connectedKDSList = connectedKDSList.filter((kds) => !(kds.ip === ip && kds.port === port));
-//       localStorage.setItem('connectedKDSList', JSON.stringify(connectedKDSList));
-
-//       // Properly trigger a disconnection request to the POS
-//       window.electronAPI.disconnectKDS({ ip, port });
-
-//       // Update UI
-//       kdsDiv.querySelector('.connect-btn').textContent = 'Connect';
-//     } else {
-//       // Connecting to KDS
-//       console.log(`🔵 Trying to connect to KDS: ${ip}:${port}`);
-//       window.electronAPI.connectKDS({ ip, port });
-//     }
-//   }
-// });
-
-// // Handle successful connection
-// window.electronAPI.onKDSConnected((kds) => {
-//   console.log("🔥 Received kds-connected event in renderer:", kds);
-
-//   if (!kds || !kds.ip || !kds.port) return;
-//   // Retrieve existing connected KDS list from localStorage
-//   let connectedKDSList = JSON.parse(localStorage.getItem('connectedKDSList')) || [];
-
-//   // Check if the KDS is already in the list to avoid duplicates
-//   const exists = connectedKDSList.some(item => item.ip === kds.ip && item.port === kds.port);
-//   if (!exists) {
-//     connectedKDSList.push(kds);
-//   }
-
-//   // Save updated list back to localStorage
-//   localStorage.setItem('connectedKDSList', JSON.stringify(connectedKDSList));
-//   // Update UI for connected KDS
-//   const kdsDiv = document.querySelector(`[data-ip="${kds.ip}"][data-port="${kds.port}"]`);
-//   if (kdsDiv) {
-//     kdsDiv.querySelector('.connect-btn').textContent = 'Disconnect';
-//   }
-// });
-
-// // Handle KDS error
-// window.electronAPI.onKDSError((errorMessage) => {
-//   alert(`❌ KDS Error: ${errorMessage}`);
-// });
-
-// // Handle order status updates
-// window.electronAPI.onOrderStatus((status) => {
-//   alert(`📦 Order Update: ${status}`);
-// });
-// });
-
-// Store connected KDS to prevent duplicates
-// const connectedKDS = new Set();
-// localStorage.removeItem('connectedKDSList');
-
-// function showKdsSettings() {
-//   console.log("🔄 Showing Kitchen Display Settings...");
-
-//   const printerContainer = document.getElementById('printerContainer');
-//   const kdsContainer = document.getElementById("kdsContainer");
-//   const generalContainer = document.getElementById("generalContainer");
-//   kdsContainer.classList.remove('hidden');
-//   generalContainer.classList.add('hidden');
-//   printerContainer.classList.add('hidden');
-//   const kdsList = document.getElementById("kdsList");
-
-//   // // Store connected KDS to prevent duplicates
-//   // const connectedKDS = new Set();
-
-//   function renderKDS(kds) {
-//     const existingKDS = document.querySelector(`[data-ip="${kds.ip}"][data-port="${kds.port}"]`);
-//     if (existingKDS) return; // Avoid duplicates
-
-//     const kdsDiv = document.createElement("div");
-//     kdsDiv.setAttribute("data-ip", kds.ip);
-//     kdsDiv.setAttribute("data-port", kds.port);
-//     kdsDiv.setAttribute("data-name", kds.name);
-//     kdsDiv.setAttribute("data-department", kds.department);
-//     kdsDiv.innerHTML = `
-//       <div style="gap: 1rem; background-color: white; padding: 1rem; display: flex; flex-direction: column;
-//           box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px; border-radius: 20px;">
-//           <h1 style="font-size: 18px; color: #2B2B2B; font-weight: 500;">${kds.name}</h1>
-//           <p style="font-size: 14px; color: #2B2B2B;">
-//               <span>Kitchen Department</span>:&nbsp;<span>${kds.department}</span>
-//           </p>
-//           <button data-ip="${kds.ip}" data-port="${kds.port}" data-name="${kds.name}" data-department="${kds.department}" class="connect-btn"
-//               style="align-self: flex-start; border-radius: 20px; font-size: 16px; color: white; border: none;
-//               padding: 0.6rem 1rem; background: linear-gradient(#EFA280, #DF6229);">
-//               Connect
-//           </button>
-//       </div>
-//     `;
-//     kdsList.appendChild(kdsDiv);
-//   }
-
-//   function fetchKdsScreens() {
-//     console.log("🔍 Scanning for KDS screens...");
-
-//     function scan() {
-//       window.electronAPI.scanKDS();
-//       window.electronAPI.onKDSFound((kds) => {
-//         const kdsKey = `${kds.ip}:${kds.port}`;
-//         if (!connectedKDS.has(kdsKey)) {
-//           console.log(`✅ New KDS found: ${kdsKey}`);
-//           renderKDS(kds);
-//           connectedKDS.add(kdsKey);
-//         }
-//       });
-//     }
-
-//     scan(); // Only scan once
-//   }
-
-//   fetchKdsScreens();
-
-//   // Ensure only ONE click event listener is added
-//   kdsList.removeEventListener("click", handleKDSClick);
-//   kdsList.addEventListener("click", handleKDSClick);
-
-//   function handleKDSClick(event) {
-//     if (event.target.classList.contains("connect-btn")) {
-//       const ip = event.target.getAttribute("data-ip");
-//       const name = event.target.getAttribute("data-name");
-//       const department = event.target.getAttribute("data-department");
-//       const port = parseInt(event.target.getAttribute("data-port"), 10);
-//       let isConnected = event.target.textContent === "Disconnect";
-//       let connectedKDSList = JSON.parse(localStorage.getItem("connectedKDSList")) || [];
-//       if (isConnected) {
-//         console.log(`🔴 Disconnecting from KDS: ${ip}:${port}`);
-//         connectedKDSList = connectedKDSList.filter((kds) => !(kds.ip === ip && kds.port === port));
-//         localStorage.setItem("connectedKDSList", JSON.stringify(connectedKDSList));
-//         window.electronAPI.disconnectKDS({ ip, port, name, department });
-//         event.target.textContent = "Connect";
-//       } else {
-//         console.log(`🔵 Trying to connect to KDS: ${ip}:${port}`);
-//         window.electronAPI.connectKDS({ ip, port, name, department });
-//       }
-//     }
-//   }
-
-//   // Listen for successful connection
-//   window.electronAPI.onKDSConnected((kds) => {
-//     if (!kds || !kds.ip || !kds.port) return;
-//     let connectedKDSList = JSON.parse(localStorage.getItem("connectedKDSList")) || [];
-
-//     if (!connectedKDSList.some(item => item.ip === kds.ip && item.port === kds.port)) {
-//       connectedKDSList.push(kds);
-//     }
-
-//     localStorage.setItem("connectedKDSList", JSON.stringify(connectedKDSList));
-
-//     const kdsDiv = document.querySelector(`[data-ip="${kds.ip}"][data-port="${kds.port}"]`);
-//     if (kdsDiv) {
-//       const button = kdsDiv.querySelector(".connect-btn");
-//       if (button) button.textContent = "Disconnect";
-//     }
-//   });
-
-//   // Handle errors
-//   window.electronAPI.onKDSError((errorMessage) => {
-//     alert(`❌ KDS Error: ${errorMessage}`);
-//   });
-
-//   // Handle order status updates
-//   window.electronAPI.onOrderStatus((status) => {
-//     alert(`📦 Order Update: ${status}`);
-//   });
-// }
-
-// window.electronAPI.onOrderUpdated((orderData) => {
-//   console.log('✅ Order Updated in Renderer:', orderData);
-// });
-
-// // Function to send order details to main.js
-// async function saveOrderDetails(orderDetails) {
-//   try {
-//     let connectedKDSList = JSON.parse(localStorage.getItem("connectedKDSList")) || [];
-//     console.log(connectedKDSList);
-//     if (connectedKDSList && Array.isArray(connectedKDSList) && connectedKDSList.length > 0) {
-//       if (connectedKDSList.length > 1) {
-//         alert('select kds first');
-//         return false;
-//       } else {
-//         const result = await window.api.invoke('save-order', orderDetails); // Use invoke
-//         console.log('Response from main:', result);
-//         if (result.success) {
-//           window.electronAPI.sendToKDS(connectedKDSList[0].ip, connectedKDSList[0].port, { orderId: result.orderId, orderDetails: orderDetails });
-//           window.electronAPI.onOrderUpdated((orderData) => {
-//             console.log('✅ Order Updated:', orderData);
-
-//             // Remove the order from the UI
-//             const orderElement = document.getElementById(`order-${orderData.order_id}`);
-//             if (orderElement) {
-//               orderElement.remove();
-//             }
-//           });
-
-//           return result.success;
-//         } else {
-//           alert('Something wents wrong!');
-//           return false;
-//         }
-//       }
-//     } else {
-//       alert('Please connect the kds first');
-//       return false;
-//     }
-//   } catch (error) {
-//     console.error("Error saving order:", error);
-//     return false;
-//   }
-// }
-
-
-// function printReceipt() {
-//   // Receipt content
-//   const receiptContent = `
-//     <div style="text-align: center; font-weight: bold;">Sample Receipt</div>
-//     <div style="text-align: center;">--------------------------</div>
-//     <div>Item             Qty   Price</div>
-//     <div>--------------------------</div>
-//     <div>Product 1         x1    $10.00</div>
-//     <div>Product 2         x2    $20.00</div>
-//     <div>--------------------------</div>
-//     <div style="text-align: right;">Total:           $30.00</div>
-//     <div style="text-align: center;">--------------------------</div>
-//   `;
-
-//   // Send a message to the main process to print the receipt
-//   window.api.send('print-receipt', receiptContent);
-
-//   // Listen for response from the main process
-//   window.api.receive('print-receipt-response', (event, message) => {
-//     console.log(message);
-//   });
-// }
-
-// async function fetchOrders() {
-//   try {
-//     const result = await window.api.invoke('fetch-orders');
-
-//     if (result?.success) {
-//       return {
-//         success: true,
-//         data: result.data
-//       }
-//     } else {
-//       return {
-//         success: false,
-//         error: result.error
-//       }
-//     }
-//   } catch (error) {
-//     return {
-//       success: false,
-//       error: error
-//     }
-//   }
-// }
-
-// function showPrinter() {
-//   const printerForm = document.querySelector('.customer_details_form');
-//   const printerTableBody = document.querySelector('tbody');
-
-//   async function updateConnectedPrinterUI() {
-//     alert("here");
-//     console.log("Calling getConnectedPrinter...");
-
-//     try {
-//       const printer = await window.electronAPI.getConnectedPrinter();
-//       console.log("Printer response:", printer);
-
-//       if (!printer || !printer.status) {
-//         console.error("Invalid printer response:", printer);
-//         return;
-//       }
-
-//       printerTableBody.innerHTML = ''; // Clear existing rows
-
-//       if (printer.status === 'connected') {
-//         printerTableBody.innerHTML = `
-//                 <tr>
-//                     <td>1</td>
-//                     <td>Connected Printer</td>
-//                     <td>Network</td>
-//                     <td>${printer.ip}</td>
-//                     <td>${printer.port}</td>
-//                     <td>-</td>
-//                     <td><button class="disconnect-btn">Disconnect</button></td>
-//                 </tr>`;
-
-//         document.querySelector('.disconnect-btn').addEventListener('click', async () => {
-//           await window.electronAPI.connectPrinter({ ip: '', port: '' }); // Disconnect
-//           updateConnectedPrinterUI();
-//         });
-//       }
-//     } catch (error) {
-//       console.error("Error fetching printer:", error);
-//     }
-//   }
-
-
-//   printerForm.addEventListener('submit', async (e) => {
-//     e.preventDefault();
-//     const ip = document.getElementById('printerIP').value;
-//     const port = document.getElementById('printerPort').value;
-
-//     try {
-//       console.log(ip, port);
-//       const result = await window.electronAPI.connectPrinter({ ip, port });
-//       console.log(result);
-//       console.log(`Printer ${result.status} at ${result.ip}:${result.port}`);
-//       updateConnectedPrinterUI();
-//     } catch (error) {
-//       alert(`Error: ${error.message}`);
-//     }
-//   });
-
-//   updateConnectedPrinterUI();
-// }
-
-// const userAPI = {
-//   createUser: async (userDetails) => await window.api.invoke('create-user', userDetails),
-//   fetchUsers: async () => await window.api.invoke('fetch-users'),
-//   deleteUser: async (id) => await window.api.invoke('delete-user', id),
-// };
-
-// const shiftAPI = {
-//   createShift: async (shiftDetails) => await window.api.invoke('create-shift', shiftDetails),
-//   fetchShifts: async () => await window.api.invoke('fetch-shifts'),
-//   updateShift: async (shiftDetails) => await window.api.invoke('update-shift', shiftDetails),
-//   deleteShift: async (id) => await window.api.invoke('delete-shift', id),
-//   checkPunchIn: async (user_id) => await window.api.invoke('check-punch-in', user_id),
-// };
-
-// const breakAPI = {
-//   createBreak: async (breakDetails) => await window.api.invoke('create-break', breakDetails),
-//   fetchBreaks: async () => await window.api.invoke('fetch-breaks'),
-//   deleteBreak: async (id) => await window.api.invoke('delete-break', id),
-// };
-
-// const dayStartAPI = {
-//   createDayStart: async (dayStartDetails) => await window.api.invoke('create-daystart', dayStartDetails),
-//   fetchDayStarts: async () => await window.api.invoke('fetch-daystarts'),
-//   deleteDayStart: async (id) => await window.api.invoke('delete-daystart', id),
-// };
-
-// const selectedMenuItemsAPI = {
-//   createMenuItem: async (menuItemDetails) => await window.api.invoke('create-selected-menu-item', menuItemDetails),
-//   fetchMenuItemsByOrder: async (order_id) => await window.api.invoke('fetch-selected-menu-items', order_id),
-//   fetchAllMenuItems: async () => await window.api.invoke('fetch-all-selected-menu-items'),
-//   updateMenuItem: async (menuItemDetails) => await window.api.invoke('update-selected-menu-item', menuItemDetails),
-//   deleteMenuItem: async (id) => await window.api.invoke('delete-selected-menu-item', id),
-//   deleteAllMenuItems: async () => await window.api.invoke('delete-all-selected-menu-items'),
-// };
-
-// const orderAPI = {
-//   fetchOrderByType: async (orderType) => await window.api.invoke("fetch-order-by-type", orderType),
-//   createNewOrder: async (orderData) => await window.api.invoke("create-new-order", orderData),
-// };
-
-// const tableAPI = {
-//   createTable: async (tableDetails) => await window.api.invoke('create-table', tableDetails),
-//   fetchTables: async () => await window.api.invoke('fetch-tables'),
-//   updateTable: async (tableNumber, updatedDetails) => await window.api.invoke('update-table', tableNumber, updatedDetails),
-//   deleteTable: async (tableNumber) => await window.api.invoke('delete-table', tableNumber),
-//   updateTableSelection: async (tableNumber, order_id, selected) =>
-//     await window.api.invoke('update-table-selection', { tableNumber, order_id, selected }),
-//   updateTableStatus: async (tableNumber, status) =>
-//     await window.api.invoke('update-table-status', tableNumber, status),
-// };
-
-// const menuOffersAPI = {
-//   createMenuOffer: async (offerDetails) => await window.api.invoke('create-menu-offer', offerDetails),
-//   fetchMenuOffers: async () => await window.api.invoke('fetch-menu-offers'),
-//   updateMenuOffer: async (id, updatedDetails) => await window.api.invoke('update-menu-offer', id, updatedDetails),
-//   updateOrderIds: async (id, data) => await window.api.invoke('menuOffers:update', { id: id, order_ids: data }),
-//   deleteMenuOffer: async (id) => await window.api.invoke('delete-menu-offer', id),
-// };
-
-// const databaseAPI = {
-//   fetchAll: async (tableName) => await window.api.invoke('fetch-all', tableName),
-//   fetchById: async (tableName, id) => await window.api.invoke('fetch-by-id', tableName, id),
-//   createEntry: async (tableName, data) => await window.api.invoke('create-entry', tableName, data),
-//   updateEntry: async (tableName, id, newData) => await window.api.invoke('update-entry', tableName, id, newData),
-//   deleteEntry: async (tableName, id) => await window.api.invoke('delete-entry', tableName, id),
-// };
-
-
-// async function deleteallusers() {
-//   const data = await userAPI.deleteUser(4);
-//   const data2 = await userAPI.deleteUser(5);
-//   return {
-//     data,
-//     data2
-//   }
-// }
-
-// console.log(deleteallusers());
-
-// Call the function to fetch and display orders in the console
-
-//=================================================================//
-
-
-
-// // Listen for the confirmation message from the main process
-// window.api.receive("dummy-order-come", (event, message) => {
-//   console.log(message);
-// });
+const kdsAPI = {
+  onConnectionRequest: (callback) => window.posAPI.kds.onConnectionRequest(callback),
+  onConnected: (callback) => window.posAPI.kds.onConnected(callback),
+  onDisconnected: (callback) => window.posAPI.kds.onKDSDisconnected(callback),
+  approveConnection: async (id, approved) => await window.posAPI.kds.approveConnection(id, approved),
+  disconnect: async () => await window.posAPI.kds.disconnect()
+};
+
+// Format the KDS name (you can customize this if needed)
+function formatKdsName(kdsId) {
+  return kdsId?.split(':')[0]; // Extract IP only if needed
+}
+
+// Show connected KDS status
+window.posAPI.kds.onKDSConnected((data) => {
+  const ip = formatKdsName(data.kdsId);
+  document.getElementById('kds-status').textContent = `✅ Connected to ${ip}`;
+});
+
+// Show disconnected status
+window.posAPI.kds.onKDSDisconnected(() => {
+  document.getElementById('kds-status').textContent = '❌ No KDS connected';
+});
+
+// Handle incoming data from KDS
+window.posAPI.kds.onKDSData(({ kdsId, data }) => {
+  const ip = formatKdsName(kdsId);
+  const log = document.createElement('div');
+  log.textContent = `📨 Message from ${ip}: ${JSON.stringify(data)}`;
+  document.getElementById('log').appendChild(log);
+});
+
+// Optional: Disconnect all KDS on button click
+document.getElementById('disconnect-btn').addEventListener('click', () => {
+  window.posAPI.kds.disconnectAllKDS();
+});
+
+// Optional: Send test data to all connected KDS clients
+document.getElementById('broadcast-btn').addEventListener('click', () => {
+  const testData = {
+    message: 'Hello from POS!',
+    timestamp: new Date().toISOString()
+  };
+  window.posAPI.kds.broadcastData(testData);
+});

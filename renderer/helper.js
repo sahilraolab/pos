@@ -79,6 +79,15 @@ function generateIdWithTimestamp(prefix = "id") {
     return `${prefix}_${timestamp}_${random}`;
 }
 
+function formatOrderId(rawId) {
+    const timestamp = parseInt(rawId.split("_")[1], 10);
+    const date = new Date(timestamp);
+    const datePart = date.toISOString().slice(0, 10).replace(/-/g, ''); // e.g. 20250531
+    const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase(); // 6-char code
+    return `ORD-${datePart}-${randomSuffix}`;
+}
+
+
 
 function convertToDBTimeFormat(isoString) {
     const POS_INFO = JSON.parse(localStorage.getItem("POS_INFO"));
@@ -123,7 +132,7 @@ function convertToDBTimeFromat(value) {
 }
 
 
-async function toggleOrderType(type) {
+async function toggleOrderType(type, newOrder) {
     showLoader();
     setActiveOrderType(type);
     const dashboardSection = document.getElementById("dashboardSection");
@@ -140,10 +149,8 @@ async function toggleOrderType(type) {
 
     const orders = await storeAPI.get('orders') || [];
 
-    console.log(orders);
     // Check if a similar order (same type, status=start) already exists
-    const existingOrder = orders.find(order => order.orderType === type && order.status === 'start');
-
+    const existingOrder = orders.find(order => order.orderType === type && !order.onHold && (order.status === 'start' || order.status === "in-kitchen"));
     if (!existingOrder) {
         // If not found, create and save the new order
         const newOrder = { id: orderId, orderType: type, status: 'start' };
@@ -153,6 +160,7 @@ async function toggleOrderType(type) {
         console.log("New order added:", newOrder);
         localStorage.setItem(type, newOrder.id);
     } else {
+        localStorage.setItem(type, existingOrder.id);
         console.log("Order with same type and status 'start' already exists. Not adding a new one.");
     }
 
@@ -605,10 +613,38 @@ async function orderSummaryHandle() {
     `;
 
     if (orderSummary.order.orderType === "quick-service") {
-        document.querySelector('.menu_bills_btn').innerHTML = `
+        document.querySelector('.menu_offers').classList.remove('hidden');
+        if (document.querySelector('.customer_details').classList.toString().includes('hidden')) {
+            document.querySelector('.menu_bills_btn').innerHTML = `
             <button onclick="resetOrderDetails()">Item</button>
-            <button onclick="handleQuickPlaceOrder()">Place Order</button>
+            <button onclick="handlePlaceOrder()">Place Order</button>
         `;
+        } else {
+            document.querySelector('.menu_bills_btn').innerHTML = `
+        <button style="width: 50%;" onclick="handlePayment()">Payment</button>
+        `;
+        }
+    } else if (orderSummary.order.orderType === "pickup") {
+        if (document.querySelector('.customer_details').classList.toString().includes('hidden')) {
+            document.querySelector('.menu_offers').classList.add('hidden');
+            document.querySelector('.menu_bills_btn').innerHTML = `
+            <button onclick="resetOrderDetails()">Item</button>
+            <button onclick="handlePlaceOrder()">Place Order</button>
+        `;
+        } else if (orderSummary.status = "in-kitchen") {
+            document.querySelector('.menu_offers').classList.remove('hidden');
+            document.querySelector('.menu_bills_btn').innerHTML = `
+            <button style="" onclick="newOrderCreation()">New</button>
+            <button onclick="printBill(false)">Print Bill</button>
+            <button onclick="handlePayment(true)">Payment</button>
+        `;
+        } else {
+            document.querySelector('.menu_offers').classList.add('hidden');
+            document.querySelector('.menu_bills_btn').innerHTML = `
+            <button onclick="saveKot(false)">Save Kot</button>
+            <button onclick="saveKot(true)">Save & Print Kot</button>
+        `;
+        }
     }
 }
 
@@ -635,7 +671,7 @@ const resetOrderDetails = async () => {
     hideLoader();
 }
 
-const handleQuickPlaceOrder = async () => {
+const handlePlaceOrder = async () => {
     showLoader();
 
     const orderTypes = await storeAPI.get('orderTypes');
@@ -673,9 +709,21 @@ const handleQuickPlaceOrder = async () => {
 
     document.querySelector('.selected_menu').classList.add('hidden');
     document.querySelector('.customer_details').classList.remove('hidden');
-    document.querySelector('.menu_bills_btn').innerHTML = `
-        <button style="width: 50%;" onclick="handleQuickBillPayment()">Payment</button>
+
+    console.log(order);
+
+    if (order.orderType === "quick-service") {
+        document.querySelector('.menu_offers').classList.remove('hidden');
+        document.querySelector('.menu_bills_btn').innerHTML = `
+        <button style="width: 50%;" onclick="handlePayment()">Payment</button>
         `;
+    } else if (order.orderType === "pickup") {
+        document.querySelector('.menu_offers').classList.add('hidden');
+        document.querySelector('.menu_bills_btn').innerHTML = `
+            <button onclick="saveKot(false)">Save Kot</button>
+            <button onclick="saveKot(true)">Save & Print Kot</button>
+        `;
+    }
 
     hideLoader();
 }
@@ -686,9 +734,42 @@ const handleBackToMenuList = async () => {
     const orderTypes = await storeAPI.get('orderTypes');
     const activeType = orderTypes.find(i => i.isActive)?.category;
     if (activeType === "quick-service") {
+        document.querySelector('.menu_offers').classList.remove('hidden');
         document.querySelector('.menu_bills_btn').innerHTML = `
             <button onclick="resetOrderDetails()">Item</button>
-            <button onclick="handleQuickPlaceOrder()">Place Order</button>
+            <button onclick="handlePlaceOrder()">Place Order</button>
+        `;
+    } else if (activeType === "pickup") {
+        document.querySelector('.menu_offers').classList.add('hidden');
+        document.querySelector('.menu_bills_btn').innerHTML = `
+            <button onclick="resetOrderDetails()">Item</button>
+            <button onclick="handlePlaceOrder()">Place Order</button>
         `;
     }
+}
+
+function formatKdsName(kdsId) {
+    // Example: "::ffff:192.168.31.14:52216"
+
+    // Remove IPv6-mapped IPv4 prefix "::ffff:"
+    let cleaned = kdsId.replace(/^::ffff:/, '');
+
+    // Remove port (after last colon)
+    let ipOnly = cleaned.split(':')[0];
+
+    return ipOnly; // "192.168.31.14"
+}
+
+
+const newOrderCreation = async () => {
+    showLoader();
+    const orderTypes = await storeAPI.get('orderTypes');
+    const activeType = orderTypes.find(i => i.isActive)?.category;
+    const orderId = localStorage.getItem(activeType);
+    const orders = await storeAPI.get('orders');
+    const order = orders.find(i => i.id === orderId);
+    order.onHold = true; 
+    await storeAPI.updateItem('orders', order.id, order);
+    toggleOrderType(order.orderType);
+    hideLoader();
 }

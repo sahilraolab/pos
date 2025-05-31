@@ -272,7 +272,7 @@ async function fetchCustomerOrderHistory() {
 let orderData = {};
 let paymentTypesList = [];
 
-const handleQuickBillPayment = async () => {
+const handlePayment = async () => {
     showLoader();
 
     const orderTypes = await storeAPI.get('orderTypes');
@@ -281,6 +281,11 @@ const handleQuickBillPayment = async () => {
     const orders = await storeAPI.get('orders');
     const order = orders.find(i => i.id === orderId);
     orderData = order;
+
+    if (!order?.customer?.name) {
+        hideLoader();
+        return;
+    }
 
     const paymentTypes = await storeAPI.get('paymentTypes');
     paymentTypesList = paymentTypes;
@@ -401,8 +406,14 @@ async function submitSplitPayment() {
         orderData.status = "settle";
         console.log("Settled Order: ", orderData);
         await storeAPI.updateItem('orders', orderData.id, orderData);
-        document.getElementById('paymentModel').classList.add('hidden');
-        toggleOrderType('quick-service');
+        const result = await storeAPI.get('orders');
+        const filterResult = result.find(o => o.id === orderData.id);
+        if (filterResult) {
+            document.getElementById('paymentModel').classList.add('hidden');
+            toggleOrderType(orderData.orderType);
+        } else {
+            alert('Someting wents wrong');
+        }
     } else {
         return;
     }
@@ -411,14 +422,76 @@ async function submitSplitPayment() {
 
 async function printBill() {
     showLoader();
+
     const orderTypes = await storeAPI.get('orderTypes');
     const activeType = orderTypes.find(i => i.isActive)?.category;
     const orderId = localStorage.getItem(activeType);
     const orders = await storeAPI.get('orders');
     const order = orders.find(i => i.id === orderId);
 
-    console.log(order);
+    const POS_INFO = JSON.parse(localStorage.getItem("POS_INFO"));
 
-    alert("🖨️ Printing bill...");
+    const line = (text = '', width = 32) => text.padEnd(width);
+    const center = (text = '', width = 32) => {
+        const space = Math.floor((width - text.length) / 2);
+        return ' '.repeat(space) + text;
+    };
+
+    const buildReceipt = () => {
+        const {
+            name, street, city, state, phone, country_code
+        } = POS_INFO;
+
+        const {
+            items, customer, summary, paymentInfo
+        } = order;
+
+        let receipt = '';
+        receipt += center(name?.toUpperCase() || '') + '\n';
+        receipt += center(`${street || ''}, ${city || ''}, ${state || ''}`) + '\n';
+        receipt += center(`Phone: ${country_code || ''} ${phone || ''}`) + '\n';
+        receipt += '-'.repeat(32) + '\n';
+        receipt += line('Item              Qty  Amt') + '\n';
+        receipt += '-'.repeat(32) + '\n';
+
+        items.forEach(item => {
+            const name = item.name.slice(0, 16).padEnd(16);
+            const qty = String(item.quantity).padStart(3);
+            const price = String(item.total_price).padStart(5);
+            receipt += `${name} ${qty} ${price}\n`;
+        });
+
+        receipt += '-'.repeat(32) + '\n';
+        receipt += line(`Subtotal        ${summary?.subtotal || 0}`) + '\n';
+        if (summary?.tax) {
+            receipt += line(`Tax             ${summary.tax}`) + '\n';
+        }
+        receipt += line(`Total           ${summary?.total || 0}`) + '\n';
+
+        const payment = paymentInfo?.payments?.[0];
+        if (payment) {
+            receipt += `Paid By: ${payment.typeName}\n`;
+        }
+
+        if (customer?.name) {
+            receipt += `Customer: ${customer.name}\n`;
+        }
+
+        receipt += '-'.repeat(32) + '\n';
+        receipt += center('Thank you for your visit!') + '\n\n\n';
+
+        return receipt;
+    };
+
+    const finalReceipt = buildReceipt();
+
+    const result = await printerAPI.print(finalReceipt);
+
+    if (result.success) {
+        alert('✅ Printed and drawer opened');
+    } else {
+        alert('❌ Print failed: ' + result.error);
+    }
+
     hideLoader();
 }

@@ -477,6 +477,7 @@
                     <button class="light-btn" data-setting="kds" style="padding: .2rem .8rem; font-size: 15px;">Kitchen
                         Display</button>
                 </div>
+                <div id="kds-status"></div>
                 <div id="generalContainer" class="hidden">
                     <h2 style="margin-top: 2rem;">General</h2>
                     <div>
@@ -499,21 +500,38 @@
                         </div>
                     </div>
                 </div>
-                <div id="printerContainer" class="hidden"
-                    style="background-color: white; padding: 1rem; margin-top: 2rem; border-radius: 20px; position: relative; flex-grow: 1;">
+                <div id="printerContainer" style="background-color: white; padding: 1rem; border-radius: 10px;">
                     <h1>Printer Settings</h1>
-                    <button id="refreshPrinters">Refresh Printers</button>
+
+                    <!-- USB Printers -->
+                    <h3>🖨️ USB Printers</h3>
+                    <button onclick="refreshPrinters()">Refresh USB Printers</button>
                     <ul id="printerList"></ul>
-                    <h3>Default Printer:</h3>
                     <p id="defaultPrinter">Loading...</p>
-                    <button id="printTest">Print Test & Open Cash Drawer</button>
+                    <button onclick="printUSBTest()">🖨️ USB Print Test</button>
+
+                    <!-- Network Printer -->
+                    <h3>🌐 Network Printer</h3>
+                    <input id="networkIP" placeholder="IP Address" />
+                    <input id="networkPort" placeholder="Port (default 9100)" />
+                    <br>
+                    <button onclick="setNetworkPrinter()">Set Network Printer</button>
+                    <button onclick="testNetworkPrinter()">Test Network Print</button>
+                    <p id="networkPrinterInfo">Not Set</p>
+
+                    <!-- Removed Serial Printer Section -->
                 </div>
-                <div id="kdsContainer" class="hidden">
-                    <h2 style="margin-top: 2rem;">Select Display</h2>
-                    <div class=""
-                        style="background-color: white; padding: 1rem; margin-top: 2rem; border-radius: 20px; position: relative; flex-grow: 1;">
-                        <div id="kdsList" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
-                    </div>
+                <div id="status-bar">
+                    <span id="kds-status">🔌 Waiting for KDS connection...</span>
+                </div>
+
+                <div id="controls">
+                    <button id="broadcast-btn">Broadcast Test Data</button>
+                    <button id="disconnect-btn">Disconnect All KDS</button>
+                </div>
+
+                <div id="log">
+                    <strong>📋 Log:</strong><br />
                 </div>
             </main>
 
@@ -1131,7 +1149,7 @@
         </div>
     </div>
 
-    <script src="../preload.js"></script>
+    <!-- <script src="../preload.js"></script> -->
     <script src="variables.js"></script>
     <script src="renderer.js"></script>
     <script src="index.js"></script>

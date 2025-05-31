@@ -109,7 +109,7 @@ async function initialFirstScreen() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ code: posId, password: password }),
                     credentials: "include" // 🔥 This tells fetch to allow cookies
-                });
+                }); Float32Array
 
 
                 const data = await response.json();
@@ -831,7 +831,7 @@ async function showSelectedMenuList() {
 
     const filterOrder = orders.find(i => i.id === orderId);
 
-    const selectedItems = filterOrder.items;
+    const selectedItems = filterOrder?.items;
 
     if (selectedItems && selectedItems.length > 0) {
         await orderSummaryHandle();
@@ -921,8 +921,23 @@ async function showSelectedMenuList() {
             });
         });
 
-        if (filterOrder?.customer && filterOrder?.customer?.name) {
-            handleQuickPlaceOrder();
+        if (filterOrder.status === "in-kitchen") {
+            const customerInfo = document.querySelector('.customer_info');
+            customerInfo.innerHTML = `
+            <p style="font-size: 25px; font-weight: 450; color: #19191C;">${filterOrder.customer.name}</p>
+            <p style=" font-size: 15px; color: #19191C; font-weight: 400; border-bottom: 3px solid #F4F4F4; padding-bottom: 10px;">Order ID #<span>${filterOrder.id.split("_")[1]}</span></p>
+        `;
+            document.querySelector('.menu_offers').classList.remove('hidden');
+            document.querySelector('.menu_bills_btn').innerHTML = `
+            <button style="" onclick="newOrderCreation()">New</button>
+            <button onclick="printBill(false)">Print Bill</button>
+            <button onclick="handlePayment(true)">Payment</button>
+        `;
+            customerInfo.classList.remove('hidden');
+            document.querySelector('.selected_menu').classList.remove('hidden');
+            document.querySelector('.customer_details').classList.add('hidden');
+        } else if (filterOrder?.customer && filterOrder?.customer?.name) {
+            handlePlaceOrder();
         } else {
             handleBackToMenuList();
         }
@@ -1306,29 +1321,10 @@ function showSettingScreen() {
 
 function showGeneralSettings() {
     const printerContainer = document.getElementById('printerContainer');
-    const kdsContainer = document.getElementById("kdsContainer");
     const generalContainer = document.getElementById("generalContainer");
-    kdsContainer.classList.add('hidden');
     generalContainer.classList.remove('hidden');
     printerContainer.classList.add('hidden');
 }
-
-async function showPrinterSettings() {
-    const printerContainer = document.getElementById('printerContainer');
-    const kdsContainer = document.getElementById("kdsContainer");
-    const generalContainer = document.getElementById("generalContainer");
-    kdsContainer.classList.add('hidden');
-    generalContainer.classList.add('hidden');
-    printerContainer.classList.remove('hidden');
-    // Initial UI load
-    await renderPrinters();
-    await loadDefaultPrinter();
-}
-
-function showKdsSettings() {
-    alert('kds');
-}
-
 
 
 async function handleInputChange(e) {
@@ -1399,45 +1395,127 @@ async function handleInputChange(e) {
     console.log("✅ Updated order:", order);
 }
 
+async function showPrinterSettings() {
+    const printerContainer = document.getElementById('printerContainer');
+    const generalContainer = document.getElementById("generalContainer");
 
-// Renders list of printers with buttons to set default
-const renderPrinters = async () => {
+    generalContainer.classList.add('hidden');
+    printerContainer.classList.remove('hidden');
+
+    await renderPrinters();
+    await loadDefaultPrinter();
+    await loadNetworkPrinter();
+    // Removed: await loadSerialPrinter();
+}
+
+async function renderPrinters() {
     const printerList = document.getElementById('printerList');
     const printers = await printerAPI.list();
     printerList.innerHTML = '';
 
-    if (printers.length === 0) {
+    if (!printers || printers.length === 0) {
         printerList.innerHTML = '<p>No USB printers found.</p>';
         return;
     }
 
-    printers.forEach(printer => {
+    printers.forEach((printer, index) => {
         const btn = document.createElement('button');
         btn.textContent = `USB Printer ${printer.vendorId}:${printer.productId}`;
-        btn.onclick = async () => {
-            await printerAPI.setDefault(printer);
-            await loadDefaultPrinter();
-            alert('✅ Default printer set');
-        };
+        btn.setAttribute('onclick', `setUSBPrinter(${index})`);
         btn.style.margin = '5px';
         printerList.appendChild(btn);
     });
-};
 
-// Displays the default printer
-const loadDefaultPrinter = async () => {
-    const printer = await printerAPI.getDefault();
-    const defaultPrinterDisplay = document.getElementById('defaultPrinter');
-    defaultPrinterDisplay.textContent = printer
-        ? `🖨️ Default Printer: USB ${printer.vendorId}:${printer.productId}`
-        : '⚠️ No default printer set';
-};
-
-const printDataHere = async () => {
-    const result = await printerAPI.print('🧾 Hello from POS! This is your receipt.\n\n');
-    if (result.success) {
-        alert('✅ Printed and drawer opened');
-    } else {
-        alert('❌ Print failed: ' + result.error);
-    }
+    window.usbPrinters = printers; // Store globally for later reference
 }
+
+async function setUSBPrinter(index) {
+    const printer = window.usbPrinters[index];
+    await printerAPI.setDefault(printer);
+    await loadDefaultPrinter();
+    alert('✅ USB Default printer set');
+}
+
+async function loadDefaultPrinter() {
+    const printer = await printerAPI.getDefault();
+    const display = document.getElementById('defaultPrinter');
+    display.textContent = printer
+        ? `🖨️ USB ${printer.vendorId}:${printer.productId}`
+        : '⚠️ No USB default printer set';
+}
+
+async function loadNetworkPrinter() {
+    const printer = await printerAPI.getNetwork();
+    const display = document.getElementById('networkPrinterInfo');
+    display.textContent = printer
+        ? `🌐 IP: ${printer.ip}, Port: ${printer.port}`
+        : '⚠️ No network printer set';
+}
+
+async function refreshPrinters() {
+    await renderPrinters();
+}
+
+async function printUSBTest() {
+    const result = await printerAPI.print('🖨️ USB Print Test\n\n');
+    alert(result.success ? '✅ Printed' : '❌ ' + result.error);
+}
+
+async function setNetworkPrinter() {
+    const ip = document.getElementById('networkIP').value;
+    const port = parseInt(document.getElementById('networkPort').value || '9100');
+    if (!ip) return alert('❌ Please enter IP address');
+    await printerAPI.setNetwork(ip, port);
+    await loadNetworkPrinter();
+    alert('✅ Network printer set');
+}
+
+async function testNetworkPrinter() {
+    const result = await printerAPI.printNetwork('🌐 Network Print Test\n\n');
+    alert(result.success ? '✅ Printed' : '❌ ' + result.error);
+}
+
+// Removed serial printer functions:
+// setSerialPrinter()
+// testSerialPrinter()
+// loadSerialPrinter()
+
+
+const saveKot = async (print) => {
+    showLoader();
+
+    const orderTypes = await storeAPI.get('orderTypes');
+    const activeType = orderTypes.find(i => i.isActive)?.category;
+    const orderId = localStorage.getItem(activeType);
+    const orders = await storeAPI.get('orders');
+    const order = orders.find(i => i.id === orderId);
+
+    if (!order?.customer?.name) {
+        hideLoader();
+        return;
+    }
+
+    // save & print logic, after this: 
+
+    order.status = "in-kitchen";
+
+    await storeAPI.updateItem('orders', order.id, order);
+
+    const customerInfo = document.querySelector('.customer_info');
+    customerInfo.innerHTML = `
+            <p style="font-size: 25px; font-weight: 450; color: #19191C;">${order.customer.name}</p>
+            <p style=" font-size: 15px; color: #19191C; font-weight: 400; border-bottom: 3px solid #F4F4F4; padding-bottom: 10px;">Order ID #<span>${order.id.split("_")[1]}</span></p>
+        `;
+    document.querySelector('.menu_offers').classList.remove('hidden');
+    document.querySelector('.menu_bills_btn').innerHTML = `
+            <button style="" onclick="newOrderCreation()">New</button>
+            <button onclick="printBill(false)">Print Bill</button>
+            <button onclick="handlePayment(true)">Payment</button>
+        `;
+    customerInfo.classList.remove('hidden');
+    document.querySelector('.selected_menu').classList.remove('hidden');
+    document.querySelector('.customer_details').classList.add('hidden');
+
+    hideLoader();
+}
+
